@@ -39,7 +39,7 @@ class MetaLanguages(type):
 	def current(cls) -> Language | None:
 		return cls._current
 
-	@property.setter
+	@current.setter
 	def current(cls, new_current: Language | str | None) -> None:  # TODO test setting ways
 		name = get_name(new_current)
 		if new_current is None or name in cls._languages:
@@ -85,6 +85,9 @@ class Morpheme:
 		languages.associate(self)
 		self._form: str = form  # TODO think of class
 
+	def __call__(self, to_apply_to: str):
+		raise NotImplementedError
+
 	@property
 	def form(self) -> str:
 		return self._form
@@ -93,3 +96,75 @@ class Morpheme:
 		languages[lang].associate(self)
 		return self
 
+
+# Affixes
+# def Affix():
+# 	pass
+
+
+class Affix(Morpheme):
+	pass
+
+
+class Adfix(Affix):
+	pass
+
+
+class Prefix(Adfix):
+	pass
+
+
+class Postfix(Adfix):
+	pass
+
+
+class Infix(Affix):  # tmesis
+	pass
+
+class Interfix(Affix):
+	pass
+
+
+# ?? Simulfix 	mouse → mice == ?
+# ?? Suprafix  pro'duce vs 'produce  ?= vocalic
+
+# end affixes
+
+
+class Reduplication(Morpheme):
+	pass
+
+
+class Suppletion(Morpheme):
+	pass
+
+
+class Conversion(Morpheme):
+	pass
+
+
+# Vocalics
+class Vocalic(Morpheme):  # Stress, Tone, Tonality, pitch-accent, etc.
+	pass
+
+# end vocalics
+
+
+class Truncation(Morpheme):
+	pass
+
+
+class Blend(Morpheme):
+	pass
+
+
+class Abbreviation(Morpheme):
+	pass
+
+
+class Compound(Morpheme):
+	pass
+
+
+class Incorporation(Morpheme):
+	pass
