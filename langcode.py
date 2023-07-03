@@ -6,7 +6,7 @@ from collections import deque
 
 
 def get_name(instance):
-	return instance.name if 'name' in instance.__dict__ else instance if isinstance(instance, str) else None
+	return instance.name if 'name' in instance.__dir__ else instance if isinstance(instance, str) else None
 
 
 class MetaLanguages(type):
