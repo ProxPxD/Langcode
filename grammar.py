@@ -1,24 +1,24 @@
 from parsimonious.grammar import Grammar
 
-# cond_expr               = (cond cond_sep (single_expr // pm) (else_sep (single_expr // pm))?) / (cond cond_sep else_sep (single_expr // pm))
+# cond_whole               = (cond cond_sep (single_expr // pm) (else_sep (single_expr // pm))?) / (cond cond_sep else_sep (single_expr // pm))
 
 grammar = Grammar(
     r"""
-    main                    = (context context_sep)? ordered_expr
+    main                    = (context context_sep)? ordered_whole
     context                 = ""
-    ordered_expr            = (same_order_expr        / (l same_order_expr r))          (diff_order_sep ordered_expr)? 
-    same_order_expr         = (single_same_order_expr / (l single_same_order_expr r))   (same_order_sep same_order_expr)? 
-    single_same_order_expr  = (cond_expr / complex_expr)
-    cond_expr               = (cond cond_sep cond_quasi_expr (else_sep cond_quasi_expr)?) / (cond cond_sep else_sep cond_quasi_expr)
-    cond_quasi_expr         = single_expr / pm
-    cond                    = basic_cond (or_sep cond)?
+    ordered_whole           = (same_order_whole        / (l same_order_whole r))          (diff_order_sep ordered_whole)? 
+    same_order_whole        = (same_order_single / (l same_order_single r))   (same_order_sep same_order_whole)? 
+    same_order_single       = (cond_whole / morpheme)
+    cond_whole              = (complex_cond cond_sep cond_quasi_expr (else_sep cond_quasi_expr)?) / (complex_cond cond_sep else_sep cond_quasi_expr)
+    cond_quasi_expr         = morpheme_single / pm
+    complex_cond            = basic_cond (or_sep complex_cond)?
     basic_cond              = not? ((alph_expr minus) / (minus alph_expr))
-    complex_expr            = single_expr_inter / single_expr
-    single_expr             = single_expr_circum / single_expr_pre / single_expr_post
-    single_expr_pre         = (alph_expr pm) single_expr_pre?
-    single_expr_post        = (pm alph_expr) single_expr_post?
-    single_expr_circum      = alph_expr pm alph_expr
-    single_expr_inter       = (minus alph_expr minus) / (plus alph_expr plus)
+    morpheme                = interfix / morpheme_single
+    morpheme_single         = circumfix / prefix / postfix
+    prefix                  = (alph_expr pm) prefix?
+    postfix                 = (pm alph_expr) postfix?
+    circumfix               = alph_expr pm alph_expr
+    interfix                = (minus alph_expr minus) / (plus alph_expr plus)
 
     alph_expr               = (opt_expr alph_expr?) / (alph_full alph_expr?) 
     opt_expr                = (alph opt) / (l alph_full r opt)
@@ -68,7 +68,7 @@ grammar = Grammar(
 # ''').parse('a?b')
 #
 # Grammar('''
-#     t_cond_expr               = t_cond t_cond_sep t_single_expr (t_else_sep t_single_expr)?
+#     t_cond_whole               = t_cond t_cond_sep t_single_expr (t_else_sep t_single_expr)?
 #     t_cond                    = (t_alph_expr t_minus) / (t_minus t_alph_expr)
 #
 #     t_single_expr             = (t_alph_expr t_pm) / (t_pm t_alph_expr)
