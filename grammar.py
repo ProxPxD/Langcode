@@ -1,19 +1,26 @@
+import parsimonious.expressions
 from parsimonious.grammar import Grammar
 from parsimonious.nodes import NodeVisitor
 
+# cond_expr               = (cond cond_sep (single_expr // pm) (else_sep (single_expr // pm))?) / (cond cond_sep else_sep (single_expr // pm))
 
 grammar = Grammar(
     r"""
     main                    = (context context_sep)? ordered_expr
     context                 = ""
-    ordered_expr            = same_order_expr        (diff_order_sep ordered_expr)? 
-    same_order_expr         = single_same_order_expr (same_order_sep same_order_expr)? 
-    single_same_order_expr  = cond_expr / single_expr
-    cond_expr               = (cond cond_sep single_expr (else_sep single_expr)?) / (cond cond_sep else_sep single_expr)
-    cond                    = not? ((alph_expr minus) / (minus alph_expr))
-    single_expr             = single_expr_pre / single_expr_post
+    ordered_expr            = (same_order_expr        / (l same_order_expr r))          (diff_order_sep ordered_expr)? 
+    same_order_expr         = (single_same_order_expr / (l single_same_order_expr r))   (same_order_sep same_order_expr)? 
+    single_same_order_expr  = (cond_expr / complex_expr)
+    cond_expr               = (cond cond_sep cond_quasi_expr (else_sep cond_quasi_expr)?) / (cond cond_sep else_sep cond_quasi_expr)
+    cond_quasi_expr         = single_expr / pm
+    cond                    = basic_cond (or_sep cond)?
+    basic_cond              = not? ((alph_expr minus) / (minus alph_expr))
+    complex_expr            = single_expr_inter / single_expr
+    single_expr             = single_expr_circum / single_expr_pre / single_expr_post
     single_expr_pre         = (alph_expr pm) single_expr_pre?
     single_expr_post        = (pm alph_expr) single_expr_post?
+    single_expr_circum      = alph_expr pm alph_expr
+    single_expr_inter       = (minus alph_expr minus) / (plus alph_expr plus)
 
     alph_expr               = (opt_expr alph_expr?) / (alph_full alph_expr?) 
     opt_expr                = (alph opt) / (l alph_full r opt)
@@ -27,12 +34,14 @@ grammar = Grammar(
     not                     = "~"
     l                       = "("
     r                       = ")"
+    ref                     = "&"
     
     context_sep             = ~r"\s*@\s*"
     diff_order_sep          = ~r"\s*;\s*"
     same_order_sep          = ~r"\s*,\s*"
     cond_sep                = ~r"\s*\?\s*"
     else_sep                = ~r"\s*:\s*"
+    or_sep                  = ~r"\s*\|\s*"
     """
 )
 #((alph+ opt)? alph_expr) /
@@ -47,6 +56,9 @@ if should_print := 0:
     print('alph expr children:')
     for child in alph_expr.children:
         print(f'  - {child.expr.name:10}: ', child.text)
+# parsimonious.expressions.Quantifier
+# seq = parsimonious.expressions.Sequence()
+# seq.parse()
 #print(tree)
 #iv = NodeVisitor()
 #output = iv.visit(tree)
