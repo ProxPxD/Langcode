@@ -6,8 +6,8 @@ from functools import reduce
 from parsimonious.grammar import Grammar
 from parsimonious.nodes import NodeVisitor, Node
 
-from langcode import FormPotential
-from tests.testutils import reapply, to_last_list
+from langcode import FormPotential, Postfix
+from utils import reapply, to_last_list, clean_empty
 
 
 @dataclass
@@ -154,8 +154,8 @@ class GrammarVisitor(NodeVisitor):
         #return self._visit_operations(node, T.prefix, visited_children)
 
     def visit_postfix(self, node: Node, visited_children):
-        return
-        #return self._visit_operations(node, T.postfix, visited_children)
+        op, content = to_last_list(clean_empty(visited_children))
+        return Postfix(content, op)
 
     def visit_interfix(self, node: Node, visited_children: list[Node]):
         op1, inter, op2 = self._to_text(node.children[0].children)
