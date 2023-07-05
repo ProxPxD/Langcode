@@ -87,7 +87,7 @@ class AbstractTest(unittest.TestCase, abc.ABC):
             ef_division = f' (Failures: {100 * failure / total_run:.1f}%, Errors: {100 * errors / total_run:.1f}%)' if errors else ''
             statistics_str = f'Failed: {100 * failed / total_run:.1f}%{ef_division}, Passed: {100 * passed / total_run:.1f}%'
 
-        if (not short or percentage) and skipped:
+        if skipped and (not short or percentage):
             statistics_str += f'   (Skipped: {skipped})'
 
         print(statistics_str)
