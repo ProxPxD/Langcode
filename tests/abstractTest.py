@@ -72,8 +72,8 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         if total is None:
             total = cls.total
         failed = failure + errors
-        total_run = total - failed
-        passed = total_run - skipped
+        total_run = total - skipped
+        passed = total_run - failed
         if short:
             print(f'({failure}F, {errors}E, {passed}P)/{total_run},    {skipped}S ')
         else:
