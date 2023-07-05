@@ -17,6 +17,8 @@ class Terms:
 
     plus = 'plus'
     minus = 'minus'
+    l = 'l'
+    r = 'r'
 
     operation = 'operation'  # prefix, postfix, etc.
     operation_type = 'operation_type'  # +/-
@@ -75,16 +77,23 @@ class GrammarVisitor(NodeVisitor):
         return {T.context: None, T.ordered_expressions: ordered_expressions}
 
     def visit_ordered_expressions(self, node: Node, visited_children):
-        curr = visited_children[0]
+        curr = self._debracketify(visited_children[0])
         if isinstance(visited_children[1], list):
             curr.extend(visited_children[1][0][1])
         return curr
 
     def visit_same_order_whole(self, node: Node, visited_children):
-        curr = visited_children[0][0]
+        curr = self._debracketify(visited_children[0][0])
         if isinstance(visited_children[1], list):
             curr.extend(visited_children[1][0][1])
         return curr
+
+    def _debracketify(self, to_debracketify):
+        if not len(to_debracketify):
+            return to_debracketify
+        if isinstance(to_debracketify[0], Node) and to_debracketify[0].expr_name == T.l:
+            return to_debracketify[1]
+        return to_debracketify
 
     def visit_same_order_single(self, node: Node, visited_children):
         return visited_children[0]
@@ -132,7 +141,7 @@ class GrammarVisitor(NodeVisitor):
 
 v = GrammarVisitor()
 #-p-c
-parsed = grammar.parse('-p+f,a+;j+a,+s')  # '+p,q+;x-,-y'  # +o+,-i-
+parsed = grammar.parse('(-p+f),a+;j+a,(+s)')  # '-p+f,a+;j+a,+s'
 output = v.visit(parsed)
 #print('#'*100)
 #print(parsed)
@@ -149,7 +158,7 @@ if visit := True:
             print(f'\t\t\t{j+1}. {same_order}')
 
     print('\n'*3)
-    print(output)
+    #print(output)
 
 #((alph+ opt)? alph_expr) /
 # text = '-an+ta'
