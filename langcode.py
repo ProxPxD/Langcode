@@ -211,7 +211,7 @@ class NullMorpheme(Morpheme):
 class Affix(Morpheme, ABC):
     def __init__(self, content: str, operation_type: str = O.dot):
         super().__init__(self)
-        self.content: str = content
+        self.content: FormPotential = FormPotential(content)
         self.kind: str = operation_type
 
 
@@ -223,7 +223,7 @@ class Prefix(Adfix):
     def apply_to(self, form: str, kind: str = None) -> str:
         kind = kind or self.kind
         match kind:
-            case O.plus:  return self.content + form
+            case O.plus:  return self.content + form  # TODO last: how to economically use FormPotential?
             case O.minus: return form.removeprefix(self.content)
             case O.dot:   return self.apply_to(form, O.minus if form.startswith(self.content) else O.plus)
 
