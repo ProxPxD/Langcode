@@ -75,9 +75,9 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         total_run = total - failed
         passed = total_run - skipped
         if short:
-            print(f'({failure}F, {errors}E, {passed}P)/{total_run},  {skipped}S ')
+            print(f'({failure}F, {errors}E, {passed}P)/{total_run},    {skipped}S ')
         else:
-            print(f'Failed: {failed} (Failures: {failure}, Errors: {errors}), Passed: {passed}, Total: {total_run} (Skpped: {skipped})')
+            print(f'Failed: {failed} (Failures: {failure}, Errors: {errors}), Passed: {passed}, Total: {total_run}   (Skpped: {skipped})')
         if percentage:
             print(
                 f'Failed: {100 * failed / total_run:.1f}% (Failures: {100 * failure / total_run:.1f}%, Errors: {100 * errors / total_run:.1f})%, Passed: {100 * passed / total_run:.1f}%')
