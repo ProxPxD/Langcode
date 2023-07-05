@@ -95,13 +95,13 @@ class FormPotential:
 	def __repr__(self) -> str:
 		return repr(tuple(map(str, self.forms)))
 
+	def __or__(self, other: FormPotential | str) -> FormPotential:
+		return FormPotential(self, other)
+
 	def __add__(self, other: FormPotential | str) -> FormPotential:
 		if isinstance(other, str):
 			other = FormPotential(other)
 		return FormPotential(*tuple(f1+f2 for f1, f2 in zip(self.forms, other.forms)))
-
-	def __or__(self, other: FormPotential | str) -> FormPotential:
-		return FormPotential(self, other)
 
 	def __mul__(self, other: FormPotential | str) -> FormPotential:
 		if isinstance(other, str):
