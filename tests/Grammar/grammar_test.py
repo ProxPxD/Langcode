@@ -11,7 +11,7 @@ from tests.testutils import sort_result
 @sort_result(0, by_length=True)
 def gen_affix_parameters():
         affixes = ('en', 'e^n')
-        pms = ('+', '-')
+        pms = ('+', '-', '.')
         verb_dict = {'+': 'add', '-': 'remove'}
         get_opt = lambda affix: '_with_optional' if '^' in affix else ''
         for pm, affix in product(pms, affixes):
