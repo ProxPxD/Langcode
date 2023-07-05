@@ -1,8 +1,8 @@
 from itertools import product
 
-from parsimonious.exceptions import IncompleteParseError
+from parsimonious.exceptions import IncompleteParseError, VisitationError
 
-from grammar import grammar
+from grammar import grammar, GrammarVisitor
 from tests.abstractTest import AbstractTest
 from tests.testutils import sort_result
 
@@ -24,15 +24,18 @@ class GrammarTest(AbstractTest):
         return 'Grammar'
 
     is_generated = False
+    visitor = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.is_generated:
+            GrammarTest.visitor = GrammarVisitor()
             self.gen_all_grammar_tests()
             self.is_generated = True
 
     grammar_parameters = [
         *list(gen_affix_parameters()),
+
         ('add_circumfix', 'ge+t'),
         ('remove_circumfix', 'ge-t'),
         ('create_interfix', '+o+'),
@@ -56,6 +59,8 @@ class GrammarTest(AbstractTest):
         ('two_conditions_ordered', '-s?+y;-y?+t:+s'),              # Two ordered conditions
         ('many_conditions_ordered', '-a?-;-k?-k+e^cz;+k'),  # Many ordered conditions
         ('many_conditions_ordered_with_reference', '-a?-;-k?-k+e^cz;+k;&?1?+a'),  # Many ordered conditions
+        ('prefixes_and_suffixes', 'z+-a+u'),
+        ('prefixes_and_suffixes_in_same_condition', '-a?z+-a+u:m+'),
 
     ]
 
@@ -72,12 +77,17 @@ class GrammarTest(AbstractTest):
         def test_grammar(self, *args):
             try:
                 tree = grammar.parse(expr)
+                cls.visitor.visit(tree)
                 if not should_succeed:
                     self.fail()  # TODO
-            except IncompleteParseError as e:
+            except IncompleteParseError as ipe:
                 if should_succeed:
-                    self.fail(e.args)  # TODO
+                    self.fail(f'IncompleteParseError {ipe.args}')  # TODO
+            except VisitationError as vel:
+                if should_succeed:
+                    self.fail(f'VisitationError {vel.args}')
             except Exception as e:
+                print(e, type(e))
                 self.fail('Unknown exception')
         return test_grammar
 
