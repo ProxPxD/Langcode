@@ -1,11 +1,22 @@
 import abc
 import unittest
+from dataclasses import dataclass
 from typing import Iterable
+from colorama import Fore, Back, Style
+
+
+@dataclass
+class Status:
+    PASS = 'PASS'
+    FAIL = 'FAIL'
+    SKIP = 'SKIP'
+    ERROR = 'ERROR'
 
 
 class AbstractTest(unittest.TestCase, abc.ABC):
     half_sep_length = 40
     currentResult = None
+    status_distance = int(0.75 * 2*half_sep_length)
 
     total = 0
     failure = 0
@@ -49,13 +60,26 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         if is_skipped:
             self.__class__.skipped += 1
 
-        print('PASS' if passed else 'ERROR' if is_error else 'FAIL' if is_failure else 'SKIP' if is_skipped else
-        'WRONG UNIT TEST OUTCOME CHECKING! Investigate (possible incompatible with a python newer than 3.10)')
+        test_printing_length = len(self.get_method_name()) + 5
+        padding = self.status_distance - test_printing_length
+        status = Status.PASS if passed else Status.ERROR if is_error else Status.FAIL if is_failure else Status.SKIP if is_skipped else \
+        'WRONG UNIT TEST OUTCOME CHECKING! Investigate (possible incompatible with a python newer than 3.10)'
+        status = self.colorize(status)
+        print(f'{" "*padding}{status}')
 
     def feed_necessary(self, result):
         self._feedErrorsToResult(result, self._outcome.errors)
         for test, reason in self._outcome.skipped:
             self._addSkip(result, test, reason)
+
+    def colorize(self, to_color: str):
+        match to_color:
+            case Status.PASS:  color = Fore.LIGHTGREEN_EX
+            case Status.FAIL:  color = Fore.MAGENTA
+            case Status.SKIP:  color = Fore.LIGHTYELLOW_EX
+            case Status.ERROR: color = Fore.RED
+            case _: color = None
+        return f'{color}{to_color}{Style.RESET_ALL}' if color else to_color
 
     @classmethod
     def tearDownClass(cls) -> None:
