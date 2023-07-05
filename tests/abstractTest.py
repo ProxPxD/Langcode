@@ -34,7 +34,7 @@ class AbstractTest(unittest.TestCase, abc.ABC):
             return
         super().tearDown()
         result = self.defaultTestResult()
-        self._feedErrorsToResult(result, self._outcome.errors)
+        self.feed_necessary(result)
 
         is_error = any(test == self for test, text in result.errors)
         is_failure = any(test == self for test, text in result.failures)
@@ -52,6 +52,11 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         print('PASS' if passed else 'ERROR' if is_error else 'FAIL' if is_failure else 'SKIP' if is_skipped else
         'WRONG UNIT TEST OUTCOME CHECKING! Investigate (possible incompatible with a python newer than 3.10)')
 
+    def feed_necessary(self, result):
+        self._feedErrorsToResult(result, self._outcome.errors)
+        for test, reason in self._outcome.skipped:
+            self._addSkip(result, test, reason)
+
     @classmethod
     def tearDownClass(cls) -> None:
         cls.print_statistics(percentage=False)
@@ -67,14 +72,15 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         if total is None:
             total = cls.total
         failed = failure + errors
-        passed = total - failed - skipped
+        total_run = total - failed
+        passed = total_run - skipped
         if short:
-            print(f'({failure}F, {errors}E, {passed}P)/{total}')
+            print(f'({failure}F, {errors}E, {passed}P)/{total_run},  {skipped}S ')
         else:
-            print(f'Failed: {failed} (Failures: {failure}, Errors: {errors}), Passed: {passed}, Total: {total}')
+            print(f'Failed: {failed} (Failures: {failure}, Errors: {errors}), Passed: {passed}, Total: {total_run} (Skpped: {skipped})')
         if percentage:
             print(
-                f'Failed: {100 * failed / total:.1f}% (Failures: {100 * failure / total:.1f}%, Errors: {100 * errors / total:.1f})%, Passed: {100 * passed / total:.1f}%')
+                f'Failed: {100 * failed / total_run:.1f}% (Failures: {100 * failure / total_run:.1f}%, Errors: {100 * errors / total_run:.1f})%, Passed: {100 * passed / total_run:.1f}%')
 
     def run(self, result: unittest.result.TestResult | None = ...) -> unittest.result.TestResult | None:
         self.currentResult = result
