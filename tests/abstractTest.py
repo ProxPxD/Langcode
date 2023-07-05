@@ -78,8 +78,8 @@ class AbstractTest(unittest.TestCase, abc.ABC):
             case Status.FAIL:  color = Fore.MAGENTA
             case Status.SKIP:  color = Fore.LIGHTYELLOW_EX
             case Status.ERROR: color = Fore.RED
-            case _: color = None
-        return f'{color}{to_color}{Style.RESET_ALL}' if color else to_color
+            case _: color = ''
+        return f'{color}{to_color}{Style.RESET_ALL}'
 
     @classmethod
     def tearDownClass(cls) -> None:
