@@ -1,12 +1,36 @@
-from parsimonious.grammar import Grammar
+from dataclasses import dataclass
+from typing import Iterable
 
-# cond_whole               = (cond cond_sep (single_expr // pm) (else_sep (single_expr // pm))?) / (cond cond_sep else_sep (single_expr // pm))
+from parsimonious.grammar import Grammar
+from parsimonious.nodes import NodeVisitor, Node
+
+
+@dataclass
+class Terms:
+    main = 'main'
+    context = 'context'
+    ordered_expressions = 'ordered_expressions'
+    prefix = 'prefix'
+    postfix = 'postfix'
+    interfix = 'interfix'
+    circumfix = 'circumfix'
+
+    plus = 'plus'
+    minus = 'minus'
+
+    operation = 'operation'  # prefix, postfix, etc.
+    operation_type = 'operation_type'  # +/-
+    expressions = 'expressions'
+    operands = 'operands'
+
+
+T = Terms
 
 grammar = Grammar(
     r"""
-    main                    = (context context_sep)? ordered_whole
+    main                    = (context context_sep)? ordered_expressions
     context                 = ""
-    ordered_whole           = (same_order_whole        / (l same_order_whole r))          (diff_order_sep ordered_whole)? 
+    ordered_expressions     = (same_order_whole  / (l same_order_whole r))    (diff_order_sep ordered_expressions)? 
     same_order_whole        = (same_order_single / (l same_order_single r))   (same_order_sep same_order_whole)? 
     same_order_single       = (cond_whole / segment)
     cond_whole              = (complex_cond cond_sep cond_quasi_expr (else_sep cond_quasi_expr)?) / (complex_cond cond_sep else_sep cond_quasi_expr)
@@ -15,8 +39,8 @@ grammar = Grammar(
     basic_cond              = not? ((alph_expr minus) / (minus alph_expr))
     segment                 = interfix / segment_single
     segment_single          = circumfix / prefix / postfix
-    prefix                  = (alph_expr pm) prefix?
-    postfix                 = (pm alph_expr) postfix?
+    prefix                  = ((alph_expr pm) (prefix / postfix)?) 
+    postfix                 = ((pm alph_expr) postfix?)
     circumfix               = alph_expr pm alph_expr
     interfix                = (minus alph_expr minus) / (plus alph_expr plus)
 
@@ -42,6 +66,91 @@ grammar = Grammar(
     or_sep                  = ~r"\s*\|\s*"
     """
 )
+
+
+class GrammarVisitor(NodeVisitor):
+    def visit_main(self, node: Node, visited_children: list[Node]):
+        context, ordered_expressions = visited_children
+        # TODO: when implement context change none
+        return {T.context: None, T.ordered_expressions: ordered_expressions}
+
+    def visit_ordered_expressions(self, node: Node, visited_children):
+        curr = visited_children[0]
+        if isinstance(visited_children[1], list):
+            curr.extend(visited_children[1][0][1])
+        return curr
+
+    def visit_same_order_whole(self, node: Node, visited_children):
+        curr = visited_children[0][0]
+        if isinstance(visited_children[1], list):
+            curr.extend(visited_children[1][0][1])
+        return curr
+
+    def visit_same_order_single(self, node: Node, visited_children):
+        return visited_children[0]
+
+    def visit_segment(self, node: Node, visited_children):
+        return visited_children[0]
+
+    def visit_segment_single(self, node: Node, visited_children):
+        return visited_children[0]
+
+    def visit_prefix(self, node: Node, visited_children):
+        return self._visit_operations(node, T.prefix, visited_children)
+
+    def visit_postfix(self, node: Node, visited_children):
+        return self._visit_operations(node, T.postfix, visited_children)
+
+    def visit_interfix(self, node: Node, visited_children: list[Node]):
+        op1, inter, op2 = self._to_text(node.children[0].children)
+        op = op1 if op1 == op2 else None
+        return [{T.operation: T.interfix, T.operation_type: op, T.operands: [inter]}]
+
+    def visit_circumfix(self, node: Node, visited_children):
+        pre, op, post = node.children
+        return [{T.operation: T.circumfix, T.operation_type: op.text, T.operands: [pre.text, post.text]}]
+
+    def _visit_operations(self, node: Node, operation: str, visited_children):
+        curr = {T.operation: operation, **self._get_operation_expression_tuple(node)}
+        first, others = visited_children
+        other = [] if not isinstance(others, list) else others[0]
+        return [curr] + other
+
+    def _get_operation_expression_tuple(self, node: Node) -> dict[str, str]:
+        children = node.children[0].children
+        expressions = list(filter(lambda s: s.isalnum(), map(self._to_text, children)))
+        operation_type = next(filter(lambda n: not n.text.isalnum(), children)).text
+        return {T.operation_type: operation_type, T.operands: expressions}
+
+    def _to_text(self, to_change: Node | Iterable[Node]) -> str | tuple[str, ...]:
+        return to_change.text if isinstance(to_change, Node) else tuple(filter(self._to_text, to_change))
+
+    def generic_visit(self, node: Node, visited_children: list[Node]):
+        """ The generic visit method. """
+        return visited_children or node
+
+
+v = GrammarVisitor()
+#-p-c
+parsed = grammar.parse('-p+f,a+;j+a,+s')  # '+p,q+;x-,-y'  # +o+,-i-
+output = v.visit(parsed)
+#print('#'*100)
+#print(parsed)
+
+
+if visit := True:
+    print('#'*100)
+    print('Visitor: ')
+    print('\tContext:', output[T.context])
+    print('\tOrdered:')
+    for i, ordered in enumerate(output[T.ordered_expressions]):
+        print(f'\t\t{i+1}. Same order:')
+        for j, same_order in enumerate(ordered):
+            print(f'\t\t\t{j+1}. {same_order}')
+
+    print('\n'*3)
+    print(output)
+
 #((alph+ opt)? alph_expr) /
 # text = '-an+ta'
 # tree = grammar.parse(text)
