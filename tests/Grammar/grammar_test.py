@@ -1,8 +1,9 @@
 from itertools import product
+from unittest import SkipTest
 
 from parsimonious.exceptions import IncompleteParseError, VisitationError
 
-from grammar import grammar, GrammarVisitor
+from grammar import grammar, GrammarVisitor, T
 from tests.abstractTest import AbstractTest
 from tests.testutils import sort_result
 
@@ -61,35 +62,77 @@ class GrammarTest(AbstractTest):
         ('many_conditions_ordered_with_reference', '-a?-;-k?-k+e^cz;+k;&?1?+a'),  # Many ordered conditions
         ('prefixes_and_suffixes', 'z+-a+u'),
         ('prefixes_and_suffixes_in_same_condition', '-a?z+-a+u:m+'),
-
     ]
 
     @classmethod
     def gen_all_grammar_tests(cls):
         for (name, expr, *expected_param) in cls.grammar_parameters:
-            expected = True if not expected_param else expected_param[0]
-            test_name = f'test_{name}'.lower()
-            test = cls.gen_test_grammar(expr, expected)
-            setattr(GrammarTest, test_name, test)
+            should_succeed = True if not expected_param else expected_param[0]
+            name = name.lower()
+            grammar_test_name = f'test_{name}'
+            grammar_test = cls.gen_test_grammar(expr, should_succeed)
+            setattr(GrammarTest, grammar_test_name, grammar_test)
+            if should_succeed:
+                visit_test_name = f'test_visit_{name}'
+                visit_test = cls.gen_test_visit(expr)
+                setattr(GrammarTest, visit_test_name, visit_test)
 
     @classmethod
-    def gen_test_grammar(cls, expr: str, should_succeed):
+    def gen_test_grammar(cls, expr: str, should_succeed: bool):
         def test_grammar(self, *args):
             try:
                 tree = grammar.parse(expr)
-                cls.visitor.visit(tree)
                 if not should_succeed:
                     self.fail()  # TODO
             except IncompleteParseError as ipe:
                 if should_succeed:
                     self.fail(f'IncompleteParseError {ipe.args}')  # TODO
-            except VisitationError as vel:
-                if should_succeed:
-                    self.fail(f'VisitationError {vel.args}')
+            except SkipTest as st:
+                raise st
             except Exception as e:
-                print(e, type(e))
                 self.fail('Unknown exception')
         return test_grammar
 
-    def test_or_condition(self):
-        self.run_current_test_with_params()
+    @classmethod
+    def gen_test_visit(cls, expr: str):
+        def test_visit(self, *args):
+            try:
+                tree = grammar.parse(expr)
+                structure = cls.visitor.visit(tree)
+                self._test_structure(structure)
+            except IncompleteParseError as ipe:
+                self.skipTest('Error in parsing, not in visitor')
+            except SkipTest as st:
+                raise st
+            except VisitationError as vel:
+                self.fail(f'VisitationError {vel.args}')
+            except Exception as e:
+                self.fail('Unknown exception')
+        return test_visit
+
+    def _test_structure(self, structure):
+        self._test_context(structure)
+        self._test_ordered_expression(structure)
+
+    def _test_context(self, structure):
+        self.assertIn(T.context, structure)
+
+    def _test_ordered_expression(self, structure):
+        self.assertIn(T.ordered_expressions, structure)
+        self.assertIsInstance(structure[T.ordered_expressions], list)
+        for same_order in structure[T.ordered_expressions]:
+            self._test_same_order_expression(same_order)
+
+    def _test_same_order_expression(self, same_order):
+        self.assertIsInstance(same_order, list)
+        for change in same_order:
+            self._test_change(change)
+
+    # Think of name
+    def _test_change(self, change):
+        self.assertIsInstance(change, dict)
+        self.assertIn(T.operation, change)
+        self.assertIsInstance(change[T.operation], str)
+        self.assertIn(change[T.operation], (T.prefix, T.postfix, T.interfix, T.circumfix))
+        self.assertIn(T.operands, change)
+        self.assertIsInstance(change[T.operands], list)
