@@ -10,3 +10,9 @@ def sort_result(by: int = None, by_length=False):
 			return func(*args, **kwargs)
 		return inner
 	return true_decorator
+
+
+def reapply(n, fn, arg):
+	for i in range(n):
+		arg = fn(arg)
+	return arg

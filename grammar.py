@@ -4,6 +4,8 @@ from typing import Iterable
 from parsimonious.grammar import Grammar
 from parsimonious.nodes import NodeVisitor, Node
 
+from tests.testutils import reapply
+
 
 @dataclass
 class Terms:
@@ -77,23 +79,24 @@ class GrammarVisitor(NodeVisitor):
         return {T.context: None, T.ordered_expressions: ordered_expressions}
 
     def visit_ordered_expressions(self, node: Node, visited_children):
-        curr = self._debracketify(visited_children[0])
-        if isinstance(visited_children[1], list):
-            curr.extend(visited_children[1][0][1])
-        return curr
+        return self._visit_potentially_parenthesified_with_sep(visited_children, 1)
 
     def visit_same_order_whole(self, node: Node, visited_children):
-        curr = self._debracketify(visited_children[0][0])
-        if isinstance(visited_children[1], list):
-            curr.extend(visited_children[1][0][1])
-        return curr
+        return self._visit_potentially_parenthesified_with_sep(visited_children, 2)
 
-    def _debracketify(self, to_debracketify):
-        if not len(to_debracketify):
-            return to_debracketify
-        if isinstance(to_debracketify[0], Node) and to_debracketify[0].expr_name == T.l:
-            return to_debracketify[1]
-        return to_debracketify
+    def _visit_potentially_parenthesified_with_sep(self, to_process, depth=1):
+        curr = reapply(depth, lambda arr: arr[0], to_process)
+        extended = self._deparethesify(curr)
+        if isinstance(to_process[1], list):
+            extended.extend(to_process[1][0][1])
+        return extended
+
+    def _deparethesify(self, to_deparethesify):
+        if not len(to_deparethesify):
+            return to_deparethesify
+        if isinstance(to_deparethesify[0], Node) and to_deparethesify[0].expr_name == T.l:
+            return to_deparethesify[1]
+        return to_deparethesify
 
     def visit_same_order_single(self, node: Node, visited_children):
         return visited_children[0]
