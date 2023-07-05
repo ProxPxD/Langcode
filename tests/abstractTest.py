@@ -74,13 +74,23 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         failed = failure + errors
         total_run = total - skipped
         passed = total_run - failed
+
         if short:
-            print(f'({failure}F, {errors}E, {passed}P)/{total_run},    {skipped}S ')
+            ef_division = f'{failure}F, {errors}E' if errors else f'{failed}F'
+            statistics_str = f'({ef_division}, {passed}P)/{total_run}'
+            if skipped:
+                statistics_str += f',    {skipped}S'
         else:
-            print(f'Failed: {failed} (Failures: {failure}, Errors: {errors}), Passed: {passed}, Total: {total_run}   (Skipped: {skipped})')
+            ef_division = f' (Failures: {failure}, Errors: {errors})' if errors else ''
+            statistics_str = f'Failed: {failed}{ef_division}, Passed: {passed}, Total: {total_run}'
         if percentage:
-            print(
-                f'Failed: {100 * failed / total_run:.1f}% (Failures: {100 * failure / total_run:.1f}%, Errors: {100 * errors / total_run:.1f})%, Passed: {100 * passed / total_run:.1f}%')
+            ef_division = f' (Failures: {100 * failure / total_run:.1f}%, Errors: {100 * errors / total_run:.1f}%)' if errors else ''
+            statistics_str = f'Failed: {100 * failed / total_run:.1f}%{ef_division}, Passed: {100 * passed / total_run:.1f}%'
+
+        if (not short or percentage) and skipped:
+            statistics_str += f'   (Skipped: {skipped})'
+
+        print(statistics_str)
 
     def run(self, result: unittest.result.TestResult | None = ...) -> unittest.result.TestResult | None:
         self.currentResult = result
