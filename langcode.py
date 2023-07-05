@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Iterable
-
+from abc import abstractmethod, ABC
 from collections import deque
+from itertools import product
+from typing import Iterable
 
 
 def get_name(instance):
@@ -79,6 +80,35 @@ class Language:
 		pass
 
 
+class FormPotential:
+	def __init__(self, *forms: str | FormPotential):
+		self.basic_forms: list[str | FormPotential] = list(forms)
+
+	@property
+	def forms(self) -> Iterable[str]:
+		for form in self.basic_forms:
+			if isinstance(form, FormPotential):
+				yield from form.forms
+			else:
+				yield form
+
+	def __repr__(self) -> str:
+		return repr(tuple(map(str, self.forms)))
+
+	def __add__(self, other: FormPotential | str) -> FormPotential:
+		if isinstance(other, str):
+			other = FormPotential(other)
+		return FormPotential(*tuple(f1+f2 for f1, f2 in zip(self.forms, other.forms)))
+
+	def __or__(self, other: FormPotential | str) -> FormPotential:
+		return FormPotential(self, other)
+
+	def __mul__(self, other: FormPotential | str) -> FormPotential:
+		if isinstance(other, str):
+			other = FormPotential(other)
+		return FormPotential(*tuple(f1+f2 for f1, f2 in product(self.forms, other.forms)))
+
+
 class Morpheme:
 
 	def __init__(self, form: str | None = None):
@@ -122,6 +152,9 @@ class Infix(Affix):  # tmesis
 	pass
 
 class Interfix(Affix):
+	pass
+
+class Circumfix(Affix):
 	pass
 
 
@@ -168,3 +201,7 @@ class Compound(Morpheme):
 
 class Incorporation(Morpheme):
 	pass
+
+
+# Text
+
