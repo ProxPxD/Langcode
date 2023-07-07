@@ -165,10 +165,17 @@ class FormPotential:
         ordered = sorted(ordered, key=lambda form: scores[form][0], reverse=True)
         return scores[ordered[0]][2]
 
-    def is_at(self, form_to_check: str, at: int):
-        return self.get_form_at(form_to_check, at) is not None
+    def remove_at(self, form_to_remove_from: str, at: int) -> str:
+        if at < 0:
+            return self._inverse_problem(FormPotential.remove_at, form_to_remove_from, at)
+        place = at-1
+        to_remove = self.get_form_at(form_to_remove_from, at)
+        return form_to_remove_from[:place] + form_to_remove_from[place:].replace(to_remove, '')
 
-    def get_form_at(self, form_to_check: str, at: int) -> str | None:
+    def is_at(self, form_to_check: str, at: int):
+        return self.get_form_at(form_to_check, at) != ''
+
+    def get_form_at(self, form_to_check: str, at: int) -> str:
         if not at:
             raise ValueError
         if at < 0:
@@ -178,14 +185,11 @@ class FormPotential:
         existing = filter(lambda t: t[1] is not None, placements)
         corrects = filter(lambda t: t[1] == place, existing)
         increasing = sorted(corrects, key=lambda c: len(c[0]), reverse=True)
-        return increasing[0][0] if increasing else None
+        return increasing[0][0] if increasing else ''
 
     def _inverse_problem(self, problem: Callable, form: str, at: int):
         reverse_result = problem(~self, form[::-1], -at)
-        return reverse_result[::-1] if reverse_result is not None else reverse_result
-
-    def _choose_put_form(self, form_to_choose_for: str):
-        return None#{form: op(form_to_put, form) for form in self.forms}
+        return reverse_result[::-1]
 
     def _concat_op(self, place: int) -> Callable[[str, str], str]:
         return lambda form_to_concat_to, concat_form: form_to_concat_to[:place] + concat_form + form_to_concat_to[place:]
@@ -268,7 +272,14 @@ class Affix(Morpheme, ABC):
 
 
 class Adfix(Affix, ABC):
-    pass
+    _at: int = 0
+
+    def apply_to(self, form: str, kind: str = None) -> str:
+        kind = kind or self.kind
+        match kind:
+            case O.plus:  return self.content.insert_at(form, self._at)  # TODO last: how to economically use FormPotential?
+            case O.minus: return self.content.remove_at(form, self._at)
+            case O.dot:   return self.apply_to(form, O.minus if self.content.is_at(form, self._at) else O.plus)
 
 
 class Prefix(Adfix):
@@ -626,7 +637,10 @@ if work_with_graph := False:
 
 fp = FormPotential('est', 'st', 't')
 
-for form in ('mach', 'mache', 'maches'):
-   new_form = fp.insert_at(form, -1)
-   print(f'{new_form} was created from {form}')
+if test_pot_form := False:
+    for form in ('mach', 'mache', 'maches', 'sat', 'sast'):
+       new_form = fp.insert_at(form, -1)
+       old_form = fp.remove_at(new_form, -1)
+       print(f'{new_form} was created from {form} and came back to {old_form}')
+       print(f'Removed from original {form} to {fp.remove_at(form, -1)}')
 
