@@ -6,7 +6,7 @@ from collections import deque
 from dataclasses import dataclass
 from functools import reduce
 from itertools import product
-from typing import Iterable
+from typing import Iterable, Callable
 
 from parsimonious.grammar import Grammar
 from parsimonious.nodes import NodeVisitor, Node
@@ -15,7 +15,7 @@ from utils import reapply, to_last_list, clean_empty
 
 
 
-@dataclass
+@dataclass(frozen=True)
 class Operators:
     l = '('
     r = ')'
@@ -25,7 +25,7 @@ class Operators:
     dot = '.'
 
 
-@dataclass
+@dataclass(frozen=True)
 class Terms:
     main = 'main'
     context = 'context'
@@ -145,8 +145,60 @@ class FormPotential:
             else:
                 yield form
 
+    def insert_as_first(self, form_to_insert_to: str) -> str:
+        return self.insert_at(form_to_insert_to, 1)
+
+    def insert_as_last(self, form_to_insert_to: str) -> str:
+        return self.insert_at(form_to_insert_to, -1)
+
+    def insert_at(self, form_to_insert_to: str, at: int) -> str:
+        if at < 0:
+            return self._inverse_problem(FormPotential.insert_at, form_to_insert_to, at)
+        place = at - 1
+        concat = self._concat_op(place)
+        scores = {}
+        for form in self.forms:
+            concated = concat(form_to_insert_to, form)
+            true_form = self.get_form_at(concated, at)
+            scores[form] = (len(true_form) - len(form)), len(form), concated
+        ordered = sorted(scores, key=lambda form: scores[form][1], reverse=True)
+        ordered = sorted(ordered, key=lambda form: scores[form][0], reverse=True)
+        return scores[ordered[0]][2]
+
+    def is_at(self, form_to_check: str, at: int):
+        return self.get_form_at(form_to_check, at) is not None
+
+    def get_form_at(self, form_to_check: str, at: int) -> str | None:
+        if not at:
+            raise ValueError
+        if at < 0:
+            return self._inverse_problem(FormPotential.get_form_at, form_to_check, at)
+        place = at - 1
+        placements = ((form, form_to_check.index(form) if form in form_to_check else None) for form in self.forms)
+        existing = filter(lambda t: t[1] is not None, placements)
+        corrects = filter(lambda t: t[1] == place, existing)
+        increasing = sorted(corrects, key=lambda c: len(c[0]), reverse=True)
+        return increasing[0][0] if increasing else None
+
+    def _inverse_problem(self, problem: Callable, form: str, at: int):
+        reverse_result = problem(~self, form[::-1], -at)
+        return reverse_result[::-1] if reverse_result is not None else reverse_result
+
+    def _choose_put_form(self, form_to_choose_for: str):
+        return None#{form: op(form_to_put, form) for form in self.forms}
+
+    def _concat_op(self, place: int) -> Callable[[str, str], str]:
+        return lambda form_to_concat_to, concat_form: form_to_concat_to[:place] + concat_form + form_to_concat_to[place:]
+
+    def _calculate_place(self, at: int) -> int:
+        sign = at//abs(at)
+        return sign*(abs(at) - 1)
+
     def __repr__(self) -> str:
         return repr(tuple(map(str, self.forms)))
+
+    def __invert__(self) -> FormPotential:
+        return FormPotential(*tuple(map(lambda s: s[::-1], self.forms)))
 
     def __or__(self, other: FormPotential | str) -> FormPotential:
         return FormPotential(self, other)
@@ -503,26 +555,27 @@ class GrammarVisitor(NodeVisitor):
             case _:                        return to_map
 
 
-v = GrammarVisitor()
-#-p-c
-parsed = grammar.parse('+f(oo)t')#'~-u?-u:+u,-u?-u:+u')  # '-p+f,a+;j+a,+s'  # '(-p+f),a+;j+a,(+s)'
-output = v.visit(parsed)
-#print('#'*100)
-#print(parsed)
+if work_with_graph := False:
+    v = GrammarVisitor()
+    #-p-c
+    parsed = grammar.parse('+f(oo)t')#'~-u?-u:+u,-u?-u:+u')  # '-p+f,a+;j+a,+s'  # '(-p+f),a+;j+a,(+s)'
+    output = v.visit(parsed)
+    #print('#'*100)
+    #print(parsed)
 
 
-if visit := True:
-    print('#'*100)
-    print('Visitor: ')
-    print('\tContext:', output[T.context])
-    print('\tOrdered:')
-    for i, ordered in enumerate(output[T.ordered_expressions]):
-        print(f'\t\t{i+1}. Same order:')
-        for j, same_order in enumerate(ordered):
-            print(f'\t\t\t{j+1}. {same_order}')
+    if visit := True:
+        print('#'*100)
+        print('Visitor: ')
+        print('\tContext:', output[T.context])
+        print('\tOrdered:')
+        for i, ordered in enumerate(output[T.ordered_expressions]):
+            print(f'\t\t{i+1}. Same order:')
+            for j, same_order in enumerate(ordered):
+                print(f'\t\t\t{j+1}. {same_order}')
 
-    print('\n'*3)
-    #print(output)
+        print('\n'*3)
+        #print(output)
 
 #((alph+ opt)? alph_full) /
 # text = '-an+ta'
@@ -570,4 +623,10 @@ if visit := True:
 # tree = grammar.parse('(a)((b)(c))+')
 #
 
+
+fp = FormPotential('est', 'st', 't')
+
+for form in ('mach', 'mache', 'maches'):
+   new_form = fp.insert_at(form, -1)
+   print(f'{new_form} was created from {form}')
 
