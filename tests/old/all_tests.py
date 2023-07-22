@@ -1,12 +1,12 @@
 import unittest
 from typing import Iterable
 
-
+from tests.old.Grammar.grammar_test import GrammarTest
+from tests.old.abstractTest import AbstractTest
 
 all_tests = [
-    SimpleNodeTest,
-    RelationTest,
-    RelationerTest,
+    #ApplicationTest,
+    GrammarTest,
 ]
 
 

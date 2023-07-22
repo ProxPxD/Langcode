@@ -4,6 +4,10 @@ from typing import Iterable
 from parsimonious.nodes import Node
 
 
+def get_name(instance):
+    return instance.name if 'name' in instance.__dir__ else instance if isinstance(instance, str) else None
+
+
 def clean_empty(iterable: Iterable):
     return filter(lambda e: bool(e.text) if isinstance(e, Node) else op.truth(e), iterable)
 

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import operator as op
 from abc import ABC, abstractmethod
 from collections import deque
@@ -145,6 +146,10 @@ class FormPotential:
             else:
                 yield form
 
+    @property
+    def max_form(self) -> str:
+        return max(self.forms, key=len)
+
     def insert_as_first(self, form_to_insert_to: str) -> str:
         return self.insert_at(form_to_insert_to, 1)
 
@@ -217,18 +222,23 @@ class FormPotential:
             other = FormPotential(other)
         return FormPotential(*tuple(f1+f2 for f1, f2 in product(self.forms, other.forms)))
 
+SameOrderLevel = tuple[list[Morpheme], list[Morpheme]]
+Ordered = list[SameOrderLevel]
 
-class Morpheme(ABC):
+class Morpheme:
 
-    def __init__(self, content: Morpheme | str | None = None):
+    def __init__(self, *contents: tuple[Morpheme | str, ...]):
         languages.associate(self)
-        match content:
-            case Morpheme():
-                self._interpretation = content
-            case str():
-                self._interpretation = GrammarVisitor.interpret(content)
-            case _:
-                self._interpretation = NullMorpheme()
+        self._interpretation: list[tuple[list[Morpheme], list[Morpheme]]]
+        # TODO: continue here
+        # for content in contents:
+        #     match content:
+        #         case Morpheme():
+        #             self._interpretation = content
+        #         case str():
+        #             self._interpretation = GrammarVisitor.interpret(content)
+        #         case _:
+        #             self._interpretation = NullMorpheme()
 
     def __call__(self, form: str):
         return self.apply_to(form)
@@ -238,7 +248,6 @@ class Morpheme(ABC):
         return self._interpretation(form)
 
     @property
-    @abstractmethod
     def form(self) -> str:
         return self._interpretation.form
 
@@ -246,11 +255,15 @@ class Morpheme(ABC):
         languages[lang].associate(self)
         return self
 
+    def __repr__(self) -> str:
+        return self.form
+
+    def __add__(self, morpheme: Morpheme) -> Morpheme:
+
 
 # Affixes
 # def Affix():
 # 	pass
-
 
 class NullMorpheme(Morpheme):
     def __init__(self):
@@ -271,7 +284,7 @@ class Affix(Morpheme, ABC):
         self.kind: str = operation_type
 
 
-class Adfix(Affix, ABC):
+class Adfix(Affix):
     _at: int = 0
 
     def apply_to(self, form: str, kind: str = None) -> str:
@@ -281,31 +294,17 @@ class Adfix(Affix, ABC):
             case O.minus: return self.content.remove_at(form, self._at)
             case O.dot:   return self.apply_to(form, O.minus if self.content.is_at(form, self._at) else O.plus)
 
-
-class Prefix(Adfix):
-    def apply_to(self, form: str, kind: str = None) -> str:
-        kind = kind or self.kind
-        match kind:
-            case O.plus:  return self.content + form  # TODO last: how to economically use FormPotential?
-            case O.minus: return form.removeprefix(self.content)
-            case O.dot:   return self.apply_to(form, O.minus if form.startswith(self.content) else O.plus)
-
     @property
     def form(self) -> str:
-        return self.kind + self.content
+        return '|'.join(map(lambda bf: bf[:self._at] + self.kind + bf[self._at:], self.content.forms))
+
+
+class Prefix(Adfix):
+    _at = 1
 
 
 class Postfix(Adfix):
-    def apply_to(self, form: str, kind: str = None) -> str:
-        kind = kind or self.kind
-        match kind:
-            case O.plus:  return form + self.content
-            case O.minus: return form.removesuffix(self.content)
-            case O.dot:   return self.apply_to(form, O.minus if form.endswith(self.content) else O.plus)
-
-    @property
-    def form(self) -> str:
-        return self.content + self.kind
+    _at = -1
 
 
 class Circumfix(Morpheme):
@@ -332,7 +331,7 @@ class Circumfix(Morpheme):
 
     @property
     def form(self) -> str:
-        return self.prefix.content + self.kind + self.postfix.content
+        return self.prefix.content.max_form + self.kind + self.postfix.content.max_form
 
 
 class Infix(Affix):  # tmesis
@@ -444,7 +443,7 @@ grammar = Grammar(
 class GrammarVisitor(NodeVisitor):
 
     @classmethod
-    def interpret(cls, form: str):
+    def interpret(cls, form: str) -> Morpheme:
         return GrammarVisitor().parse(grammar.parse(form))
 
     def visit_main(self, node: Node, visited_children: list[Node]):
@@ -453,10 +452,16 @@ class GrammarVisitor(NodeVisitor):
         return {T.context: None, T.ordered_expressions: ordered_expressions}
 
     def visit_ordered_expressions(self, node: Node, visited_children):
-        return self._visit_potentially_parenthesified_with_sep(visited_children, 1)
+        visited_children = list(clean_empty(visited_children))
+        return
 
     def visit_same_order_whole(self, node: Node, visited_children):
-        return self._visit_potentially_parenthesified_with_sep(visited_children, 2)
+        visited_children = list(clean_empty(visited_children))
+        curr, *tail = visited_children
+        curr = self._deparethesify(curr)
+        if tail:
+            curr += tail[0][1][0]
+        return [curr] + tail  #self._visit_potentially_parenthesified_with_sep(visited_children, 2)
 
     def _visit_potentially_parenthesified_with_sep(self, to_process, depth=1):
         curr = reapply(lambda arr: arr[0], to_process, depth)
@@ -468,7 +473,7 @@ class GrammarVisitor(NodeVisitor):
     def _deparethesify(self, to_deparethesify):
         if not len(to_deparethesify):
             return to_deparethesify
-        if isinstance(to_deparethesify[0], Node) and to_deparethesify[0].expr_name == T.l:
+        if (isinstance(to_deparethesify[0], str) and to_deparethesify[0] == O.l) or (isinstance(to_deparethesify[0], Node) and to_deparethesify[0].expr_name == T.l):
             return to_deparethesify[1]
         return to_deparethesify
 
@@ -566,28 +571,6 @@ class GrammarVisitor(NodeVisitor):
             case _:                        return to_map
 
 
-if work_with_graph := False:
-    v = GrammarVisitor()
-    #-p-c
-    parsed = grammar.parse('+f(oo)t')#'~-u?-u:+u,-u?-u:+u')  # '-p+f,a+;j+a,+s'  # '(-p+f),a+;j+a,(+s)'
-    output = v.visit(parsed)
-    #print('#'*100)
-    #print(parsed)
-
-
-    if visit := True:
-        print('#'*100)
-        print('Visitor: ')
-        print('\tContext:', output[T.context])
-        print('\tOrdered:')
-        for i, ordered in enumerate(output[T.ordered_expressions]):
-            print(f'\t\t{i+1}. Same order:')
-            for j, same_order in enumerate(ordered):
-                print(f'\t\t\t{j+1}. {same_order}')
-
-        print('\n'*3)
-        #print(output)
-
 #((alph+ opt)? alph_full) /
 # text = '-an+ta'
 # tree = grammar.parse(text)
@@ -635,12 +618,31 @@ if work_with_graph := False:
 #
 
 
-fp = FormPotential('est', 'st', 't')
+if work_with_graph := True:
+    v = GrammarVisitor()
+    #-p-c
+    parsed = grammar.parse('(-u),(+t);r-,g+')#'~-u?-u:+u,-u?-u:+u')  # '-p+f,a+;j+a,+s'  # '(-p+f),a+;j+a,(+s)'
+    output = v.visit(parsed)
+    #print('#'*100)
+    #print(parsed)
+
+    if visit := True:
+        print('#'*100)
+        print('Visitor: ')
+        print('\tContext:', output[T.context])
+        print('\tOrdered:')
+        for i, ordered in enumerate(output[T.ordered_expressions]):
+            print(f'\t\t{i+1}. Same order:')
+            for j, same_order in enumerate(ordered):
+                print(f'\t\t\t{j+1}. {same_order}')
+
+        print('\n'*3)
+        #print(output)
 
 if test_pot_form := False:
+    fp = FormPotential('est', 'st', 't')
     for form in ('mach', 'mache', 'maches', 'sat', 'sast'):
        new_form = fp.insert_at(form, -1)
        old_form = fp.remove_at(new_form, -1)
        print(f'{new_form} was created from {form} and came back to {old_form}')
        print(f'Removed from original {form} to {fp.remove_at(form, -1)}')
-

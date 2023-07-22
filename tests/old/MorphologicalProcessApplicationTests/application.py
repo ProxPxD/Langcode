@@ -1,8 +1,7 @@
-import parameterized as parameterized
 
-from langcode import Morpheme
-from tests.abstractTest import AbstractTest
-from tests.testutils import remove_alnum
+
+from old_src.langcode import Morpheme
+from tests.old.abstractTest import AbstractTest
 
 
 class ApplicationTest(AbstractTest):
