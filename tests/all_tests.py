@@ -1,12 +1,10 @@
 import unittest
 from typing import Iterable
 
-
+from tests.abstractTest import AbstractTest
 
 all_tests = [
-    SimpleNodeTest,
-    RelationTest,
-    RelationerTest,
+
 ]
 
 
