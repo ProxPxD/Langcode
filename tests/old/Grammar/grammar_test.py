@@ -1,7 +1,7 @@
 from itertools import product
 from unittest import SkipTest
 
-from parsimonious.exceptions import IncompleteParseError, VisitationError
+#from parsimonious.exceptions import IncompleteParseError, VisitationError
 
 from old_src.grammar import grammar, GrammarVisitor, T
 from tests.old.abstractTest import AbstractTest

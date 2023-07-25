@@ -3,10 +3,10 @@ import operator as op
 from dataclasses import dataclass
 from functools import reduce
 
-from parsimonious.grammar import Grammar
-from parsimonious.nodes import NodeVisitor, Node
+from old_src.langcode import Postfix, FormPotential
+# from parsimonious.grammar import Grammar
+# from parsimonious.nodes import NodeVisitor, Node
 
-from langcode import FormPotential, Postfix
 from utils import reapply, to_last_list, clean_empty
 
 
