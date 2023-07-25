@@ -25,10 +25,12 @@ class DictClass:
         return self.__dict__[item]
 
     def __setitem__(self, key, value):
-        print('To verify: ',  self.__dict__)
         return self.__dict__.__setitem__(key, value)
 
-    dict: Callable[[], dict] = asdict
+    @classmethod
+    def _dict(cls) -> dict:
+        return asdict(cls())
+    dict: Callable[[], dict] = lambda: DictClass._dict()
     values: Callable[[], Any] = lambda self: self.dict().values()
     keys: Callable[[], Any] = lambda self: self.dict().keys()
     items: Callable[[], Any] = lambda self: self.dict().items()
