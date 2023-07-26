@@ -151,7 +151,7 @@ class AbstractMorpheme(Generic[MU]):
         return StrDefaults._dict()[name]
 
     @abstractmethod
-    def _get_place_and_size(self, word: MU) -> Tuple[Coord, Size]:
+    def _get_index_and_size(self, word: MU) -> Tuple[Coord, Size]:
         raise NotImplementedError
 
     @abstractmethod
@@ -220,18 +220,18 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
             return None
 
     # TODO think: returning the size of the place
-    def _get_place_and_size(self, word: MU) -> Tuple[Coord, Size]:
+    def _get_index_and_size(self, word: MU) -> Tuple[Coord, Size]:
         all_step_members = self.language.step_members if self.language is not None else Language.general_step_members
         if self.by != By.LETTERS:
             step_members = all_step_members[self.by]
-            place_sizes = word_to_basics(word, step_members)
+            index_parts = list(map(lambda e: tuple(reversed(e)), word_to_basics(word, step_members, yield_index=True, skip_missing=True)))
         else:
-            place_sizes = list(zip(range(1, len(word)+1), repeat(1)))  # TODO think: better size handling
-        adjusted_at = self.at if self.at > 0 else np.subtract(len(word), self.at)
-        place, size = next(((p-1, s) for (p, s) in place_sizes if p == adjusted_at), tuple((len(word), 0)))  # TODO Generalize default empty
-        if abs(self.at) > place + 1:
+            index_parts = list(zip(range(0, len(word)), word))  # TODO think: better size handling
+        adjusted_at = self.at - 1 if self.at > 0 else np.subtract(len(word), self.at)
+        index, size = next(((index, len(part)) for (i, (index, part)) in enumerate(index_parts) if i == adjusted_at), tuple((len(word), 0)))  # TODO Generalize default empty
+        if abs(self.at) > index + 1:
             raise ValueError  # TODO: more test to verify
-        return place, size
+        return index, size
 
     def _get_word_parts(self, word: MU, place: Coord, size: Size = 1, side=None) -> Tuple[MU, ...]:
         side = side if side is not None else self.side
@@ -243,23 +243,23 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
     def is_applicable(self, word: MU, *args, **kwargs) -> MU:
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.insert, word)
-        place, size = self._get_place_and_size(word)
+        index, size = self._get_index_and_size(word)
         # TODO move this to abstract after generalizing "len" (size_of) and "[]" (slice_of?)"
-        return len(word) < place + size and (not self.to_remove or word[place: place+size] == self.to_remove)
+        return len(word) < index + size and (not self.to_remove or word[index: index+size] == self.to_remove)
 
     def is_present(self, word: MU, *args, **kwargs) -> MU:
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.insert, word)
-        place, size = self._get_place_and_size(word)
+        index, size = self._get_index_and_size(word)
         # TODO move this to abstract after generalizing "[]"
-        return word[place: place+size] == (self.to_remove if self.to_remove else self.to_insert)
+        return word[index: index+size] == (self.to_remove if self.to_remove else self.to_insert)
 
     def insert(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing num of parts and it's concatanation with form
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.insert, word)
-        place, size = self._get_place_and_size(word)
-        part1, part2 = self._get_word_parts(word, place)
+        index, size = self._get_index_and_size(word)
+        part1, part2 = self._get_word_parts(word, index)
         result = part1 + self.to_insert + part2
         return result
 
@@ -267,10 +267,10 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         # TODO move this to abstract after generalizing num of parts and it's concatanation with form
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.insert, word)
-        place, size = self._get_place_and_size(word)
+        index, size = self._get_index_and_size(word)
         if not self.is_applicable(word):
             raise ValueError  # TODO specify
-        part1, part2 = self._get_word_parts(word, place)
+        part1, part2 = self._get_word_parts(word, index)
         result = part1 + part2
         return result
 
@@ -278,10 +278,10 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         # TODO move this to abstract after generalizing "negativity of at, inversing problem according to specific axis""
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.insert, word)
-        place, size = self._get_place_and_size(word)
+        index, size = self._get_index_and_size(word)
         if not self.is_applicable(word):
             raise ValueError  # TODO specify
-        part1, part2 = self._get_word_parts(word, place)
+        part1, part2 = self._get_word_parts(word, index)
         return part1 + self.to_insert + part2
 
     def __call__(self, word: MU, *args, **kwargs):
