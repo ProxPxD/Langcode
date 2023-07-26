@@ -14,7 +14,7 @@ class Status:
 
 
 class AbstractTest(unittest.TestCase, abc.ABC):
-    half_sep_length = 40
+    half_sep_length = 50
     currentResult = None
     status_distance = int(0.75 * 2*half_sep_length)
 
