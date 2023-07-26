@@ -240,12 +240,27 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
             case Side.AT: return word[:place], word[place+size:]  # TODO think: or size?
             case Side.AFTER: return self._get_word_parts(word, place + size, size, Side.BEFORE)  # TODO think: or size?
 
-    def is_applicable(self, word: MU, *args, **kwargs) -> MU:
+    def is_applicable(self, word: MU, *args, **kwargs) -> bool:
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.insert, word)
         index, size = self._get_index_and_size(word)
+        is_applicable = not self.to_remove or self._is_applicable_for_remove(word, index)
+        is_applicable &= not self.to_insert or self._is_applicable_for_insert(word, index)
+        return is_applicable
+
+    def _is_applicable_for_insert(self, word: MU, index, *args, **kwargs) -> bool:
+        return True  # TODO: implement
+
+    def _is_applicable_for_remove(self, word: MU, index, *args, **kwargs) -> bool:
         # TODO move this to abstract after generalizing "len" (size_of) and "[]" (slice_of?)"
-        return len(word) < index + size and (not self.to_remove or word[index: index+size] == self.to_remove)
+        to_remove_size = len(self.to_remove)
+        if self.side == Side.AFTER:
+            size_cond = len(word) >= index + to_remove_size
+            word_fragment = word[index: index+to_remove_size]
+        else:
+            size_cond = index - to_remove_size > 0
+            word_fragment = word[index-to_remove_size: index]
+        return size_cond and word_fragment
 
     def is_present(self, word: MU, *args, **kwargs) -> MU:
         if self.is_using_inversion and self.at < 0:
@@ -271,6 +286,9 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         if not self.is_applicable(word):
             raise ValueError  # TODO specify
         part1, part2 = self._get_word_parts(word, index)
+        match self.side:  # TODO: think of the case where to_remove occupies all parts
+            case Side.AFTER:  part2 = part2.removepreffix(self.to_remove)
+            case Side.BEFORE: part1 = part1.removesuffix(self.to_remove)
         result = part1 + part2
         return result
 
