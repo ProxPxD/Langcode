@@ -2,9 +2,10 @@ import unittest
 from typing import Iterable
 
 from tests.abstractTest import AbstractTest
+from tests.str1_morphemes.BasicMorphemes import BasicMorpheme
 
 all_tests = [
-
+    BasicMorpheme,
 ]
 
 
