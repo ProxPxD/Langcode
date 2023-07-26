@@ -5,7 +5,7 @@ from tests.abstractTest import AbstractTest
 
 
 # TODO: write to parametrized/unittest to solve the issue with separately and both patch being set before the class and before the method
-class BasicMorpheme(AbstractTest):
+class BasicMorphemeTest(AbstractTest):
     is_generated = False
 
     def __init__(self, *args, **kwargs):
@@ -48,12 +48,12 @@ class BasicMorpheme(AbstractTest):
                     remove_test_name = f'test_remove_{name}_{adfix}'
                     insert_test = cls.get_apply_morpheme_test(insert_test_name, to_remove, to_insert, at, by, side, word, expected)
                     remove_test = cls.get_apply_morpheme_test(remove_test_name, to_insert, to_remove, at, by, side, expected, word)
-                    setattr(BasicMorpheme, insert_test_name, insert_test)
-                    setattr(BasicMorpheme, remove_test_name, remove_test)
+                    setattr(BasicMorphemeTest, insert_test_name, insert_test)
+                    setattr(BasicMorphemeTest, remove_test_name, remove_test)
                 elif isinstance(expected, type(Exception)):
                     exception_test_name = f'test_{adfix}_{name}'
                     test = cls.get_impossible_to_apply_morpheme_test(exception_test_name, to_remove, to_insert, at, by, side, word, expected)
-                    setattr(BasicMorpheme, exception_test_name, test)
+                    setattr(BasicMorphemeTest, exception_test_name, test)
                 else:
                     raise ValueError
 
