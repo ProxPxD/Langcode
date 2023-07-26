@@ -28,7 +28,8 @@ class BasicMorphemeTest(AbstractTest):
         ('from_start_by_vowels', '', 'j', 1, By.VOWELS, Side.AFTER, ('ana', 'maq'), ('ajna', 'majq')),
         ('from_end_by_vowels', '', 'r', 1, By.VOWELS, Side.BEFORE, ('hama', 'taj'), ('hamra', 'traj')),
         ('second_from_end_by_vowels', '', 'h', 2, By.VOWELS, Side.BEFORE, ('ami', 'larak'), ('ahmi', 'lahrak')),
-        ('after_second_consonant_from_end', '', 'i', -2, By.CONSONANTS, Side.AFTER, ('rakta', 'trakt'), ('rakita', 'traktit')),
+        ('before_second_consonant_from_start', '', 'y', 2, By.CONSONANTS, Side.BEFORE, ('trocki', 'espana'), ('tyrocki', 'esypana')),
+        ('after_second_consonant_from_end', '', 'i', -2, By.CONSONANTS, Side.AFTER, ('rakta', 'trakt'), ('rakita', 'trakit')),
 
         # Removes' Exceptions:
         ('remove_first', 'e', '', 1, None, None, ('ava',), (ValueError, )),
@@ -68,7 +69,7 @@ class BasicMorphemeTest(AbstractTest):
                 return f'{i}_common'
         elif isinstance(expected, type(Exception)):
             return f'except'
-        return ''
+        return f'{i}'
 
     @classmethod
     def get_apply_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, word: str, expected: str):
@@ -77,6 +78,10 @@ class BasicMorphemeTest(AbstractTest):
             self.assertIsNotNone(word)
             self.assertIsNotNone(expected)
             morpheme = SingleMorpheme[str](to_remove, to_insert, at=at, by=by, side=side)
+            if to_remove is not None:
+                self.assertEqual(to_remove, morpheme.to_remove)
+            if to_insert is not None:
+                self.assertEqual(to_insert, morpheme.to_insert)
             actual = morpheme(word)
             self.assertEqual(actual, expected)
         return test
@@ -88,7 +93,10 @@ class BasicMorphemeTest(AbstractTest):
             self.assertIsNotNone(word)
             self.assertIsNotNone(expected)
             morpheme = SingleMorpheme[str](to_remove, to_insert, at=at, by=by, side=side)
-            self.assertIsNotNone(morpheme)
+            if to_remove is not None:
+                self.assertEqual(to_remove, morpheme.to_remove)
+            if to_insert is not None:
+                self.assertEqual(to_insert, morpheme.to_insert)
             with self.assertRaises(expected):
                 morpheme(word)
         return test
