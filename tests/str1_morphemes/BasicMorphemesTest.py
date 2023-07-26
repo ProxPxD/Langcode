@@ -53,7 +53,7 @@ class BasicMorphemeTest(AbstractTest):
                     setattr(BasicMorphemeTest, remove_test_name, remove_test)
                 elif isinstance(expected, type(Exception)):
                     exception_test_name = f'test_{adfix}_{name}'
-                    test = cls.get_impossible_to_apply_morpheme_test(exception_test_name, to_remove, to_insert, at, by, side, word, expected)
+                    test = cls.get_except_morpheme_test(exception_test_name, to_remove, to_insert, at, by, side, word, expected)
                     setattr(BasicMorphemeTest, exception_test_name, test)
                 else:
                     raise ValueError
@@ -87,7 +87,7 @@ class BasicMorphemeTest(AbstractTest):
         return test
 
     @classmethod
-    def get_impossible_to_apply_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, word: str, expected: Type):
+    def get_except_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, word: str, expected: Type):
         def test(self):
             t = test_name
             self.assertIsNotNone(word)
