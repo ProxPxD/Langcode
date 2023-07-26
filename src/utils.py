@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from typing import Iterable, Callable, Any
+from typing import Iterable, Callable, Any, Collection, Tuple
 
 
 def get_name(instance):
@@ -38,3 +38,28 @@ class DictClass:
     @classmethod
     def map_to_contained_key(cls, k) -> str | None:
         return next(filter(k.__contains__, cls().keys()), None)
+
+
+def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield_index=False) -> Collection[str | Tuple[str, int] | None]:
+    basics = sorted(basics, reverse=True)
+    index = 0
+    missing = ''
+    while word:
+        first = word[0]
+        starting = next(filter(lambda b: b.startswith(first), basics), None)
+        if starting is None:
+            missing += first
+            word = word[1:]
+        else:
+            if missing:
+                if not skip_missing:
+                    yield missing
+                if yield_index:
+                    index += len(missing)
+            if yield_index:
+                yield starting, index
+                index += len(starting)
+            else:
+                yield starting
+            word = word[len(starting):]
+
