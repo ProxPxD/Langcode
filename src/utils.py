@@ -40,9 +40,9 @@ class DictClass:
         return next(filter(k.__contains__, cls().keys()), None)
 
 
-def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield_index=False) -> Collection[str | Tuple[str, int] | None]:
+def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield_index=False, start_from_one=False) -> Collection[str | Tuple[str, int] | None]:
     basics = sorted(basics, reverse=True)
-    index = 0
+    index = 1 if start_from_one else 0
     missing = ''
     while word:
         first = word[0]
@@ -53,9 +53,12 @@ def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield
         else:
             if missing:
                 if not skip_missing:
-                    yield missing
-                if yield_index:
-                    index += len(missing)
+                    if yield_index:
+                        yield missing, index
+                    else:
+                        yield missing
+                index += len(missing)
+                missing = ''
             if yield_index:
                 yield starting, index
                 index += len(starting)
@@ -63,3 +66,8 @@ def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield
                 yield starting
             word = word[len(starting):]
 
+    if missing and not skip_missing:
+        if yield_index:
+            yield missing, index
+        else:
+            yield missing
