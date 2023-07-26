@@ -3,11 +3,13 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import reduce
+from itertools import repeat
 from typing import Literal, TypeVar, Generic, Callable, Iterable, Tuple, Any, List
+
 
 import numpy as np
 
-from src.utils import DictClass, get_name
+from src.utils import DictClass, get_name, word_to_basics
 
 Coord = int | tuple[int, ...]
 Size = Coord
@@ -47,15 +49,15 @@ class C:
 @dataclass(frozen=True)
 class StrDefaults(DictClass):
     form: str = ''
-    at = 0
-    by = By.LETTERS
-    side = Side.BEFORE
+    at: Coord = 0
+    by: Step = By.LETTERS
 
+    side: Side = Side.BEFORE
     first: Coord = 1
     last: Coord = -1
 
-    before = Side.BEFORE
-    after = Side.AFTER
+    before: Side = Side.BEFORE
+    after: Side = Side.AFTER
 
 
 class MetaLanguages(type):
@@ -106,6 +108,12 @@ class languages(metaclass=MetaLanguages):  # TODO test access
 
 
 class Language(Generic[MU]):
+    general_step_members = {
+            By.LETTERS: 'abcdefghijklmnopqrstuvwxyz',
+            By.CONSONANTS: 'bcdfghjklmnpqrstvwxz',
+            By.VOWELS: 'aeioy',
+            By.SEMIVOWELS: 'wj',
+        }
 
     def __init__(self):
         self.step_members = {
@@ -130,18 +138,17 @@ class Language(Generic[MU]):
 
 
 class AbstractMorpheme(Generic[MU]):
-
     def __init__(self, **kwargs):
-        self.language = languages.associate(self)
         super().__init__(**kwargs)
+        self.language = languages.associate(self)
 
     def _inverse_problem(self, problem: Callable, word: MU):
         reverse_result = problem(~self, word[::-1])
-        return reverse_result[::-1]
+        return reverse_result[::-1] if reverse_result is not None else None
 
     @classmethod
     def _get_default(cls, name: str) -> MU | Any:
-        return StrDefaults.dict()[name]
+        return StrDefaults._dict()[name]
 
     @abstractmethod
     def _get_place_and_size(self, word: MU) -> Tuple[Coord, Size]:
@@ -150,6 +157,8 @@ class AbstractMorpheme(Generic[MU]):
     @abstractmethod
     def _get_word_parts(self, word: MU, place: Coord, size: Size = 1, side=None) -> Tuple[MU, ...]:  # TODO think: Generalize to more dimensions rather than strings
         raise NotImplementedError
+
+    # TODO think: should "is_adding" be declared here?
 
     @abstractmethod
     def is_present(self, word: MU, *args, **kwargs) -> MU:
@@ -171,10 +180,9 @@ class AbstractMorpheme(Generic[MU]):
     def replace(self, word: MU, *args, **kwargs) -> MU:
         raise NotImplementedError
 
-    def __call__(self, word, *args, **kwargs):
+    @abstractmethod
+    def __call__(self, word: MU, *args, **kwargs):
         raise NotImplementedError
-        # TODO switch between insert, remove, replace methods
-        return self.insert(word, *args, **kwargs)
 
     @abstractmethod
     def __invert__(self) -> SingleMorpheme:
@@ -186,16 +194,17 @@ class AbstractMorpheme(Generic[MU]):
 
 
 # TODO think: How to implement conditional src, pos: within the class, separately
-class SingleMorpheme(AbstractMorpheme):
+class SingleMorpheme(AbstractMorpheme, Generic[MU]):
+
+    is_using_inversion = True
 
     def __init__(self, form1: MU = None, form2: MU = None, *, at: Coord = None, by: Step = None, side: Position = None, **kwargs):
         super().__init__(**kwargs)
-        # self.form: MU = form1 if form1 is not None else form2 if form2 is not None else self._get_default(C.FORM)
         self.to_remove: MU = form1 if form2 is not None else self._get_default(C.FORM)
         self.to_insert: MU = form2 if form2 is not None else self._get_default(C.FORM)
         self.at: Coord = at if at is not None else self._get_default(C.AT)
         self.by: Step = by if by is not None else self._get_default(C.BY)
-        self.side: Position = side if side is not None else self._get_default(C.SIDE)
+        self.side: Position = side if side is not None else Side.BEFORE if self.at > 0 else Side.AFTER
 
     @property
     def form(self) -> MU:
@@ -212,9 +221,16 @@ class SingleMorpheme(AbstractMorpheme):
 
     # TODO think: returning the size of the place
     def _get_place_and_size(self, word: MU) -> Tuple[Coord, Size]:
-        step_members = self.language.step_members[self.by]
-        place_sizes = [(i, 1) for i, unit in enumerate(word) if unit in step_members] if self.by != By.LETTERS else list(range(len(word)))  # TODO think: better size handling
-        place, size = place_sizes[self.at]
+        all_step_members = self.language.step_members if self.language is not None else Language.general_step_members
+        if self.by != By.LETTERS:
+            step_members = all_step_members[self.by]
+            place_sizes = word_to_basics(word, step_members)
+        else:
+            place_sizes = list(zip(range(1, len(word)+1), repeat(1)))  # TODO think: better size handling
+        adjusted_at = self.at if self.at > 0 else np.subtract(len(word), self.at)
+        place, size = next(((p-1, s) for (p, s) in place_sizes if p == adjusted_at), tuple((len(word), 0)))  # TODO Generalize default empty
+        if abs(self.at) > place + 1:
+            raise ValueError  # TODO: more test to verify
         return place, size
 
     def _get_word_parts(self, word: MU, place: Coord, size: Size = 1, side=None) -> Tuple[MU, ...]:
@@ -222,26 +238,26 @@ class SingleMorpheme(AbstractMorpheme):
         match side:
             case Side.BEFORE: return word[:place], word[place:]
             case Side.AT: return word[:place], word[place+size:]  # TODO think: or size?
-            case Side.AFTER: return self._get_word_parts(word, place + size, Side.BEFORE)  # TODO think: or size?
+            case Side.AFTER: return self._get_word_parts(word, place + size, size, Side.BEFORE)  # TODO think: or size?
 
     def is_applicable(self, word: MU, *args, **kwargs) -> MU:
-        if self.at < 0:
-            return self._inverse_problem(self.insert, word)
+        if self.is_using_inversion and self.at < 0:
+            return self._inverse_problem(SingleMorpheme.insert, word)
         place, size = self._get_place_and_size(word)
         # TODO move this to abstract after generalizing "len" (size_of) and "[]" (slice_of?)"
         return len(word) < place + size and (not self.to_remove or word[place: place+size] == self.to_remove)
 
     def is_present(self, word: MU, *args, **kwargs) -> MU:
-        if self.at < 0:
-            return self._inverse_problem(self.insert, word)
+        if self.is_using_inversion and self.at < 0:
+            return self._inverse_problem(SingleMorpheme.insert, word)
         place, size = self._get_place_and_size(word)
         # TODO move this to abstract after generalizing "[]"
         return word[place: place+size] == (self.to_remove if self.to_remove else self.to_insert)
 
     def insert(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing num of parts and it's concatanation with form
-        if self.at < 0:
-            return self._inverse_problem(self.insert, word)
+        if self.is_using_inversion and self.at < 0:
+            return self._inverse_problem(SingleMorpheme.insert, word)
         place, size = self._get_place_and_size(word)
         part1, part2 = self._get_word_parts(word, place)
         result = part1 + self.to_insert + part2
@@ -249,24 +265,37 @@ class SingleMorpheme(AbstractMorpheme):
 
     def remove(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing num of parts and it's concatanation with form
-        if self.at < 0:
-            return self._inverse_problem(self.insert, word)
+        if self.is_using_inversion and self.at < 0:
+            return self._inverse_problem(SingleMorpheme.insert, word)
         place, size = self._get_place_and_size(word)
         if not self.is_applicable(word):
             raise ValueError  # TODO specify
         part1, part2 = self._get_word_parts(word, place)
-        return part1 + part2
+        result = part1 + part2
+        return result
 
     def replace(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing "negativity of at, inversing problem according to specific axis""
-        if self.at < 0:
-            return self._inverse_problem(self.insert, word)
-        word = self.remove(word)
-        word = self.insert(word)
-        return word
+        if self.is_using_inversion and self.at < 0:
+            return self._inverse_problem(SingleMorpheme.insert, word)
+        place, size = self._get_place_and_size(word)
+        if not self.is_applicable(word):
+            raise ValueError  # TODO specify
+        part1, part2 = self._get_word_parts(word, place)
+        return part1 + self.to_insert + part2
+
+    def __call__(self, word: MU, *args, **kwargs):
+        if self.to_remove and self.to_insert:
+            return self.replace(word)
+        elif self.to_insert:
+            return self.insert(word)
+        elif self.to_remove:
+            return self.remove(word)
+        else:
+            return word
 
     def __invert__(self) -> SingleMorpheme:
-        return SingleMorpheme(self.form[::-1], at=np.subtract(0, self.at), by=self.by, side=np.subtract(0, self.side))
+        return SingleMorpheme(self.to_remove, self.to_insert, at=np.subtract(0, self.at), by=self.by, side=np.subtract(0, self.side))
 
     def __add__(self, other: SingleMorpheme):
         if self.language != other.language:
