@@ -3,7 +3,7 @@ from typing import Iterable, Callable, Any, Collection, Tuple
 
 
 def get_name(instance):
-    return instance.name if 'name' in instance.__dir__ else instance if isinstance(instance, str) else None
+    return instance.name if 'name' in instance.__dir__ else instance['name'] if '__contains__' in instance.__dir__ and 'name' in instance else instance if isinstance(instance, str) else None
 
 
 def reapply(fn, arg, n=None, until=None, as_long=None):
