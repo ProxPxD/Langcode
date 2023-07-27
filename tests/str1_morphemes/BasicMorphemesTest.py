@@ -45,7 +45,10 @@ class BasicMorphemeTest(AbstractTest):
         ('replace_second_from_end_by_vowel_before',   'm', 'b', -2, By.VOWELS, Side.BEFORE, ('mama', ), ('bama', )),
         ('replace_second_from_start_by_vowel_at', 'a', 'e', 2, By.VOWELS, Side.AT, ('dada', 'kirat', 'koko'), ('dade', 'kiret', ValueError)),
         ('replace_second_from_end_by_vowel_at',   'a', 'e', -2, By.VOWELS, Side.AT, ('dada', 'karate', 'kakoka'), ('deda', 'karete', ValueError)),
-    ]
+        ('replace_precise_at', 'o', 'ue', -2, By.VOWELS, Side.AT, ('soler',), ('sueler', )),
+        ('replace_precise_before', 'm', 'bj', -2, By.VOWELS, Side.BEFORE, ('mama',), ('bjama', )),
+        ('replace_precise_after', 'm', 'jb', -2, By.VOWELS, Side.AFTER, ('mama',), ('majba', )),
+    ]  # TODO: add longer insertions and removals to assure they won't be reversed in adding from the end
 
     # TODO idea: assert that a certain method was called. Problem: Mock disables the invert function due to not knowing what happens in __init__
     @classmethod
