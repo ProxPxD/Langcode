@@ -270,27 +270,30 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         result = part1 + self.to_insert + part2
         return result
 
-    def remove(self, word: MU, *args, **kwargs) -> MU:
-        # TODO move this to abstract after generalizing num of parts and it's concatanation with form
-        if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.remove, word)
-        index, size = self._get_index_and_size(word)
-        min_point, max_point = get_extreme_points(word, index, len(self.to_remove))
-        middle = word[min_point:max_point]
-        if self.to_remove not in middle:
-            raise ValueError  # TODO specify
-        result = word[:min_point] + middle.replace(self.to_remove, '') + word[max_point:]
-        return result
+    # def remove(self, word: MU, *args, **kwargs) -> MU:
+    #     # TODO move this to abstract after generalizing num of parts and it's concatanation with form
+    #     if self.is_using_inversion and self.at < 0:
+    #         return self._inverse_problem(SingleMorpheme.remove, word)
+    #     index, size = self._get_index_and_size(word)
+    #     min_point, max_point = get_extreme_points(word, index, len(self.to_remove))
+    #     middle = word[min_point:max_point]
+    #     if self.to_remove not in middle:
+    #         raise ValueError  # TODO specify
+    #     result = word[:min_point] + middle.replace(self.to_remove, '') + word[max_point:]
+    #     return result
 
     def replace(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing "negativity of at, inversing problem according to specific axis""
         if self.is_using_inversion and self.at < 0:
             return self._inverse_problem(SingleMorpheme.replace, word)
         index, size = self._get_index_and_size(word)
-        if not self.is_applicable(word):
+        min_point, max_point = get_extreme_points(word, index, len(self.to_remove))
+        middle = word[min_point:max_point]
+        if self.to_remove not in middle:
             raise ValueError  # TODO specify
-        part1, part2 = self._get_word_parts(word, index)
-        return part1 + self.to_insert + part2
+        # TODO: make more precise
+        result = word[:min_point] + middle.replace(self.to_remove, self.to_insert) + word[max_point:]
+        return result
 
     def __call__(self, word: MU, *args, **kwargs):
         if self.to_remove and self.to_insert:
@@ -298,7 +301,7 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         elif self.to_insert:
             return self.insert(word)
         elif self.to_remove:
-            return self.remove(word)
+            return self.replace(word)
         else:
             return word
 
