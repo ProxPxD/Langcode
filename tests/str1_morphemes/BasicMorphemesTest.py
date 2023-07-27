@@ -41,7 +41,7 @@ class BasicMorphemeTest(AbstractTest):
         ('replace_second_from_start', 'j', 'w', 2, None, None, ('ajka', ), ('awka', )),
         ('replace_second_from_end', 'j', 'w', -2, None, None, ('fja', ), ('fwa', )),
         ('replace_second_from_start_by_vowel_before', 'm', 'b', 2, By.VOWELS, Side.BEFORE, ('mama', ), ('maba', )),
-        ('replace_second_from_start_by_vowel_before', 'm', 'b', 2, By.VOWELS, Side.BEFORE, ('mama', ), ('maba', )),
+        ('replace_second_from_start_by_vowel_before', 't', 'b', 2, By.VOWELS, Side.AFTER, ('mamat', ), ('mamab', )),
         ('replace_second_from_end_by_vowel_before',   'm', 'b', -2, By.VOWELS, Side.BEFORE, ('mama', ), ('bama', )),
         ('replace_second_from_start_by_vowel_at', 'a', 'e', 2, By.VOWELS, Side.AT, ('dada', 'kirat', 'koko'), ('dade', 'kiret', ValueError)),
         ('replace_second_from_end_by_vowel_at',   'a', 'e', -2, By.VOWELS, Side.AT, ('dada', 'karate', 'kakoka'), ('deda', 'karete', ValueError)),
