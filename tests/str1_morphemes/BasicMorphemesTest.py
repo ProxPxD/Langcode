@@ -37,7 +37,7 @@ class BasicMorphemeTest(AbstractTest):
         ('remove_as_second_from_start', None, 'r', 2, None, None, ('', ), (ValueError, )),
         # Replaces:
         ('replace_first_from_start', 'e', 'i', 1, None, None, ('est', 'ist'), ('ist', ValueError)),
-        ('replace_fisrt_from_end', 'a', 'y', -1, None, None, ('mama', ), ('mamy')),
+        ('replace_first_from_end', 'a', 'y', -1, None, None, ('mama', ), ('mamy', )),
         ('replace_second_from_start', 'j', 'w', 2, None, None, ('ajka', ), ('awka', )),
         ('replace_second_from_end', 'j', 'w', -2, None, None, ('fja', ), ('fwa', )),
         ('replace_second_from_start_by_vowel_before', 'm', 'b', 2, By.VOWELS, Side.BEFORE, ('mama', ), ('maba', )),
