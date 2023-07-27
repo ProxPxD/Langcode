@@ -3,13 +3,11 @@ from __future__ import annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import reduce
-from itertools import repeat
 from typing import Literal, TypeVar, Generic, Callable, Iterable, Tuple, Any, List
-
 
 import numpy as np
 
-from src.utils import DictClass, get_name, word_to_basics
+from src.utils import DictClass, get_name, word_to_basics, get_extreme_points
 
 Coord = int | tuple[int, ...]
 Size = Coord
@@ -200,7 +198,7 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
 
     def __init__(self, form1: MU = None, form2: MU = None, *, at: Coord = None, by: Step = None, side: Position = None, **kwargs):
         super().__init__(**kwargs)
-        self.to_remove: MU = form1 if form2 is not None else self._get_default(C.FORM)
+        self.to_remove: MU = form1 if form1 is not None else self._get_default(C.FORM)
         self.to_insert: MU = form2 if form2 is not None else self._get_default(C.FORM)
         self.at: Coord = at if at is not None else self._get_default(C.AT)
         self.by: Step = by if by is not None else self._get_default(C.BY)
@@ -253,14 +251,8 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
 
     def _is_applicable_for_remove(self, word: MU, index, *args, **kwargs) -> bool:
         # TODO move this to abstract after generalizing "len" (size_of) and "[]" (slice_of?)"
-        to_remove_size = len(self.to_remove)
-        if self.side == Side.AFTER:
-            size_cond = len(word) >= index + to_remove_size
-            word_fragment = word[index: index+to_remove_size]
-        else:
-            size_cond = index - to_remove_size > 0
-            word_fragment = word[index-to_remove_size: index]
-        return size_cond and word_fragment
+        remove_range = get_extreme_points(word, index, len(self.to_remove))
+        return self.to_remove in remove_range
 
     def is_present(self, word: MU, *args, **kwargs) -> MU:
         if self.is_using_inversion and self.at < 0:
@@ -281,21 +273,19 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
     def remove(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing num of parts and it's concatanation with form
         if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.insert, word)
+            return self._inverse_problem(SingleMorpheme.remove, word)
         index, size = self._get_index_and_size(word)
-        if not self.is_applicable(word):
+        min_point, max_point = get_extreme_points(word, index, len(self.to_remove))
+        middle = word[min_point:max_point]
+        if self.to_remove not in middle:
             raise ValueError  # TODO specify
-        part1, part2 = self._get_word_parts(word, index)
-        match self.side:  # TODO: think of the case where to_remove occupies all parts
-            case Side.AFTER:  part2 = part2.removepreffix(self.to_remove)
-            case Side.BEFORE: part1 = part1.removesuffix(self.to_remove)
-        result = part1 + part2
+        result = word[:min_point] + middle.replace(self.to_remove, '') + word[max_point:]
         return result
 
     def replace(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing "negativity of at, inversing problem according to specific axis""
         if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.insert, word)
+            return self._inverse_problem(SingleMorpheme.replace, word)
         index, size = self._get_index_and_size(word)
         if not self.is_applicable(word):
             raise ValueError  # TODO specify
@@ -319,6 +309,9 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         if self.language != other.language:
             raise ArithmeticError
         return ComplexMorpheme(self, other)
+
+    def __repr__(self) -> str:
+        return f"Morpheme(to_remove={self.to_remove if self.to_remove else ''}, to_insert={self.to_insert if self.insert else ''}, at={self.at}, by={self.by}, side={self.side}, lang={self.language})"
 
 
 class ComplexMorpheme(AbstractMorpheme):
