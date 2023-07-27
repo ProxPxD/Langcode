@@ -26,8 +26,8 @@ class BasicMorphemeTest(AbstractTest):
         ('as_second_from_start_using_side', None, 'r', 1, None, Side.AFTER, ('atak', 'a', ''), ('artak', 'ar', ValueError)),
         ('as_second_from_end_using_side', None, 'e', -1, None, Side.BEFORE, ('statk', ), ('statek', )),
         ('from_start_by_vowels', '', 'j', 1, By.VOWELS, Side.AFTER, ('ana', 'maq'), ('ajna', 'majq')),
-        ('from_end_by_vowels', '', 'r', 1, By.VOWELS, Side.BEFORE, ('hama', 'taj'), ('hamra', 'traj')),
-        ('second_from_end_by_vowels', '', 'h', 2, By.VOWELS, Side.BEFORE, ('ami', 'larak'), ('ahmi', 'lahrak')),
+        ('from_end_by_vowels', '', 'r', -1, By.VOWELS, Side.BEFORE, ('hama', 'taj'), ('hamra', 'traj')),
+        ('second_from_end_by_vowels', '', 'h', -2, By.VOWELS, Side.AFTER, ('ami', 'larak'), ('ahmi', 'lahrak')),
         ('before_second_consonant_from_start', '', 'y', 2, By.CONSONANTS, Side.BEFORE, ('trocki', 'espana'), ('tyrocki', 'esypana')),
         ('after_second_consonant_from_end', '', 'i', -2, By.CONSONANTS, Side.AFTER, ('rakta', 'trakt'), ('rakita', 'trakit')),
 
@@ -36,6 +36,15 @@ class BasicMorphemeTest(AbstractTest):
         ('remove_last', 'r', '', -1, None, None, ('ama', ), (ValueError, )),
         ('remove_as_second_from_start', None, 'r', 2, None, None, ('', ), (ValueError, )),
         # Replaces:
+        ('replace_first_from_start', 'e', 'i', 1, None, None, ('est', 'ist'), ('ist', ValueError)),
+        ('replace_fisrt_from_end', 'a', 'y', -1, None, None, ('mama', ), ('mamy')),
+        ('replace_second_from_start', 'j', 'w', 2, None, None, ('ajka', ), ('awka', )),
+        ('replace_second_from_end', 'j', 'w', -2, None, None, ('fja', ), ('fwa', )),
+        ('replace_second_from_start_by_vowel_before', 'm', 'b', 2, By.VOWELS, Side.BEFORE, ('mama', ), ('maba', )),
+        ('replace_second_from_start_by_vowel_before', 'm', 'b', 2, By.VOWELS, Side.BEFORE, ('mama', ), ('maba', )),
+        ('replace_second_from_end_by_vowel_before',   'm', 'b', -2, By.VOWELS, Side.BEFORE, ('mama', ), ('bama', )),
+        ('replace_second_from_start_by_vowel_at', 'a', 'e', 2, By.VOWELS, Side.AT, ('dada', 'kirat', 'koko'), ('dade', 'kiret', ValueError)),
+        ('replace_second_from_end_by_vowel_at',   'a', 'e', -2, By.VOWELS, Side.AT, ('dada', 'karate', 'kakoka'), ('deda', 'karete', ValueError)),
     ]
 
     # TODO idea: assert that a certain method was called. Problem: Mock disables the invert function due to not knowing what happens in __init__
@@ -45,12 +54,17 @@ class BasicMorphemeTest(AbstractTest):
             for i, word, expected in zip(range(len(words)), words, expecteds):
                 adfix = cls.get_test_adfix(i, word, expected, words, expecteds)
                 if isinstance(expected, str):
-                    insert_test_name = f'test_insert_{name}_{adfix}'
-                    remove_test_name = f'test_remove_{name}_{adfix}'
-                    insert_test = cls.get_apply_morpheme_test(insert_test_name, to_remove, to_insert, at, by, side, word, expected)
-                    remove_test = cls.get_apply_morpheme_test(remove_test_name, to_insert, to_remove, at, by, side, expected, word)
-                    setattr(BasicMorphemeTest, insert_test_name, insert_test)
-                    setattr(BasicMorphemeTest, remove_test_name, remove_test)
+                    if not (to_remove and to_insert):
+                        insert_test_name = f'test_insert_{name}_{adfix}'
+                        remove_test_name = f'test_remove_{name}_{adfix}' if 'remove' not in name else f'test_{name}_{adfix}'
+                        insert_test = cls.get_apply_morpheme_test(insert_test_name, to_remove, to_insert, at, by, side, word, expected)
+                        remove_test = cls.get_apply_morpheme_test(remove_test_name, to_insert, to_remove, at, by, side, expected, word)
+                        setattr(BasicMorphemeTest, insert_test_name, insert_test)
+                        setattr(BasicMorphemeTest, remove_test_name, remove_test)
+                    else:
+                        replace_test_name = f'test_{name}_{adfix}'
+                        insert_test = cls.get_apply_morpheme_test(replace_test_name, to_remove, to_insert, at, by, side, word, expected)
+                        setattr(BasicMorphemeTest, replace_test_name, insert_test)
                 elif isinstance(expected, type(Exception)):
                     exception_test_name = f'test_{adfix}_{name}'
                     test = cls.get_except_morpheme_test(exception_test_name, to_remove, to_insert, at, by, side, word, expected)
