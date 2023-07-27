@@ -306,7 +306,7 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
             return word
 
     def __invert__(self) -> SingleMorpheme:
-        return SingleMorpheme(self.to_remove, self.to_insert, at=np.subtract(0, self.at), by=self.by, side=np.subtract(0, self.side))
+        return SingleMorpheme(self.to_remove[::-1], self.to_insert[::-1], at=np.subtract(0, self.at), by=self.by, side=np.subtract(0, self.side))
 
     def __add__(self, other: SingleMorpheme):
         if self.language != other.language:
