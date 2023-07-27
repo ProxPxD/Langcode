@@ -71,3 +71,11 @@ def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield
             yield missing, index
         else:
             yield missing
+
+
+def get_extreme_points(col: list | str, midpoint: int, remove_range: int, right_remove_range: int = None) -> tuple[int, int]:
+    left_range = remove_range
+    right_range = right_remove_range if right_remove_range is not None else remove_range
+    min_point = max(midpoint-left_range, 0)
+    max_point = min(midpoint+right_range+1, len(col))
+    return min_point, max_point
