@@ -2,7 +2,7 @@ import unittest
 from typing import Iterable
 
 from tests.abstractTest import AbstractTest
-from tests.str1_morphemes.BasicMorphemesTest import BasicMorphemeTest
+from tests.str_1d_morphemes.BasicMorphemesTest import BasicMorphemeTest
 
 all_tests = [
     BasicMorphemeTest,

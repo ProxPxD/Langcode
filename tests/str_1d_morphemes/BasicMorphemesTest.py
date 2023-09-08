@@ -13,7 +13,7 @@ class BasicMorphemeTest(AbstractTest):
         if not self.is_generated:
             self.gen_all_basic_morpheme_tests()
             self.is_generated = True
-
+    # TODO think: of adding multiple ats, possibly working with many bys and sides (but not necessary)
     '''
         (name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, words: tuple[str], excepted: tuple[str | ExceptionType])
     '''
@@ -35,6 +35,7 @@ class BasicMorphemeTest(AbstractTest):
         ('remove_first', 'e', '', 1, None, None, ('ava',), (ValueError, )),
         ('remove_last', 'r', '', -1, None, None, ('ama', ), (ValueError, )),
         ('remove_as_second_from_start', None, 'r', 2, None, None, ('', ), (ValueError, )),
+
         # Replaces:
         ('replace_first_from_start', 'e', 'i', 1, None, None, ('est', 'ist'), ('ist', ValueError)),
         ('replace_first_from_end', 'a', 'y', -1, None, None, ('mama', ), ('mamy', )),
@@ -48,6 +49,11 @@ class BasicMorphemeTest(AbstractTest):
         ('replace_precise_at', 'o', 'ue', -2, By.VOWELS, Side.AT, ('soler',), ('sueler', )),
         ('replace_precise_before', 'm', 'bj', -2, By.VOWELS, Side.BEFORE, ('mama',), ('bjama', )),
         ('replace_precise_after', 'm', 'jb', -2, By.VOWELS, Side.AFTER, ('mama',), ('majba', )),
+
+        # Multiplicity:
+        ('replace_at_two_places', 'i', 'u', (1, 2), By.VOWELS, Side.AT, ('anla', ), ('enle', )),
+        ('replace_at_two_sides', 't', 'd', -1, By.VOWELS, (Side.BEFORE, Side.AFTER), ('tato', ), ('dado', )),
+        ('replace_at_from_start_and_end', 'o', 'u', (1, -1), By.VOWELS, Side.AT, ('omamo', ), ('umamu', )),
     ]  # TODO: add longer insertions and removals to assure they won't be reversed in adding from the end
 
     # TODO idea: assert that a certain method was called. Problem: Mock disables the invert function due to not knowing what happens in __init__
