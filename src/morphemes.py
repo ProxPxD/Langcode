@@ -1,22 +1,26 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from functools import reduce
-from typing import Literal, TypeVar, Generic, Callable, Iterable, Tuple, Any, List
+from typing import Literal, TypeVar, Generic, Callable, Iterable, Tuple, Any, List, Optional
 
 import numpy as np
 
+from src.morphemes_nd import MU
 from src.utils import DictClass, get_name, word_to_basics, get_extreme_points
 
-Coord = int | tuple[int, ...]
-Size = Coord
-Step = str | tuple[str, ...]
-Position = Literal[-1, 0, 1]
-MU = TypeVar('MU')  # Morpheme Unit
+from morphemes_nd import At, Size, By, Side
 
 
 # TODO THINK: D dir class from py2neo lib?
+@dataclass(frozen=True)
+class LanguageElems:
+    GRAPHEMES = 'graphemes'
+    MORPHEMES = 'morphemes'
+    FEATURES = 'features'
+
+
 @dataclass(frozen=True)
 class By:
     LETTERS = 'LETTERS'
@@ -31,9 +35,9 @@ class By:
 
 @dataclass(frozen=True)
 class Side:
-    BEFORE: Position = -1
-    AFTER: Position = 1
-    AT: Position = 0
+    BEFORE: Side = -1
+    AFTER: Side = 1
+    AT: Side = 0
 
 
 @dataclass(frozen=True)
@@ -47,92 +51,33 @@ class C:
 @dataclass(frozen=True)
 class StrDefaults(DictClass):
     form: str = ''
-    at: Coord = 0
-    by: Step = By.LETTERS
+    at: At = 0
+    by: By = By.LETTERS
 
     side: Side = Side.BEFORE
-    first: Coord = 1
-    last: Coord = -1
+    first: At = 1
+    last: At = -1
 
     before: Side = Side.BEFORE
     after: Side = Side.AFTER
 
 
-class MetaLanguages(type):
-    _languages: dict = {}
-    _current: Language | None = None
-
-    def __getitem__(cls, lang: str | Language) -> Language:
-        return cls._languages[get_name(lang)]
-
-    def __setitem__(cls, name: str, lang: Language):
-        if isinstance(lang, Language):
-            cls._languages[name] = lang
-            cls._current = lang
-        else:
-            raise NotImplementedError
-
-    def __contains__(self, name):
-        return name in self._languages
-
-    def keys(cls):
-        return cls._languages.keys()
-
-    def values(cls):
-        return cls._languages.values()
-
-    def items(cls):
-        return cls._languages.items()
-
-    @property
-    def current(cls) -> Language | None:
-        return cls._current
-
-    @current.setter
-    def current(cls, new_current: Language | str | None) -> None:  # TODO test setting ways
-        name = get_name(new_current)
-        if new_current is None or name in cls._languages:
-            cls._current = cls._languages[name]
-        else:
-            raise NotImplementedError  # TODO test error
-
-    def associate(cls, to_associate: Iterable | object) -> Language:  # TODO add annotation
-        if cls._current is not None:
-            return cls._current.associate(to_associate)
+##########################
+#       Orthography      #
+##########################
 
 
-class languages(metaclass=MetaLanguages):  # TODO test access
-    pass
+class Orthography:
+    def __init__(self, *graphemes: Grapheme):
+        self.graphemes: dict[str, Grapheme] = {grapheme.name: graphemes for grapheme in graphemes}
+
+    def get_realization(self, word: str | Morpheme) -> str:  # TODO think of return type and if a word should be a subclass of Morhpeme
+        return get_name(word)  # TODO
 
 
-class Language(Generic[MU]):
-    general_step_members = {
-            By.LETTERS: 'abcdefghijklmnopqrstuvwxyz',
-            By.CONSONANTS: 'bcdfghjklmnpqrstvwxz',
-            By.VOWELS: 'aeioy',
-            By.SEMIVOWELS: 'wj',
-        }
-
-    def __init__(self):
-        self.step_members = {
-            By.LETTERS: 'abcdefghijklmnopqrstuvwxyz',
-            By.CONSONANTS: 'bcdfghjklmnpqrstvwxz',
-            By.VOWELS: 'aeioy',
-            By.SEMIVOWELS: 'wj',
-        }
-
-    def get_step_members(self, by: Step) -> tuple[MU, ...]:
-        return self.step_members[by]
-
-    def associate(self, to_associate: Iterable | object) -> Language:  # TODO add annotation
-        if not isinstance(to_associate, Iterable):
-            return self._associate_single(to_associate)
-        else:
-            return reduce(lambda a, b: a, map(self.associate, to_associate))
-
-    def _associate_single(self, to_associate) -> Language:  # TODO add annotation
-        raise NotImplementedError
-        return self
+##########################
+#        Morpheme        #
+##########################
 
 
 class AbstractMorpheme(Generic[MU]):
@@ -149,11 +94,15 @@ class AbstractMorpheme(Generic[MU]):
         return StrDefaults._dict()[name]
 
     @abstractmethod
-    def _get_index_and_size(self, word: MU) -> Tuple[Coord, Size]:
+    def _get_index_and_size(self, word: MU) -> Tuple[At, Size]:
         raise NotImplementedError
 
     @abstractmethod
-    def _get_word_parts(self, word: MU, place: Coord, size: Size = 1, side=None) -> Tuple[MU, ...]:  # TODO think: Generalize to more dimensions rather than strings
+    def _get_word_parts(self, word: MU, place: At, size: Size = 1, side=None) -> Tuple[MU, ...]:  # TODO think: Generalize to more dimensions rather than strings
+        raise NotImplementedError
+
+    @abstractmethod
+    def is_bound(self) -> bool:
         raise NotImplementedError
 
     # TODO think: should "is_adding" be declared here?
@@ -183,26 +132,27 @@ class AbstractMorpheme(Generic[MU]):
         raise NotImplementedError
 
     @abstractmethod
-    def __invert__(self) -> SingleMorpheme:
+    def __invert__(self) -> SimpleMorphemeND:
         raise NotImplementedError
 
     @abstractmethod
-    def __add__(self, other: SingleMorpheme):
+    def __add__(self, other: SimpleMorphemeND):
         raise NotImplementedError
 
 
 # TODO think: How to implement conditional src, pos: within the class, separately
-class SingleMorpheme(AbstractMorpheme, Generic[MU]):
-
+class SimpleMorphemeND(AbstractMorpheme, Generic[MU]):
     is_using_inversion = True
 
-    def __init__(self, form1: MU = None, form2: MU = None, *, at: Coord = None, by: Step = None, side: Position = None, **kwargs):
+    # TODO: change tests to encopass the raises argument
+    def __init__(self, form1: MU = None, form2: MU = None, *, at: At = None, by: By = None, side: Side = None, raises: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.to_remove: MU = form1 if form1 is not None else self._get_default(C.FORM)
         self.to_insert: MU = form2 if form2 is not None else self._get_default(C.FORM)
-        self.at: Coord = at if at is not None else self._get_default(C.AT)
-        self.by: Step = by if by is not None else self._get_default(C.BY)
-        self.side: Position = side if side is not None else Side.BEFORE if self.at > 0 else Side.AFTER
+        self.at: At = at if at is not None else self._get_default(C.AT)
+        self.by: By = by if by is not None else self._get_default(C.BY)
+        self.side: Side = side if side is not None else Side.BEFORE if self.at > 0 else Side.AFTER
+        self.raises: bool = raises
 
     @property
     def form(self) -> MU:
@@ -218,7 +168,7 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
             return None
 
     # TODO think: returning the size of the place
-    def _get_index_and_size(self, word: MU) -> Tuple[Coord, Size]:
+    def _get_index_and_size(self, word: MU) -> Tuple[At, Size]:
         all_step_members = self.language.step_members if self.language is not None else Language.general_step_members
         if self.by != By.LETTERS:
             step_members = all_step_members[self.by]
@@ -231,17 +181,23 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
             raise ValueError  # TODO: more test to verify
         return index, size
 
-    def _get_word_parts(self, word: MU, place: Coord, size: Size = 1, side=None) -> Tuple[MU, ...]:
+    def _get_word_parts(self, word: MU, place: At, size: Size = 1, side=None) -> Tuple[MU, ...]:
         side = side if side is not None else self.side
         match side:
-            case Side.BEFORE: return word[:place], word[place:]
-            case Side.AT: return word[:place], word[place+size:]  # TODO think: or size?
-            case Side.AFTER: return self._get_word_parts(word, place + size, size, Side.BEFORE)  # TODO think: or size?
+            case Side.BEFORE:
+                return word[:place], word[place:]
+            case Side.AT:
+                return word[:place], word[place + size:]  # TODO think: or size?
+            case Side.AFTER:
+                return self._get_word_parts(word, place + size, size, Side.BEFORE)  # TODO think: or size?
 
     def is_applicable(self, word: MU, *args, **kwargs) -> bool:
         if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.insert, word)
-        index, size = self._get_index_and_size(word)
+            return self._inverse_problem(SimpleMorphemeND.insert, word)
+        try:
+            index, size = self._get_index_and_size(word)
+        except ValueError:
+            return False
         is_applicable = not self.to_remove or self._is_applicable_for_remove(word, index)
         is_applicable &= not self.to_insert or self._is_applicable_for_insert(word, index)
         return is_applicable
@@ -256,16 +212,24 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
 
     def is_present(self, word: MU, *args, **kwargs) -> MU:
         if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.insert, word)
-        index, size = self._get_index_and_size(word)
+            return self._inverse_problem(SimpleMorphemeND.insert, word)
+        try:
+            index, size = self._get_index_and_size(word)
+        except ValueError:
+            return False
         # TODO move this to abstract after generalizing "[]"
-        return word[index: index+size] == (self.to_remove if self.to_remove else self.to_insert)
+        return word[index: index + size] == (self.to_remove if self.to_remove else self.to_insert)
 
     def insert(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing num of parts and it's concatanation with form
         if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.insert, word)
-        index, size = self._get_index_and_size(word)
+            return self._inverse_problem(SimpleMorphemeND.insert, word)
+        try:
+            index, size = self._get_index_and_size(word)
+        except ValueError as e:
+            if self.raises:
+                raise e
+            return word
         part1, part2 = self._get_word_parts(word, index)
         result = part1 + self.to_insert + part2
         return result
@@ -285,12 +249,19 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
     def replace(self, word: MU, *args, **kwargs) -> MU:
         # TODO move this to abstract after generalizing "negativity of at, inversing problem according to specific axis""
         if self.is_using_inversion and self.at < 0:
-            return self._inverse_problem(SingleMorpheme.replace, word)
-        index, size = self._get_index_and_size(word)
+            return self._inverse_problem(SimpleMorphemeND.replace, word)
+        try:
+            index, size = self._get_index_and_size(word)
+        except ValueError as e:
+            if self.raises:
+                raise e
+            return word
         min_point, max_point = get_extreme_points(word, index, len(self.to_remove))
         middle = word[min_point:max_point]
         if self.to_remove not in middle:
-            raise ValueError  # TODO specify
+            if self.raises:
+                raise ValueError  # TODO specify
+            return word
         # TODO: make more precise
         result = word[:min_point] + middle.replace(self.to_remove, self.to_insert) + word[max_point:]
         return result
@@ -305,22 +276,22 @@ class SingleMorpheme(AbstractMorpheme, Generic[MU]):
         else:
             return word
 
-    def __invert__(self) -> SingleMorpheme:
-        return SingleMorpheme(self.to_remove[::-1], self.to_insert[::-1], at=np.subtract(0, self.at), by=self.by, side=np.subtract(0, self.side))
+    def __invert__(self) -> SimpleMorphemeND:
+        return SimpleMorphemeND(self.to_remove[::-1], self.to_insert[::-1], at=np.subtract(0, self.at), by=self.by, side=np.subtract(0, self.side))
 
-    def __add__(self, other: SingleMorpheme):
+    def __add__(self, other: SimpleMorphemeND):
         if self.language != other.language:
             raise ArithmeticError
-        return ComplexMorpheme(self, other)
+        return ComplexMorphemeND(self, other)
 
     def __repr__(self) -> str:
         return f"Morpheme(to_remove={self.to_remove if self.to_remove else ''}, to_insert={self.to_insert if self.insert else ''}, at={self.at}, by={self.by}, side={self.side}, lang={self.language})"
 
 
-class ComplexMorpheme(AbstractMorpheme):
+class ComplexMorphemeND(AbstractMorpheme):
     def __init__(self, *morphemes: AbstractMorpheme, **kwargs):
         super().__init__(**kwargs)
-        self.morphemes: List[AbstractMorpheme] = [m for morph in morphemes for m in (morph.morphemes if isinstance(morph, ComplexMorpheme) else [morph])]
+        self.morphemes: List[AbstractMorpheme] = [m for morph in morphemes for m in (morph.morphemes if isinstance(morph, ComplexMorphemeND) else [morph])]
 
     def insert(self, word: MU, *args, **kwargs) -> MU:
         return reduce(lambda w, morph: morph.insert, self.morphemes, word)
@@ -332,19 +303,20 @@ class ComplexMorpheme(AbstractMorpheme):
         return reduce(lambda w, morph: morph.replace, self.morphemes, word)
 
     def __invert__(self):
-        return ComplexMorpheme(*tuple(map(AbstractMorpheme.__invert__, self.morphemes)))
+        return ComplexMorphemeND(*tuple(map(AbstractMorpheme.__invert__, self.morphemes)))
 
 
-class ConditionalMorpheme(AbstractMorpheme):
-    def __init__(self, cond: Callable[[MU], bool] | SingleMorpheme, positive: ComplexMorpheme | SingleMorpheme, negative: ComplexMorpheme | SingleMorpheme | str = None, **kwargs):
+class ConditionalMorphemeND(AbstractMorpheme):
+    def __init__(self, cond: Callable[[MU], bool] | SimpleMorphemeND, positive: ComplexMorphemeND | SimpleMorphemeND, negative: ComplexMorphemeND | SimpleMorphemeND | str = None, **kwargs):
         super().__init__(**kwargs)
         # TODO think: if condition should be callable or morpheme
         # if morpheme, then should it be specified if used existing or not existing?
         # if callable, then simply negate the condition?
         # Can be both?
-        self.cond: SingleMorpheme | Callable[[MU], bool] = cond
-        self.positive: ComplexMorpheme | SingleMorpheme = positive
-        self.negative: ComplexMorpheme | SingleMorpheme = negative if isinstance(negative, (SingleMorpheme, ComplexMorpheme)) else SingleMorpheme(negative if negative is not None else self.default, positive.at, positive.by, positive.side)
+        self.cond: SimpleMorphemeND | Callable[[MU], bool] = cond
+        self.positive: ComplexMorphemeND | SimpleMorphemeND = positive
+        self.negative: ComplexMorphemeND | SimpleMorphemeND = negative if isinstance(negative, (SimpleMorphemeND, ComplexMorphemeND)) else SimpleMorphemeND(
+            negative if negative is not None else self.default, positive.at, positive.by, positive.side)
 
     def insert(self, word: MU, *args, **kwargs) -> MU:
         return self.positive(word) if self.cond(word) else self.negative(word)
@@ -353,29 +325,27 @@ class ConditionalMorpheme(AbstractMorpheme):
         return Morpheme(~self.cond, ~self.positive, ~self.negative)
 
 
-class Morpheme(SingleMorpheme, ComplexMorpheme, ConditionalMorpheme):
-    def __init__(self,
-            *form: Morpheme | MU,
-            at: Coord = None, by: Step = None, side: Position = None,
-            cond: Callable[[MU], bool] | SingleMorpheme = None, positive: SingleMorpheme = None, negative: SingleMorpheme | str = None,
-            **kwargs):
+class Morpheme(SimpleMorphemeND, ComplexMorphemeND, ConditionalMorphemeND):
+    def __init__(self, *form: Morpheme | MU, at: At = None, by: By = None, side: Side = None, cond: Callable[[MU], bool] | SimpleMorphemeND = None,
+            positive: SimpleMorphemeND = None, negative: SimpleMorphemeND | str = None, **kwargs):
         single_form = form[0] if len(form) == 1 else None
         morphemes = tuple() if len(form) < 2 else tuple(map(lambda f: f if isinstance(f, Morpheme) else Morpheme(f, at=at, by=by, side=side), form))
-        super(SingleMorpheme).__init__(single_form, at=at, by=by, side=side)
-        super(ComplexMorpheme).__init__(*morphemes)
-        super(ConditionalMorpheme).__init__(cond=cond, positive=positive, negative=negative)
+        super(SimpleMorphemeND).__init__(single_form, at=at, by=by, side=side)
+        super(ComplexMorphemeND).__init__(*morphemes)
+        super(ConditionalMorphemeND).__init__(cond=cond, positive=positive, negative=negative)
+
 
 #############
 # Templates #
 #############
 # TODO: think of making them functions returning classes
 
-class Prefix(SingleMorpheme):
+class Prefix(SimpleMorphemeND):
     def __init__(self, form: MU):
         super().__init__(form, at=self.first, by=By.LETTERS, side=self.before)
 
 
-class Postfix(SingleMorpheme):
+class Postfix(SimpleMorphemeND):
     def __init__(self, form: MU):
         super().__init__(form, at=self.last, by=By.LETTERS, side=self.after)
 
@@ -384,6 +354,6 @@ class Suffix(Postfix):
     pass
 
 
-class Circumfix(ComplexMorpheme):
+class Circumfix(ComplexMorphemeND):
     def __init__(self, pre: MU, post: MU):
         super().__init__(Prefix(pre), Postfix(post))
