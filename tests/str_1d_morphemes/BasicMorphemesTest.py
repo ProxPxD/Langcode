@@ -4,10 +4,10 @@ import inspect
 from dataclasses import dataclass, asdict
 from typing import Type, Iterable
 
-from src.morphemes import SingleMorpheme, Position, Step, Coord, By, Side
+from src.morphemes import SimpleMorphemeND, Side, By, At, By, Side
 from tests.abstractTest import AbstractTest
 
-Record = tuple[str, str | None, str | None, Coord, Step, Position, tuple[str], tuple[str| Type[Exception | ValueError]]]
+Record = tuple[str, str | None, str | None, At, By, Side, tuple[str], tuple[str | Type[Exception | ValueError]]]
 
 
 # TODO: write to parametrized/unittest to solve the issue with separately and both patch being set before the class and before the method
@@ -100,12 +100,12 @@ class BasicMorphemeTest(AbstractTest):
                 setattr(BasicMorphemeTest, test_name, test)
 
     @classmethod
-    def get_apply_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, word: str, expected: str):
+    def get_apply_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: At, by: By, side: Side, word: str, expected: str):
         def test(self):
             t = test_name
             self.assertIsNotNone(word)
             self.assertIsNotNone(expected)
-            morpheme = SingleMorpheme[str](to_remove, to_insert, at=at, by=by, side=side)
+            morpheme = SimpleMorphemeND[str](to_remove, to_insert, at=at, by=by, side=side)
             if to_remove is not None:
                 self.assertEqual(to_remove, morpheme.to_remove)
             if to_insert is not None:
@@ -115,12 +115,12 @@ class BasicMorphemeTest(AbstractTest):
         return test
 
     @classmethod
-    def get_except_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, word: str, expected: Type[Exception | ValueError]):
+    def get_except_morpheme_test(cls, test_name: str, to_remove: str, to_insert: str, at: At, by: By, side: Side, word: str, expected: Type[Exception | ValueError]):
         def test(self):
             t = test_name
             self.assertIsNotNone(word)
             self.assertIsNotNone(expected)
-            morpheme = SingleMorpheme[str](to_remove, to_insert, at=at, by=by, side=side)
+            morpheme = SimpleMorphemeND[str](to_remove, to_insert, at=at, by=by, side=side)
             if to_remove is not None:
                 self.assertEqual(to_remove, morpheme.to_remove)
             if to_insert is not None:
