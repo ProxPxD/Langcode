@@ -1,0 +1,14 @@
+geschlecht:
+  männlich
+  weiblich
+  neutral
+
+fall:
+  nominativ
+  genitiv
+  akkusativ
+  dativ
+
+numerus:
+  singular
+  plural

@@ -1,0 +1,33 @@
+list:
+  ei:
+    phonemic: aɪ̯
+  eu:
+    phonemic: ɔʏ̯̯
+
+features:
+  diphthong: [ei, eu]
+  vowel:
+    - diphthong
+    - [a, ä, u, ü, o, ö, y, i, e]  # todo handle ei/eu
+  syllabic:
+    - vowel
+  consonantal:
+    not: vowel
+  consonant: consonant
+  voicing:
+    req: consonantal # TODO implement
+    default: voiced
+    order:
+      - voiceless
+      - voiced
+    tuples:
+      - [p, b]
+      - [t, d]
+      - [k, g]
+      - [f, w]
+      - [v, w]
+      - [ß, s]
+      - [ss, s]
+      # Sch/?
+
+rules:
