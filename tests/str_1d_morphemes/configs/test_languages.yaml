@@ -1,0 +1,55 @@
+polish:
+  phon:
+    nasal: [ ą, ę ]
+    syllabic: [ a, ą, e, ę, o, u, ó, y, i ]
+    vowel: syllabic
+    consonant:
+      not: syllabic
+    voicing:
+      order:
+        - voiced
+        - voiceless
+      pairs:
+        - [ b, p ]
+        - [ d, t ]
+        - [ g, k ]
+        - [ z, s ]
+        - [ ż, sz ]
+        - [ dz, c ]
+        - [ dż, cz ]
+        - [ dź, ć ]
+        - [ w, f ]
+  orth:
+    rules:
+      - õ: a
+      - ɛ̃: ę
+      - u: [ u, ó ]  # mere "u" is unnecessary to specify since it (is/can be) a default behavious
+      - t͡s: c
+      - d͡z: dz
+      - ʂ: sz
+      - ʐ: [ ż, rz ]
+      - t͡ʂ: cz
+      - d͡ʐ: dż
+      - ɕ: [ ś, si ]
+      - ʑ: [ ź, zi ]
+      - t͡ɕ: [ ć, ci ]
+      - d͡ʑ: [ dź, dzi ]
+      - ɲ: [ ń, ni ]
+      - x: h
+      - w: ł
+      - v: w
+    general:
+      i-spelling:
+        when: [ i, vowel ]  # spelling
+        then: [ j, vowel ]  # realization
+      devocalization:
+        or:
+        - when:
+          onset: [ voiceless, voiced ]
+          then: [ voiceless, voiceless ]
+        - when:
+          - coda: voiced
+          - onset: voiceless
+          then:
+          - coda: voiceless
+          - onset: voiceless

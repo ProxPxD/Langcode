@@ -1,0 +1,10 @@
+abc-lang:
+  graphemes:
+    - a
+    - b
+    - c
+xyz-lang:
+  graphemes:
+    - x
+    - y
+    - z
