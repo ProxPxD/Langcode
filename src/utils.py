@@ -1,4 +1,3 @@
-from dataclasses import asdict
 from typing import Iterable, Callable, Any, Collection, Tuple
 
 
@@ -28,16 +27,15 @@ class DictClass:
         return self.__dict__.__setitem__(key, value)
 
     @classmethod
-    def _dict(cls) -> dict:
-        return asdict(cls())
-    dict: Callable[[], dict] = lambda: DictClass._dict()
+    def dict(cls) -> dict:
+        return {key: item for key, item in cls.__dict__.items() if not key.startswith('_') and not isinstance(item, Callable)}
+
     values: Callable[[], Any] = lambda self: self.dict().values()
     keys: Callable[[], Any] = lambda self: self.dict().keys()
-    items: Callable[[], Any] = lambda self: self.dict().items()
 
     @classmethod
-    def map_to_contained_key(cls, k) -> str | None:
-        return next(filter(k.__contains__, cls().keys()), None)
+    def items(cls):
+        return cls.dict().items()
 
 
 def word_to_basics(word: str, basics: Collection[str], skip_missing=False, yield_index=False, start_from_one=False) -> Collection[str | Tuple[str, int] | None]:
