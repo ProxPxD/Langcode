@@ -45,7 +45,7 @@ class SchemaValidator:
 
     @classmethod
     def validate_morphemes(cls, curr_kind, to_val, **kwargs) -> bool:
-        return cls.validate_dict(curr_kind, to_val, next_kind='morpheme', **kwargs)
+        return cls.validate_dict(curr_kind, to_val, next_kind=LangData.MORPHEMES, **kwargs)
 
     @classmethod
     def validate_morpheme(cls, curr_kind, to_val, **kwargs) -> bool:
@@ -60,3 +60,11 @@ class SchemaValidator:
         if not is_form_in and not is_any_exclusives_with_form:
             raise InvalidYamlException(Messages.NO_FORMING_KEY)
         return True
+
+    @classmethod
+    def validate_rules(cls, curr_kind, to_val, **kwargs) -> bool:
+        return cls.validate_dict(curr_kind, to_val, next_kind=LangData.RULES, **kwargs)
+
+    @classmethod
+    def validate_rule(cls, curr_kind, to_val, **kwargs) -> bool:
+        return False''
