@@ -13,6 +13,7 @@ class LangData:
     GRAPHEMES = 'graphemes'
     FORM = 'form'
     COMPOUND = 'compound'
+    RULES = 'rules'
 
     FORMING_KEYS = (FORM, COMPOUND)
 

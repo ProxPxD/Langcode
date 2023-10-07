@@ -66,3 +66,15 @@ class LoadingTest(AbstractLangCodeTest):
         except InvalidPathException:
             self.fail(f'Language {lang_info.name} does not exist in {self.TEST_LANGUAGES_PATH}')
 
+    @parameterized.expand([
+        ('sandhi_less_chinese', ),
+        ('simple_sandhi_chinese', ),
+        ('chinese', ),
+        ],
+        name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
+    )
+    def test_info_auto_filling(self, lang_name: str, message=None):
+        lang_info = self.all_languages[lang_name]
+        lf = LangFactory(self.TEST_LANGUAGES_PATH, lang_info.name)
+        lang = lf.load()
+
