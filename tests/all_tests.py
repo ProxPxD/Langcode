@@ -2,11 +2,10 @@ import unittest
 from typing import Iterable
 
 from tests.abstractTest import AbstractTest
-from tests.str_1d_morphemes.BasicMorphemesTest import BasicMorphemeTest
-from tests.str_1d_morphemes.OrthographyTest import OrthographyTest
+from tests.loading_test import LoadingTest
 
 all_tests = [
-    OrthographyTest,
+    LoadingTest,
     #BasicMorphemeTest,
 ]
 
