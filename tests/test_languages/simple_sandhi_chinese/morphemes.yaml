@@ -1,0 +1,70 @@
+女:
+  form: 女
+  toneless_pinyin: nü
+  tone: 3
+  bound: True
+
+男:
+  form: 男
+  toneless_pinyin: nan
+  tone: 2
+  bound: True
+
+人:
+  form: 人
+  toneless_pinyin: ren
+  tone: 2
+
+我:
+  form: 我
+  toneless_pinyin: wo
+  tone: 3
+
+想:
+  form: 想
+  toneless_pinyin: xiang
+  tone: 3
+
+我女:  # TODO: write a test and rules for sandhi
+  compound:
+    - 我
+    - 女
+
+我想女:
+  compound:
+    - 我
+    - 想
+    - 女
+
+我想我女:
+  compound:
+    - 我
+    - 想
+    - 我女
+
+女人:
+  compound:
+    - 女
+    - 人
+
+男人:
+  compound:
+    - 男
+    - 人
+
+朋:
+  form: 朋
+  toneless_pinyin: peng
+  tone: 2
+  bound: True
+
+友:
+  form: 友
+  toneless_pinyin: you
+  tone: 3
+  bound: True
+
+朋友:
+  compound:
+    - 朋
+    - 友

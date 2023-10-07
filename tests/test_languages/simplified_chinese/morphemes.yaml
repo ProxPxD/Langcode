@@ -1,0 +1,18 @@
+女:
+  form: 女
+
+男:
+  form: 男
+
+人:
+  form: 人
+
+女人:
+  compound:
+    - 女
+    - 人
+
+男人:
+  compound:
+    - 男
+    - 人
