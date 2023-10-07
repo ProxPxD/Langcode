@@ -11,6 +11,10 @@ class LangData:
     FEATURES = 'features'
     MORPHEMES = 'morphemes'
     GRAPHEMES = 'graphemes'
+    FORM = 'form'
+    COMPOUND = 'compound'
+
+    FORMING_KEYS = (FORM, COMPOUND)
 
 
 @dataclass
