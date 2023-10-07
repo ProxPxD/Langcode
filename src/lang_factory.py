@@ -26,20 +26,20 @@ class IPath:
     def set_path(self, path: str | Path) -> None:
         self._path = path
 
-    def set_path_if_not_node(self, path: str | Path) -> None:
-        if path is not None:
+    def set_path_if_not_node(self, path: str | Path, set_path=True) -> None:
+        if set_path and path is not None:
             self.path = Path(path)
 
 
 class ILoader(ABC, IPath):
     @abstractmethod
-    def load(self, path: str | Path = None):
+    def load(self, path: str | Path = None, **kwargs):
         pass
 
 
 class YamlFileLoader(ILoader, IPath):
-    def load(self, path: str | Path = None) -> dict | list:
-        self.set_path_if_not_node(path)
+    def load(self, path: str | Path = None, **kwargs) -> dict | list:
+        self.set_path_if_not_node(path, **kwargs)
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
         return data
@@ -49,8 +49,8 @@ class YamlFileLoader(ILoader, IPath):
 
 
 class YamlLoader(YamlFileLoader, ILoader):
-    def load(self, path: str | Path = None) -> dict:
-        self.set_path_if_not_node(path)
+    def load(self, path: str | Path = None, **kwargs) -> dict:
+        self.set_path_if_not_node(path, **kwargs)
         data = self._load_single(path)
         return data
 
@@ -58,7 +58,7 @@ class YamlLoader(YamlFileLoader, ILoader):
         if path.is_dir():
             return {file.stem: self._load_single(file) for file in self.path.iterdir()}
         elif path.is_file() and self.is_yaml(path):
-            return super().load(path)
+            return super().load(path, set_path=False)
         else:
             raise InvalidPathException
 
@@ -69,10 +69,10 @@ class LangDataLoader(ILoader, IPath):
         self.language: str = language
         self._yaml_loader = YamlLoader(path)
 
-    def load(self, language: str = None) -> dict:
+    def load(self, language: str = None, **kwargs) -> dict:
         if language is not None:
             self.language = language
-        lang_data = self._yaml_loader.load(self.true_path)
+        lang_data = self._yaml_loader.load(self.true_path, **kwargs)
         return lang_data
 
     @property
@@ -96,7 +96,6 @@ class LangDataLoader(ILoader, IPath):
 class LangFactory(ILoader, IPath):
     def __init__(self, path: str | Path = '', language: str = '', **kwargs):
         super().__init__(**kwargs)
-        self.language: str = language
         self._lang_data_loader: LangDataLoader = LangDataLoader(path, language)
 
     @property
@@ -107,8 +106,8 @@ class LangFactory(ILoader, IPath):
     def path(self, path: str | Path) -> None:
         self._lang_data_loader.path = path
 
-    def load(self, language: str = None):
-        lang_data = self._lang_data_loader.load(language)
+    def load(self, language: str = None, **kwargs):
+        lang_data = self._lang_data_loader.load(language, **kwargs)
         if not SchemaValidator.validate(lang_data, LangData.LANGUAGE):
             raise InvalidYamlException
 
