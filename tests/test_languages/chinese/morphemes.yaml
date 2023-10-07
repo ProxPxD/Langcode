@@ -40,6 +40,9 @@
   bound: True
 
 朋友:
+  tone:
+    - @朋.tone
+    - 0
   compound:
     - 朋
     - 友

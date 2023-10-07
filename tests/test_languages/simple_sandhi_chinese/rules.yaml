@@ -1,0 +1,65 @@
+tone:
+  when:
+    - is: morpheme
+    - not: tone
+    - compound
+  then: compound.tone
+
+toneless_pinyin:
+  when:
+    - is: morpheme
+    - not: toneless_pinyin
+    - compound
+  then: compound.toneless_pinyin
+
+pinyin:
+  - when:
+    - is: morpheme
+    - not: pinyin  # TODO: think - same as "@.pinyin"?
+    - tone_unicode
+    then:
+      - register:
+          name: tone_unicode
+          match:
+            for: tone
+            cases:
+              - case: 1
+                then: "\u00E6"
+              - case: 2
+                then: "\u02CA"
+              - case: 3
+                then: "\u02C7"
+              - case: 4
+                then: "\u0060"
+              - then: ""
+#          cond:
+#            - when:
+#                tone: 1
+#              then: "\u00E6"
+#            - when:
+#                tone: 2
+#              then: "\u02CA"
+#            - when:
+#                tone: 3
+#              then: "\u02C7"
+#            - when:
+#                tone: 4
+#              then: "\u0060"
+#            - then: ""
+      - register:
+          name: i
+          action: rindex
+          args:
+            - toneless_pinyin
+            - item
+          loop:
+            of: [a, e, u, ü, o, "i"]
+            way: first
+            # default: # TODO
+            # when: # TODO
+      - pinyin: toneless_pinyin
+      - pinyin:
+          action: insert  # TODO: python has no default string insert method. has to be handled separately
+          args: [i, tone_unicode]
+
+

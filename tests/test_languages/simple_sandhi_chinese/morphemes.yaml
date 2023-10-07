@@ -26,9 +26,7 @@
   tone: 3
 
 我女:  # TODO: write a test and rules for sandhi
-  compound:
-    - 我
-    - 女
+  compound: [我, 女]
 
 我想女:
   compound:
@@ -43,14 +41,10 @@
     - 我女
 
 女人:
-  compound:
-    - 女
-    - 人
+  compound: [女, 人]
 
 男人:
-  compound:
-    - 男
-    - 人
+  compound: [男, 人]
 
 朋:
   form: 朋

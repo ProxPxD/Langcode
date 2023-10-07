@@ -1,0 +1,12 @@
+pinyin:
+  - when:
+    - is: morpheme
+    - not: form
+    - not: pinyin
+    then:
+    - pinyin:
+        action: reduce
+        args:
+          - op.add
+          - compound.pinyin
+
