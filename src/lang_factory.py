@@ -3,6 +3,7 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 import yaml
 
+from src.exceptions import InvalidYamlException, InvalidPathException
 from src.constants import LangData
 from src.schemas import SchemaValidator
 
@@ -59,7 +60,7 @@ class YamlLoader(YamlFileLoader, ILoader):
         elif path.is_file() and self.is_yaml(path):
             return super().load(path)
         else:
-            raise ValueError
+            raise InvalidPathException
 
 
 class LangDataLoader(ILoader, IPath):
@@ -109,5 +110,5 @@ class LangFactory(ILoader, IPath):
     def load(self, language: str = None):
         lang_data = self._lang_data_loader.load(language)
         if not SchemaValidator.validate(lang_data, LangData.LANGUAGE):
-            raise ValueError
+            raise InvalidYamlException
 
