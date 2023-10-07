@@ -90,7 +90,7 @@ class LangDataLoader(ILoader, IPath):
             return lang_path
         elif not self.language:
             return self.path
-        raise ValueError
+        raise InvalidPathException
 
 
 class LangFactory(ILoader, IPath):
