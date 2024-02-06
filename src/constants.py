@@ -9,11 +9,14 @@ class LangData:
     GENERAL = 'general'
     NATIVE_NAME = 'native-name'
     FEATURES = 'features'
+    RULES = 'rules'
+    MORPHOLOGY = 'morphology'
     MORPHEMES = 'morphemes'
+    ORTHOGRAPHY = 'orthography'
+    SCRIPT = 'script'
     GRAPHEMES = 'graphemes'
     FORM = 'form'
     COMPOUND = 'compound'
-    RULES = 'rules'
 
     FORMING_KEYS = (FORM, COMPOUND)
 

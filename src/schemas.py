@@ -3,6 +3,15 @@ from typing import Callable, Any
 
 from src.constants import LangData
 from src.exceptions import InvalidYamlException, Messages
+from src.language import Language
+
+
+class LanguageInterpreter:
+    def __init__(self):
+        self._language = None
+
+    def create(self, data: dict):
+        self._language = Language()
 
 
 class SchemaValidator:
@@ -67,4 +76,4 @@ class SchemaValidator:
 
     @classmethod
     def validate_rule(cls, curr_kind, to_val, **kwargs) -> bool:
-        return False''
+        return False

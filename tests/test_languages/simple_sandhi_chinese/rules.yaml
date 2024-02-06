@@ -20,18 +20,25 @@ pinyin:
     then:
       - register:
           name: tone_unicode
-          match:
-            for: tone
-            cases:
-              - case: 1
-                then: "\u00E6"
-              - case: 2
-                then: "\u02CA"
-              - case: 3
-                then: "\u02C7"
-              - case: 4
-                then: "\u0060"
-              - then: ""
+          python: |
+            match tone:
+              case 1: return "\u00E6"
+              case 2: return "\u02CA"
+              case 3: return "\u02C7"
+              case 4: return "\u0060"
+              case _: return ""
+#          match:
+#            for: tone
+#            cases:
+#              - case: 1
+#                then: "\u00E6"
+#              - case: 2
+#                then: "\u02CA"
+#              - case: 3
+#                then: "\u02C7"
+#              - case: 4
+#                then: "\u0060"
+#              - then: ""
 #          cond:
 #            - when:
 #                tone: 1
@@ -48,18 +55,20 @@ pinyin:
 #            - then: ""
       - register:
           name: i
-          action: rindex
-          args:
-            - toneless_pinyin
-            - item
-          loop:
-            of: [a, e, u, ü, o, "i"]
-            way: first
+          python: 'next(filter(lambda i: i >= 0, (toneless_pinyin.rfind(vowel) for vowel in ["a", "e", "u", "ü", "o", "i"])))'
+#          action: rindex
+#          args:
+#            - toneless_pinyin
+#            - item
+#          loop:
+#            of: [a, e, u, ü, o, "i"]
+#            way: first
             # default: # TODO
             # when: # TODO
       - pinyin: toneless_pinyin
       - pinyin:
-          action: insert  # TODO: python has no default string insert method. has to be handled separately
-          args: [i, tone_unicode]
+          python: pinyin[:i] + tone_unicode + pinyin[i:]
+#          action: insert  # TODO: python has no default string insert method. has to be handled separately
+#          args: [i, tone_unicode]
 
 

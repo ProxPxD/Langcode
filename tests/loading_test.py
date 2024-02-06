@@ -66,6 +66,20 @@ class LoadingTest(AbstractLangCodeTest):
         except InvalidPathException:
             self.fail(f'Language {lang_info.name} does not exist in {self.TEST_LANGUAGES_PATH}')
 
+    @parameterized.expand(
+        ('toki_pona', ),
+        ('simplified_chinese', ),
+        ('form_and_compound_lang',),
+        ('no_forming_key_lang', ),
+        ('sandhi_less_chinese', ),
+        ('simple_sandhi_chinese', ),
+        ('chinese', ),
+    )
+    def test_create_lang(self, lang_name: str):
+        lang_info = self.all_languages[lang_name]
+        lf = LangFactory(self.TEST_LANGUAGES_PATH, lang_info.name)
+        lang = lf.load()
+
     @parameterized.expand([
         ('sandhi_less_chinese', ),
         ('simple_sandhi_chinese', ),
@@ -77,4 +91,7 @@ class LoadingTest(AbstractLangCodeTest):
         lang_info = self.all_languages[lang_name]
         lf = LangFactory(self.TEST_LANGUAGES_PATH, lang_info.name)
         lang = lf.load()
+        self.fail(str(NotImplementedError))
+
+
 
