@@ -21,7 +21,7 @@ Units are organized hierarchically, which is: the **morphemes** use **graphemes*
 ### Features
 **Features** can be arbitrary strings (or ints?). They are used as information for **units** that can be used for the **rules** or displayed for the user.
 **Features** should be used to mark the morpheme representations like the form of a morpheme in a particular script (can be the only one) or the pronunciation (like IPA).
-**Features** can be composed from **subunits** when it's specified by the corresponding category (#todo:name like in special features) 
+**Features** can be composed of **subunits** when it's specified by the corresponding category (#todo:name like in special features) 
 
 #### Special Features
 Some **Features** are special for program working
