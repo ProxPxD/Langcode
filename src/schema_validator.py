@@ -5,13 +5,44 @@ from src.constants import LangData
 from src.exceptions import InvalidYamlException, Messages
 from src.language import Language
 
+from strictyaml import load, Map, Str, Int, Seq, YAMLError, MapPattern, MapCombined, Optional, Bool
 
-class LanguageInterpreter:
-    def __init__(self):
-        self._language = None
+general_schema = Map({
 
-    def create(self, data: dict):
-        self._language = Language()
+})
+
+features_schema = Map({
+
+})
+
+morpheme_schema = MapCombined(
+    {
+        Optional('bound'): Bool()
+    },
+    Str(),
+    Any()
+)
+
+graphemes_schema = Map({
+
+})
+
+morphemes_schema = MapPattern(Str(), morpheme_schema)
+
+
+rules_schema = Map({
+
+})
+
+
+lang_schema = Map({
+    'general': general_schema,
+    'features': features_schema,  # TODO: think if should be inside graphemes and morphemes
+    'graphemes': graphemes_schema,
+    'morphemes': morphemes_schema,
+    'rules': rules_schema,
+
+})
 
 
 class SchemaValidator:

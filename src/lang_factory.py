@@ -6,7 +6,7 @@ import yaml
 from src.exceptions import InvalidYamlException, InvalidPathException
 from src.constants import LangData
 from src.language import Language
-from src.schemas import SchemaValidator
+from src.schema_validator import SchemaValidator
 
 
 class IPath:
