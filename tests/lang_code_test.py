@@ -17,11 +17,11 @@ class TestLangInfo:
 
 
 class AbstractLangCodeTest(AbstractTest):
-    TEST_LANGUAGES_PATH = Path(__file__).parent / "test_languages"
+    LANGUAGES_PATH = Path(__file__).parent / 'languages'
 
     accepted_similarity = .5
 
-    all_languages = {
+    all_languages = {  # TODO: move to lang general info
         'toki_pona': TestLangInfo('toki_pona',                           sound_change=False, ex_sound_change=False, single_morpheme=True, with_bounded=False),
         'simplified_chinese': TestLangInfo('simplified_chinese',         sound_change=False, ex_sound_change=False, compound_word=True, with_bounded=False),
         'form_and_compound_lang': TestLangInfo('form_and_compound_lang', sound_change=False, ex_sound_change=False, compound_word=True,                          correct_config=False),

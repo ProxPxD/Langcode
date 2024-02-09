@@ -2,7 +2,7 @@ import unittest
 from typing import Iterable
 
 from tests.abstractTest import AbstractTest
-from tests.loading_test import LoadingTest
+from tests.test_cases.loading_test import LoadingTest
 
 all_tests = [
     LoadingTest,

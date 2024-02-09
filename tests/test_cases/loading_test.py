@@ -7,7 +7,7 @@ from parameterized import parameterized
 from src.exceptions import InvalidYamlException, InvalidPathException, Messages
 from src.lang_factory import LangFactory
 from tests.lang_code_test import AbstractLangCodeTest, TestLangInfo
-from pyxdameraulevenshtein import damerau_levenshtein_distance
+# from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 
 def get_lang_type(lang_name: str):
@@ -52,7 +52,7 @@ class LoadingTest(AbstractLangCodeTest):
     )
     def test_lang_validation(self, lang_name: str, message=None):
         lang_info = self.all_languages[lang_name]
-        lf = LangFactory(self.TEST_LANGUAGES_PATH, lang_info.name)
+        lf = LangFactory(self.LANGUAGES_PATH, lang_info.name)
         try:
             lang = lf.load()
             if message:
@@ -64,34 +64,8 @@ class LoadingTest(AbstractLangCodeTest):
             else:
                 self.fail(f"Language {lang_info.name} should be valid, but it's not, {iye.reason}")
         except InvalidPathException:
-            self.fail(f'Language {lang_info.name} does not exist in {self.TEST_LANGUAGES_PATH}')
+            self.fail(f'Language {lang_info.name} does not exist in {self.LANGUAGES_PATH}')
 
-    @parameterized.expand(
-        ('toki_pona', ),
-        ('simplified_chinese', ),
-        ('form_and_compound_lang',),
-        ('no_forming_key_lang', ),
-        ('sandhi_less_chinese', ),
-        ('simple_sandhi_chinese', ),
-        ('chinese', ),
-    )
-    def test_create_lang(self, lang_name: str):
-        lang_info = self.all_languages[lang_name]
-        lf = LangFactory(self.TEST_LANGUAGES_PATH, lang_info.name)
-        lang = lf.load()
-
-    @parameterized.expand([
-        ('sandhi_less_chinese', ),
-        ('simple_sandhi_chinese', ),
-        ('chinese', ),
-        ],
-        name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
-    )
-    def test_info_auto_filling(self, lang_name: str, message=None):
-        lang_info = self.all_languages[lang_name]
-        lf = LangFactory(self.TEST_LANGUAGES_PATH, lang_info.name)
-        lang = lf.load()
-        self.fail(str(NotImplementedError))
 
 
 
