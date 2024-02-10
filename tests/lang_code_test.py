@@ -1,32 +1,39 @@
+from __future__ import annotations
+
 from dataclasses import field, dataclass
 from pathlib import Path
+from typing import Optional
 
-from src.exceptions import Messages
+import yaml
+
 from tests.abstractTest import AbstractTest
 
+yaml_types = dict | bool | str | int
 
-@dataclass
-class TestLangInfo:
-    name: str
-    correct_config: bool = field(default=True)
-    sound_change: bool = field(default=True)
-    ex_sound_change: bool = field(default=True)
-    single_morpheme: bool = field(default=False)
-    compound_word: bool = field(default=False)
-    with_bounded: bool = field(default=True)
+
+class Paths:
+    LANGUAGES = Path(__file__).parent / 'languages'
+    DEFAULTS = LANGUAGES / 'general_defaults.yaml'
+
+
+class DotDict:
+    _orig_defaults = yaml.safe_load(open(Paths.DEFAULTS, 'r'))
+
+    def __init__(self, d: yaml_types, *, defaults: Optional[dict] = None):
+        self._curr: dict = d
+        self._defaults = defaults if defaults is None else self._orig_defaults
+
+    def __getattr__(self, item: str) -> DotDict:
+        default = self._defaults[item]
+        value = self._curr.get(item, default) if isinstance(self._curr, dict) else False
+        return DotDict(value, defaults=default)
+
+    def get(self) -> yaml_types:
+        return self._curr
+
+    def __call__(self):
+        return self.get()
 
 
 class AbstractLangCodeTest(AbstractTest):
-    LANGUAGES_PATH = Path(__file__).parent / 'languages'
-
     accepted_similarity = .5
-
-    all_languages = {  # TODO: move to lang general info
-        'toki_pona': TestLangInfo('toki_pona',                           sound_change=False, ex_sound_change=False, single_morpheme=True, with_bounded=False),
-        'simplified_chinese': TestLangInfo('simplified_chinese',         sound_change=False, ex_sound_change=False, compound_word=True, with_bounded=False),
-        'form_and_compound_lang': TestLangInfo('form_and_compound_lang', sound_change=False, ex_sound_change=False, compound_word=True,                          correct_config=False),
-        'only_compound': TestLangInfo('only_compound',       sound_change=False, ex_sound_change=False, compound_word=True,                          correct_config=False),
-        'sandhi_less_chinese': TestLangInfo('sandhi_less_chinese',       sound_change=False, ex_sound_change=False, compound_word=True),
-        'simple_sandhi_chinese': TestLangInfo('simple_sandhi_chinese',                       ex_sound_change=False, compound_word=True),
-        'chinese': TestLangInfo('chinese',                               sound_change=True,  ex_sound_change=True,  compound_word=True),
-    }
