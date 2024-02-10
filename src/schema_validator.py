@@ -12,7 +12,7 @@ general_schema = Map({
 })
 
 features_schema = Map({
-
+  ## nested recurrence as in deutsch features, but the features can have subfeatures
 })
 
 morpheme_schema = MapCombined(
@@ -41,7 +41,6 @@ lang_schema = Map({
     'graphemes': graphemes_schema,
     'morphemes': morphemes_schema,
     'rules': rules_schema,
-
 })
 
 
