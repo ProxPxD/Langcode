@@ -5,9 +5,6 @@ from src.language import Language
 from src.loaders import ILoader, IPath, LangDataLoader
 
 
-# from src.loaders import ILoader, IPath, LangDataLoader
-
-
 class LangaugeInterpreter:
     def __init__(self):
         self._language = None
