@@ -1,15 +1,15 @@
 from __future__ import annotations
-
-from dataclasses import dataclass, field
+from tests.lang_code_test import Paths
 
 from parameterized import parameterized
+from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 from src.exceptions import InvalidYamlException, InvalidPathException, Messages
 from src.lang_factory import LangFactory
-from tests.lang_code_test import AbstractLangCodeTest, Paths
+from tests.lang_code_test import AbstractLangCodeTest
 
 
-from pyxdameraulevenshtein import damerau_levenshtein_distance
+# from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 
 class LoadingTest(AbstractLangCodeTest):
@@ -17,7 +17,7 @@ class LoadingTest(AbstractLangCodeTest):
     @parameterized.expand([
         ('toki_pona', ),
         ('simplified_chinese', ),
-        ('form_and_compound_lang', Messages.FORMING_KEYS_TOGETHER),
+        ('incompatible_chinese', Messages.FORMING_KEYS_TOGETHER),
         ('only_compound', Messages.NO_FORMING_KEY),
         ('sandhi_less_chinese', ),
         ('simple_sandhi_chinese', ),
@@ -39,6 +39,7 @@ class LoadingTest(AbstractLangCodeTest):
                 self.fail(f"Language {lang_name} should be valid, but it's not, {iye.reason}")
         except InvalidPathException:
             self.fail(f'Language {lang_name} does not exist in {Paths.LANGUAGES}')
+
 
 
 
