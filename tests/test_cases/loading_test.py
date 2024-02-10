@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-
 from parameterized import parameterized
+from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 from src.exceptions import InvalidYamlException, InvalidPathException, Messages
 from src.lang_factory import LangFactory
-from tests.lang_code_test import AbstractLangCodeTest, TestLangInfo
-# from pyxdameraulevenshtein import damerau_levenshtein_distance
+from tests.lang_code_test import AbstractLangCodeTest
 
 
 def get_lang_type(lang_name: str):
@@ -42,7 +40,7 @@ class LoadingTest(AbstractLangCodeTest):
     @parameterized.expand([
         ('toki_pona', ),
         ('simplified_chinese', ),
-        ('form_and_compound_lang', Messages.FORMING_KEYS_TOGETHER),
+        ('incompatible_chinese', Messages.FORMING_KEYS_TOGETHER),
         ('only_compound', Messages.NO_FORMING_KEY),
         ('sandhi_less_chinese', ),
         ('simple_sandhi_chinese', ),
