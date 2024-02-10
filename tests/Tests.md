@@ -5,7 +5,8 @@ Test directory parts:
 - Test Files
 
 ## Languages
-#todo
+Languages should describe in general their characteristics for test purposes according to `general_defaults.yaml`.
+`general_defaults.yaml` should contain the structure of all possible configurations with their defaults.
 
 ## Test Files
 Test file should check one of:

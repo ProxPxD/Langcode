@@ -43,7 +43,7 @@ class LoadingTest(AbstractLangCodeTest):
         ('toki_pona', ),
         ('simplified_chinese', ),
         ('form_and_compound_lang', Messages.FORMING_KEYS_TOGETHER),
-        ('no_forming_key_lang', Messages.NO_FORMING_KEY),
+        ('only_compound', Messages.NO_FORMING_KEY),
         ('sandhi_less_chinese', ),
         ('simple_sandhi_chinese', ),
         ('chinese', ),

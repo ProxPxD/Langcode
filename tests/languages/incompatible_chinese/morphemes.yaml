@@ -1,0 +1,50 @@
+女:
+  form: 女
+  pinyin: nǚ  # TODO: add restriction to not specify compatible keys ("tone" and "toneless_pinyin") together with pinyin
+  bound: True
+
+男:  # compatible morpheme for: pinyin, toneless_pinyin, tone
+  form: 男
+  pinyin: nán
+  toneless_pinyin: nan
+  tone: 1
+  bound: True
+
+人:
+  form: 人
+  pinyin: rén
+  tone: 2
+
+想:
+  form: 想
+  pinyin: xiǎng
+
+女人:
+  compound:
+    - 女
+    - 人
+
+男人:
+  compound:
+    - 男
+    - 人
+
+朋:
+  form: 朋
+  toneless_pinyin: peng
+  tone: 2
+  bound: True
+
+友:
+  form: 友
+  toneless_pinyin: you
+  tone: 3
+  bound: True
+
+朋友:
+  tone:
+    - @朋.tone
+    - 0
+  compound:
+    - 朋
+    - 友

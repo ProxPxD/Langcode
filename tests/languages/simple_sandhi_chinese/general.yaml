@@ -1,0 +1,10 @@
+characteristics:
+  valid_schema: true
+  valid_restrictions: true
+  sound_change: true
+  bound_morphemes: true
+  word_formation:
+    compound: true
+  exceptions: false
+  multiple_scripts: false
+  feature_forming: true

@@ -1,0 +1,12 @@
+characteristics:
+  valid_schema: true
+  valid_restrictions: true
+  should_load: true
+  sound_change: false
+  bound_morphemes: false
+  word_formation:
+    default: false
+    compound: false
+  exceptions: false
+  multiple_scripts: false
+  feature_forming: true
