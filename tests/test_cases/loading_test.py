@@ -26,6 +26,8 @@ class LoadingTest(AbstractLangCodeTest):
         name_func=get_func_name
     )
     def test(self, lang_name: str, message=None):
+        # TODO: consider spliting into many functions
+        # TODO: add messages according to state
         lf = LangFactory(Paths.LANGUAGES, lang_name)
         try:
             lang = lf.load()
