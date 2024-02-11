@@ -1,5 +1,5 @@
 latin:
-  list:
+  elems:
     - a
     - e
     - i
@@ -16,7 +16,7 @@ latin:
     - w
 
 cyrillic:
-  list:
+  elems:
     - а
     - в
     - е
@@ -33,7 +33,7 @@ cyrillic:
     - у
 
 hanzi:
-  list:
+  elems:
     - 我
     - 你
     - 他

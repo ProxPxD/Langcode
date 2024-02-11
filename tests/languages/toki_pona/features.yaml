@@ -1,0 +1,12 @@
+phone:
+  # TODO: if "unit: morpheme" than the whole morpheme has feature
+  unit: grapheme
+  script: latin
+  elems:
+    consonant:
+    vowel:
+      - a
+      - e
+      - i
+      - o
+      - u
