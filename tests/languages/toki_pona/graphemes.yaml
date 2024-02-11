@@ -31,3 +31,21 @@ cyrillic:
     - с
     - т
     - у
+
+hanzi:
+  list:
+    - 我
+    - 你
+    - 他
+    - 则
+    - 之
+    - 得
+    - 者
+    - 向
+    - 语
+    - 好
+    - 人
+    - 要
+hebrew: #todo
+hiragana:
+katakana:
