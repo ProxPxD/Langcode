@@ -21,17 +21,17 @@ latin-to-cyrillic:
 latin-to-hanzi:
   from: latin
   to: hanzi
-  mode: whole  # without this mode "^$" should surround the words as in regex
+  mode: whole  # TODO: add; INFO: without this mode "^$" should surround the words as in regex
   rules:
-    - mi => 我
-    - sina => 你
-    - ona => 他
-    - li => 则
-    - e => 之
-    - pi => 得
-    - la => 者
-    - tawa => 向
-    - toki => 语
-    - pona => 好
-    - jan => 人
-    - wile => 要
+    - mi: 我
+    - sina: 你
+    - ona: 他
+    - li: 则
+    - e: 之
+    - pi: 得
+    - la: 者
+    - tawa: 向
+    - toki: 语
+    - pona: 好
+    - jan: 人
+    - wile: 要
