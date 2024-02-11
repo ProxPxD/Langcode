@@ -1,9 +1,11 @@
 phone:
-  # TODO: if "unit: morpheme" than the whole morpheme has feature
+  # TODO: if "unit: morpheme" and "type: <script>" then we should have a way to set
+  # if the feature applies to the whole morpheme or just to its feature
+  # think of how to structure graphemes (script vs single grapheme)
   unit: grapheme
-  script: latin
+  type: latin
   elems:
-    consonant:
+    consonant:  # TODO: how to write logic?
     vowel:
       - a
       - e
