@@ -1,10 +1,9 @@
 test_properties:
-  valid_schema: true
+  valid_schema: false
   valid_restrictions: true
   sound_change: false
   bound_morphemes: false
-  word_formation:
-    compound: true
+  word_formation: false
   exceptions: false
   multiple_scripts: false
-  feature_forming: true
+  feature_forming: false

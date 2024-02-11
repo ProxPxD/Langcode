@@ -1,4 +1,4 @@
-characteristics:
+test_properties:
   valid_schema: true
   valid_restrictions: false
   sound_change: false

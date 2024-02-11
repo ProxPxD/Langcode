@@ -274,7 +274,9 @@ musi:
 mute:
   latin: mute
 
-n
+n:
+  latin: n
+
 namako:
   latin: namako
 
@@ -302,7 +304,9 @@ nimi:
 noka:
   latin: noka
 
-o
+o:
+  latin: o
+
 oke:
   latin: oke
 

@@ -24,7 +24,7 @@ class IPath:
     def set_path(self, path: str | Path) -> None:
         self._path = path
 
-    def set_path_if_not_none(self, path: str | Path, set_path=True) -> None:
+    def set_path_if_not_none(self, path: str | Path, set_path=False) -> None:
         if set_path and path is not None:
             self.path = Path(path)
 
@@ -54,7 +54,7 @@ class YamlLoader(YamlFileLoader, ILoader):
 
     def _load_single(self, path: Path) -> dict | list:
         if path.is_dir():
-            return {file.stem: self._load_single(file) for file in self.path.iterdir()}
+            return {file.stem: self._load_single(file) for file in path.iterdir()}
         elif path.is_file() and self.is_yaml(path):
             return super().load(path, set_path=False)
         else:
