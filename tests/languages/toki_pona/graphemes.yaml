@@ -15,5 +15,19 @@ latin:
     - u
     - w
 
-sitelen-pona:
-  list: []  # TODO
+cyrillic:
+  list:
+    - а
+    - в
+    - е
+    - и
+    - ј
+    - к
+    - л
+    - м
+    - н
+    - о
+    - п
+    - с
+    - т
+    - у

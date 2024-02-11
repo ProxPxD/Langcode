@@ -1,0 +1,18 @@
+latin-to-cyrillic:
+  from: latin
+  to: cyrillic
+  rules:
+    - match: a
+      return: а
+    - e => е
+    - i => и
+    - j => ј
+    - k => к
+    - l => л
+    - m => м
+    - n => н
+    - o => о
+    - p => п
+    - s => с
+    - t => т
+    - u => у
