@@ -5,3 +5,5 @@ elems:
     cyrillic: маса
   button:
     cyrillic: копче
+  animal:
+    cyrillic: животно

@@ -7,4 +7,4 @@ test_properties:
     compound: true
   exceptions: false
   multiple_scripts: false
-  feature_forming: false
+  features: false

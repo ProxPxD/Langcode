@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Optional, Callable, Iterable
 
 import yaml
-from toolz import valfilter
+from toolz import valfilter, valmap
 
 from src.loaders import LangDataLoader
 from tests.abstractTest import AbstractTest
@@ -38,7 +38,11 @@ class DotDict:
         return self.get()
 
     def __bool__(self):
-        return self.get()
+        curr = self.get()
+        if not isinstance(curr, dict):
+            return bool(curr)
+        sub_dot_dicts = (DotDict(val, defaults=self._defaults[key]) for key, val in curr.items())
+        return any(map(bool, sub_dot_dicts))
 
 
 class AbstractLangCodeTest(AbstractTest):

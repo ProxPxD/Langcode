@@ -9,4 +9,50 @@ test_properties:
     compound: false
   exceptions: false
   multiple_scripts: false
-  feature_forming: true
+  features:
+    morphemes:  # TODO: think of predicting morpheme features from rules as preprocessing if not specified
+      gender: false
+      definiteness: false
+      number: false
+      cases: false
+      tenses: false
+      aspects: false
+      mood: false
+    graphemes:
+      phonetic_spelling: false
+      logographic: false
+
+  rules:
+    morphemes:
+      add:
+        number:
+          plural: false
+        definiteness:
+          definite: false
+          indefinite: false
+      features:
+        gender:
+          exists: false
+          exceptions: false
+        number:
+          exists: false  # TODO: think conditional and unconditional instead of exist
+          exceptions: false
+        definiteness:
+          exists: false
+          exceptions: false
+        cases:
+          exists: false
+          exceptions: false
+        tenses:
+          exists: false
+          exceptions: false
+        aspects:
+          exists: false
+          exceptions: false
+        mood:
+          exists: false
+          exceptions: false
+
+    graphemes:
+      add: false
+      features: false
