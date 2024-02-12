@@ -1,536 +1,537 @@
-a:
-  latin: a
+elems:
+  a:
+    latin: a
 
-akesi:
-  latin: akesi
+  akesi:
+    latin: akesi
 
-ala:
-  latin: ala
+  ala:
+    latin: ala
 
-alasa:
-  latin: alasa
+  alasa:
+    latin: alasa
 
-ale:
-  latin: ale
+  ale:
+    latin: ale
 
-ali:  # TODO: think if treat different
-  latin: ali
+  ali:  # TODO: think if treat different
+    latin: ali
 
-anpa:
-  latin: anpa
+  anpa:
+    latin: anpa
 
-ante:
-  latin: ante
+  ante:
+    latin: ante
 
-anu:
-  latin: anu
+  anu:
+    latin: anu
 
-apeja:
-  latin: apeja
+  apeja:
+    latin: apeja
 
-awen:
-  latin: awen
+  awen:
+    latin: awen
 
-e:
-  latin: e
+  e:
+    latin: e
 
-en:
-  latin: en
+  en:
+    latin: en
 
-epiku:
-  latin: epiku
+  epiku:
+    latin: epiku
 
-esun:
-  latin: esun
+  esun:
+    latin: esun
 
-ete:
-  latin: ete
+  ete:
+    latin: ete
 
-ewe:
-  latin: ewe
+  ewe:
+    latin: ewe
 
-ijo:
-  latin: ijo
+  ijo:
+    latin: ijo
 
-ike:
-  latin: ike
+  ike:
+    latin: ike
 
-ilo:
-  latin: ilo
+  ilo:
+    latin: ilo
 
-insa:
-  latin: insa
+  insa:
+    latin: insa
 
-isipin:
-  latin: isipin
+  isipin:
+    latin: isipin
 
-jaki:
-  latin: jaki
+  jaki:
+    latin: jaki
 
-jami:
-  latin: jami
+  jami:
+    latin: jami
 
-jan:
-  latin: jan
+  jan:
+    latin: jan
 
-jasima:
-  latin: jasima
+  jasima:
+    latin: jasima
 
-jelo:
-  latin: jelo
+  jelo:
+    latin: jelo
 
-jo:
-  latin: jo
+  jo:
+    latin: jo
 
-kala:
-  latin: kala
+  kala:
+    latin: kala
 
-kalama:
-  latin: kalama
+  kalama:
+    latin: kalama
 
-kama:
-  latin: kama
+  kama:
+    latin: kama
 
-kamalawala:
-  latin: kamalawala
+  kamalawala:
+    latin: kamalawala
 
-kan:
-  latin: kan
+  kan:
+    latin: kan
 
-kapesi:
-  latin: kapesi
+  kapesi:
+    latin: kapesi
 
-kasi:
-  latin: kasi
+  kasi:
+    latin: kasi
 
-ken:
-  latin: ken
+  ken:
+    latin: ken
 
-kepeken:
-  latin: kepeken
+  kepeken:
+    latin: kepeken
 
-kese:
-  latin: kese
+  kese:
+    latin: kese
 
-kijetesantakalu:
-  latin: kijetesantakalu
+  kijetesantakalu:
+    latin: kijetesantakalu
 
-kiki:
-  latin: kiki
+  kiki:
+    latin: kiki
 
-kili:
-  latin: kili
+  kili:
+    latin: kili
 
-kin:
-  latin: kin
+  kin:
+    latin: kin
 
-kipisi:
-  latin: kipisi
+  kipisi:
+    latin: kipisi
 
-kiwen:
-  latin: kiwen
+  kiwen:
+    latin: kiwen
 
-ko:
-  latin: ko
+  ko:
+    latin: ko
 
-kokosila:
-  latin: kokosila
+  kokosila:
+    latin: kokosila
 
-kon:
-  latin: kon
+  kon:
+    latin: kon
 
-ku:
-  latin: ku
+  ku:
+    latin: ku
 
-kule:
-  latin: kule
+  kule:
+    latin: kule
 
-kulijo:
-  latin: kulijo
+  kulijo:
+    latin: kulijo
 
-kulupu:
-  latin: kulupu
+  kulupu:
+    latin: kulupu
 
-kuntu:
-  latin: kuntu
+  kuntu:
+    latin: kuntu
 
-kute:
-  latin: kute
+  kute:
+    latin: kute
 
-la:
-  latin: la
+  la:
+    latin: la
 
-lanpan:
-  latin: lanpan
+  lanpan:
+    latin: lanpan
 
-lape:
-  latin: lape
+  lape:
+    latin: lape
 
-laso:
-  latin: laso
+  laso:
+    latin: laso
 
-lawa:
-  latin: lawa
+  lawa:
+    latin: lawa
 
-leko:
-  latin: leko
+  leko:
+    latin: leko
 
-len:
-  latin: len
+  len:
+    latin: len
 
-lete:
-  latin: lete
+  lete:
+    latin: lete
 
-li:
-  latin: li
+  li:
+    latin: li
 
-lili:
-  latin: lili
+  lili:
+    latin: lili
 
-linja:
-  latin: linja
+  linja:
+    latin: linja
 
-linluwi:
-  latin: linluwi
+  linluwi:
+    latin: linluwi
 
-lipu:
-  latin: lipu
+  lipu:
+    latin: lipu
 
-loje:
-  latin: loje
+  loje:
+    latin: loje
 
-lon:
-  latin: lon
+  lon:
+    latin: lon
 
-luka:
-  latin: luka
+  luka:
+    latin: luka
 
-lukin:
-  latin: lukin
+  lukin:
+    latin: lukin
 
-lupa:
-  latin: lupa
+  lupa:
+    latin: lupa
 
-ma:
-  latin: ma
+  ma:
+    latin: ma
 
-majuna:
-  latin: majuna
+  majuna:
+    latin: majuna
 
-mama:
-  latin: mama
+  mama:
+    latin: mama
 
-mani:
-  latin: mani
+  mani:
+    latin: mani
 
-meli:
-  latin: meli
+  meli:
+    latin: meli
 
-melome:
-  latin: melome
+  melome:
+    latin: melome
 
-meso:
-  latin: meso
+  meso:
+    latin: meso
 
-mi:
-  latin: mi
+  mi:
+    latin: mi
 
-mije:
-  latin: mije
+  mije:
+    latin: mije
 
-mijomi:
-  latin: mijomi
+  mijomi:
+    latin: mijomi
 
-misa:
-  latin: misa
+  misa:
+    latin: misa
 
-misikeke:
-  latin: misikeke
+  misikeke:
+    latin: misikeke
 
-moku:
-  latin: moku
+  moku:
+    latin: moku
 
-moli:
-  latin: moli
+  moli:
+    latin: moli
 
-monsi:
-  latin: monsi
+  monsi:
+    latin: monsi
 
-monsuta:
-  latin: monsuta
+  monsuta:
+    latin: monsuta
 
-mu:
-  latin: mu
+  mu:
+    latin: mu
 
-mulapisu:
-  latin: mulapisu
+  mulapisu:
+    latin: mulapisu
 
-mun:
-  latin: mun
+  mun:
+    latin: mun
 
-musi:
-  latin: musi
+  musi:
+    latin: musi
 
-mute:
-  latin: mute
+  mute:
+    latin: mute
 
-n:
-  latin: n
+  n:
+    latin: n
 
-namako:
-  latin: namako
+  namako:
+    latin: namako
 
-nanpa:
-  latin: nanpa
+  nanpa:
+    latin: nanpa
 
-nasa:
-  latin: nasa
+  nasa:
+    latin: nasa
 
-nasin:
-  latin: nasin
+  nasin:
+    latin: nasin
 
-natu:
-  latin: natu
+  natu:
+    latin: natu
 
-nena:
-  latin: nena
+  nena:
+    latin: nena
 
-ni:
-  latin: ni
+  ni:
+    latin: ni
 
-nimi:
-  latin: nimi
+  nimi:
+    latin: nimi
 
-noka:
-  latin: noka
+  noka:
+    latin: noka
 
-o:
-  latin: o
+  o:
+    latin: o
 
-oke:
-  latin: oke
+  oke:
+    latin: oke
 
-oko:
-  latin: oko
+  oko:
+    latin: oko
 
-olin:
-  latin: olin
+  olin:
+    latin: olin
 
-omekapo:
-  latin: omekapo
+  omekapo:
+    latin: omekapo
 
-ona:
-  latin: ona
+  ona:
+    latin: ona
 
-open:
-  latin: open
+  open:
+    latin: open
 
-pakala:
-  latin: pakala
+  pakala:
+    latin: pakala
 
-pake:
-  latin: pake
+  pake:
+    latin: pake
 
-pali:
-  latin: pali
+  pali:
+    latin: pali
 
-palisa:
-  latin: palisa
+  palisa:
+    latin: palisa
 
-pan:
-  latin: pan
+  pan:
+    latin: pan
 
-pana:
-  latin: pana
+  pana:
+    latin: pana
 
-pata:
-  latin: pata
+  pata:
+    latin: pata
 
-pi:
-  latin: pi
+  pi:
+    latin: pi
 
-pilin:
-  latin: pilin
+  pilin:
+    latin: pilin
 
-pimeja:
-  latin: pimeja
+  pimeja:
+    latin: pimeja
 
-pini:
-  latin: pini
+  pini:
+    latin: pini
 
-pipi:
-  latin: pipi
+  pipi:
+    latin: pipi
 
-po:
-  latin: po
+  po:
+    latin: po
 
-poka:
-  latin: poka
+  poka:
+    latin: poka
 
-poki:
-  latin: poki
+  poki:
+    latin: poki
 
-pona:
-  latin: pona
+  pona:
+    latin: pona
 
-powe:
-  latin: powe
+  powe:
+    latin: powe
 
-pu:
-  latin: pu
+  pu:
+    latin: pu
 
-puwa:
-  latin: puwa
+  puwa:
+    latin: puwa
 
-sama:
-  latin: sama
+  sama:
+    latin: sama
 
-san:
-  latin: san
+  san:
+    latin: san
 
-seli:
-  latin: seli
+  seli:
+    latin: seli
 
-selo:
-  latin: selo
+  selo:
+    latin: selo
 
-seme:
-  latin: seme
+  seme:
+    latin: seme
 
-sewi:
-  latin: sewi
+  sewi:
+    latin: sewi
 
-sijelo:
-  latin: sijelo
+  sijelo:
+    latin: sijelo
 
-sike:
-  latin: sike
+  sike:
+    latin: sike
 
-sin:
-  latin: sin
+  sin:
+    latin: sin
 
-sina:
-  latin: sina
+  sina:
+    latin: sina
 
-sinpin:
-  latin: sinpin
+  sinpin:
+    latin: sinpin
 
-sitelen:
-  latin: sitelen
+  sitelen:
+    latin: sitelen
 
-soko:
-  latin: soko
+  soko:
+    latin: soko
 
-sona:
-  latin: sona
+  sona:
+    latin: sona
 
-soto:
-  latin: soto
+  soto:
+    latin: soto
 
-soweli:
-  latin: soweli
+  soweli:
+    latin: soweli
 
-su:
-  latin: su
+  su:
+    latin: su
 
-suli:
-  latin: suli
+  suli:
+    latin: suli
 
-suno:
-  latin: suno
+  suno:
+    latin: suno
 
-supa:
-  latin: supa
+  supa:
+    latin: supa
 
-sutopatikuna:
-  latin: sutopatikuna
+  sutopatikuna:
+    latin: sutopatikuna
 
-suwi:
-  latin: suwi
+  suwi:
+    latin: suwi
 
-taki:
-  latin: taki
+  taki:
+    latin: taki
 
-tan:
-  latin: tan
+  tan:
+    latin: tan
 
-taso:
-  latin: taso
+  taso:
+    latin: taso
 
-tawa:
-  latin: tawa
+  tawa:
+    latin: tawa
 
-te:
-  latin: te
+  te:
+    latin: te
 
-teje:
-  latin: teje
+  teje:
+    latin: teje
 
-telo:
-  latin: telo
+  telo:
+    latin: telo
 
-tenpo:
-  latin: tenpo
+  tenpo:
+    latin: tenpo
 
-to:
-  latin: to
+  to:
+    latin: to
 
-toki:
-  latin: toki
+  toki:
+    latin: toki
 
-tomo:
-  latin: tomo
+  tomo:
+    latin: tomo
 
-tonsi:
-  latin: tonsi
+  tonsi:
+    latin: tonsi
 
-tu:
-  latin: tu
+  tu:
+    latin: tu
 
-tuli:
-  latin: tuli
+  tuli:
+    latin: tuli
 
-unpa:
-  latin: unpa
+  unpa:
+    latin: unpa
 
-unu:
-  latin: unu
+  unu:
+    latin: unu
 
-usawi:
-  latin: usawi
+  usawi:
+    latin: usawi
 
-uta:
-  latin: uta
+  uta:
+    latin: uta
 
-utala:
-  latin: utala
+  utala:
+    latin: utala
 
-wa:
-  latin: wa
+  wa:
+    latin: wa
 
-waleja:
-  latin: waleja
+  waleja:
+    latin: waleja
 
-walo:
-  latin: walo
+  walo:
+    latin: walo
 
-wan:
-  latin: wan
+  wan:
+    latin: wan
 
-waso:
-  latin: waso
+  waso:
+    latin: waso
 
-wawa:
-  latin: wawa
+  wawa:
+    latin: wawa
 
-weka:
-  latin: weka
+  weka:
+    latin: weka
 
-wekama:
-  latin: wekama
+  wekama:
+    latin: wekama
 
-wile:
-  latin: wile
+  wile:
+    latin: wile
 
-yupekosi:
-  latin: yupekosi
+  yupekosi:
+    latin: yupekosi

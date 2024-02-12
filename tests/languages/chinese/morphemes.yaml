@@ -1,9 +1,10 @@
-女:
-  form: 女
-  pinyin: nǚ  # TODO: add restriction to not specify compatible keys ("tone" and "toneless_pinyin") together with pinyin
+elems:
+  女:
+    form: 女
+    pinyin: nǚ  # TODO: add restriction to not specify compatible keys ("tone" and "toneless_pinyin") together with pinyin
 
-男:  # compatible morpheme for: pinyin, toneless_pinyin, tone
-  form: 男
-  pinyin: nán
-  toneless_pinyin: nan
-  tone: 1
+  男:  # compatible morpheme for: pinyin, toneless_pinyin, tone
+    form: 男
+    pinyin: nán
+    toneless_pinyin: nan
+    tone: 1
