@@ -9,7 +9,6 @@ from src.lang_factory import LangFactory
 from tests.lang_code_test import AbstractLangCodeTest
 
 
-# name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
 def get_func_name(method, param_num, params):
     lang_name = params[0][0]
     general = AbstractLangCodeTest.all_test_properties[lang_name]

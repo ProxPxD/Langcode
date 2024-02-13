@@ -3,8 +3,10 @@ from typing import Iterable
 
 from abstractTest import AbstractTest
 from test_cases.loading_test import LoadingTest
+from tests.test_cases.test_correctness_test import TestCorrectnessTest
 
 all_tests = [
+    TestCorrectnessTest,
     LoadingTest,
     #BasicMorphemeTest,
 ]

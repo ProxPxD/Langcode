@@ -77,3 +77,7 @@ def get_extreme_points(col: list | str, midpoint: int, remove_range: int, right_
     min_point = max(midpoint-left_range, 0)
     max_point = min(midpoint+right_range+1, len(col))
     return min_point, max_point
+
+
+def to_list(smth) -> list:
+    return [smth] if isinstance(smth, str) else list(smth)
