@@ -1,7 +1,7 @@
 
 
 from old_src.langcode import Morpheme
-from tests.old.abstractTest import AbstractTest
+from tests.legacy.old.abstractTest import AbstractTest
 
 
 class ApplicationTest(AbstractTest):

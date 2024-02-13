@@ -23,14 +23,18 @@ test_properties:
       logographic: false
 
   rules:
-    morphemes:
-      add:
+    add:
+      graphemes: false
+      morphemes:
         number:
           plural: false
         definiteness:
           definite: false
           indefinite: false
-      features:
+
+    features:
+      graphemes: false
+      morphemes:
         gender:
           exists: false
           exceptions: false
@@ -52,7 +56,3 @@ test_properties:
         mood:
           exists: false
           exceptions: false
-
-    graphemes:
-      add: false
-      features: false

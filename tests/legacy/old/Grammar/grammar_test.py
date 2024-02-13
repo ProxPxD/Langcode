@@ -4,8 +4,8 @@ from unittest import SkipTest
 #from parsimonious.exceptions import IncompleteParseError, VisitationError
 
 from old_src.grammar import grammar, GrammarVisitor, T
-from tests.old.abstractTest import AbstractTest
-from tests.old.testutils import sort_result
+from tests.legacy.old.abstractTest import AbstractTest
+from tests.legacy.old.testutils import sort_result
 
 
 @sort_result(0, by_length=True)
