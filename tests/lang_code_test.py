@@ -7,6 +7,7 @@ from typing import Optional, Callable, Iterable, Sequence
 import yaml
 from toolz import valfilter, valmap
 
+from src.lang_factory import LangaugeInterpreter, LangFactory
 from src.loaders import LangDataLoader
 from src.utils import to_list
 from tests.abstractTest import AbstractTest
@@ -78,6 +79,8 @@ class AbstractLangCodeTest(AbstractTest):
     accepted_similarity = .5
 
     data_loader = LangDataLoader(Paths.LANGUAGES)
+    lang_interpreter = LangaugeInterpreter()
+    lang_factory = LangFactory(Paths.LANGUAGES)
 
     not_language_files = ('general_defaults', )
     all_paths: list[Path]

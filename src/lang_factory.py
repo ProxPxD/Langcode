@@ -9,7 +9,7 @@ class LangaugeInterpreter:
     def __init__(self):
         self._language = None
 
-    def create(self, name: str, data: dict):
+    def create(self, name: str, data: dict) -> Language:
         self._language = Language(name)
         self._interpret_orthography(data.get(LangData.ORTHOGRAPHY))
         self._interpret_morphology(data.get(LangData.MORPHOLOGY))

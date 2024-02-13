@@ -6,3 +6,6 @@ test_properties:
   word_formation: false
   exceptions: false
   multiple_scripts: true
+  rules:
+    morphemes:
+      script: true

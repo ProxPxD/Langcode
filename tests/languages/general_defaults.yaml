@@ -35,6 +35,9 @@ test_properties:
     features:
       graphemes: false
       morphemes:
+        script:
+          exists: false
+          exceptions: false
         gender:
           exists: false
           exceptions: false
