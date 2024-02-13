@@ -1,537 +1,85 @@
 elems:
-  a:
-    latin: a
-
-  akesi:
-    latin: akesi
-
-  ala:
-    latin: ala
-
-  alasa:
-    latin: alasa
-
-  ale:
-    latin: ale
-
-  ali:  # TODO: think if treat different
-    latin: ali
-
-  anpa:
-    latin: anpa
-
-  ante:
-    latin: ante
-
-  anu:
-    latin: anu
-
-  apeja:
-    latin: apeja
-
-  awen:
-    latin: awen
-
-  e:
-    latin: e
-
-  en:
-    latin: en
-
-  epiku:
-    latin: epiku
-
-  esun:
-    latin: esun
-
-  ete:
-    latin: ete
-
-  ewe:
-    latin: ewe
-
-  ijo:
-    latin: ijo
-
-  ike:
-    latin: ike
-
-  ilo:
-    latin: ilo
-
-  insa:
-    latin: insa
-
-  isipin:
-    latin: isipin
-
-  jaki:
-    latin: jaki
-
-  jami:
-    latin: jami
-
-  jan:
-    latin: jan
-
-  jasima:
-    latin: jasima
-
-  jelo:
-    latin: jelo
-
-  jo:
-    latin: jo
-
-  kala:
-    latin: kala
-
-  kalama:
-    latin: kalama
-
-  kama:
-    latin: kama
-
-  kamalawala:
-    latin: kamalawala
-
-  kan:
-    latin: kan
-
-  kapesi:
-    latin: kapesi
-
-  kasi:
-    latin: kasi
-
-  ken:
-    latin: ken
-
-  kepeken:
-    latin: kepeken
-
-  kese:
-    latin: kese
-
-  kijetesantakalu:
-    latin: kijetesantakalu
-
-  kiki:
-    latin: kiki
-
-  kili:
-    latin: kili
-
-  kin:
-    latin: kin
-
-  kipisi:
-    latin: kipisi
-
-  kiwen:
-    latin: kiwen
-
-  ko:
-    latin: ko
-
-  kokosila:
-    latin: kokosila
-
-  kon:
-    latin: kon
-
-  ku:
-    latin: ku
-
-  kule:
-    latin: kule
-
-  kulijo:
-    latin: kulijo
-
-  kulupu:
-    latin: kulupu
-
-  kuntu:
-    latin: kuntu
-
-  kute:
-    latin: kute
-
-  la:
-    latin: la
-
-  lanpan:
-    latin: lanpan
-
-  lape:
-    latin: lape
-
-  laso:
-    latin: laso
-
-  lawa:
-    latin: lawa
-
-  leko:
-    latin: leko
-
-  len:
-    latin: len
-
-  lete:
-    latin: lete
-
-  li:
-    latin: li
-
-  lili:
-    latin: lili
-
-  linja:
-    latin: linja
-
-  linluwi:
-    latin: linluwi
-
-  lipu:
-    latin: lipu
-
-  loje:
-    latin: loje
-
-  lon:
-    latin: lon
-
-  luka:
-    latin: luka
-
-  lukin:
-    latin: lukin
-
-  lupa:
-    latin: lupa
-
-  ma:
-    latin: ma
-
-  majuna:
-    latin: majuna
-
-  mama:
-    latin: mama
-
-  mani:
-    latin: mani
-
-  meli:
-    latin: meli
-
-  melome:
-    latin: melome
-
-  meso:
-    latin: meso
-
   mi:
     latin: mi
-
-  mije:
-    latin: mije
-
-  mijomi:
-    latin: mijomi
-
-  misa:
-    latin: misa
-
-  misikeke:
-    latin: misikeke
-
-  moku:
-    latin: moku
-
-  moli:
-    latin: moli
-
-  monsi:
-    latin: monsi
-
-  monsuta:
-    latin: monsuta
-
-  mu:
-    latin: mu
-
-  mulapisu:
-    latin: mulapisu
-
-  mun:
-    latin: mun
-
-  musi:
-    latin: musi
-
-  mute:
-    latin: mute
-
-  n:
-    latin: n
-
-  namako:
-    latin: namako
-
-  nanpa:
-    latin: nanpa
-
-  nasa:
-    latin: nasa
-
-  nasin:
-    latin: nasin
-
-  natu:
-    latin: natu
-
-  nena:
-    latin: nena
-
-  ni:
-    latin: ni
-
-  nimi:
-    latin: nimi
-
-  noka:
-    latin: noka
-
-  o:
-    latin: o
-
-  oke:
-    latin: oke
-
-  oko:
-    latin: oko
-
-  olin:
-    latin: olin
-
-  omekapo:
-    latin: omekapo
-
-  ona:
-    latin: ona
-
-  open:
-    latin: open
-
-  pakala:
-    latin: pakala
-
-  pake:
-    latin: pake
-
-  pali:
-    latin: pali
-
-  palisa:
-    latin: palisa
-
-  pan:
-    latin: pan
-
-  pana:
-    latin: pana
-
-  pata:
-    latin: pata
-
-  pi:
-    latin: pi
-
-  pilin:
-    latin: pilin
-
-  pimeja:
-    latin: pimeja
-
-  pini:
-    latin: pini
-
-  pipi:
-    latin: pipi
-
-  po:
-    latin: po
-
-  poka:
-    latin: poka
-
-  poki:
-    latin: poki
-
-  pona:
-    latin: pona
-
-  powe:
-    latin: powe
-
-  pu:
-    latin: pu
-
-  puwa:
-    latin: puwa
-
-  sama:
-    latin: sama
-
-  san:
-    latin: san
-
-  seli:
-    latin: seli
-
-  selo:
-    latin: selo
-
-  seme:
-    latin: seme
-
-  sewi:
-    latin: sewi
-
-  sijelo:
-    latin: sijelo
-
-  sike:
-    latin: sike
-
-  sin:
-    latin: sin
-
+    excepted:
+      hanzi: 我
+      cyrillic: ми
+      hiragana: み
+      katakana: ミ
   sina:
     latin: sina
-
-  sinpin:
-    latin: sinpin
-
-  sitelen:
-    latin: sitelen
-
-  soko:
-    latin: soko
-
-  sona:
-    latin: sona
-
-  soto:
-    latin: soto
-
-  soweli:
-    latin: soweli
-
-  su:
-    latin: su
-
-  suli:
-    latin: suli
-
-  suno:
-    latin: suno
-
-  supa:
-    latin: supa
-
-  sutopatikuna:
-    latin: sutopatikuna
-
-  suwi:
-    latin: suwi
-
-  taki:
-    latin: taki
-
-  tan:
-    latin: tan
-
-  taso:
-    latin: taso
-
+    excepted:
+      hanzi: 你
+      cyrillic: сина
+      hiragana: しな
+      katakana: シナ
+  ona:
+    latin: ona
+    excepted:
+      hanzi: 他
+      cyrillic: она
+      hiragana: おな
+      katakana: おな
+  li:
+    latin: li
+    excepted:
+      hanzi: 则
+      cyrillic: ли
+      hiragana: り
+      katakana: リ
+  e:
+    latin: e
+    excepted:
+      hanzi: 之
+      cyrillic: е
+      hiragana: え
+      katakana: エ
+  pi:
+    latin: pi
+    excepted:
+      hanzi: 得
+      cyrillic: пи
+      hiragana: ひ
+      katakana: ヒ
+  la:
+    latin: la
+    excepted:
+      hanzi: 者
+      cyrillic: ла
+      hiragana: ら
+      katakana: ラ
   tawa:
     latin: tawa
-
-  te:
-    latin: te
-
-  teje:
-    latin: teje
-
-  telo:
-    latin: telo
-
-  tenpo:
-    latin: tenpo
-
-  to:
-    latin: to
-
+    excepted:
+      hanzi: 向
+      cyrillic: тава
+      hiragana: たわ
+      katakana: タワ
   toki:
     latin: toki
-
-  tomo:
-    latin: tomo
-
-  tonsi:
-    latin: tonsi
-
-  tu:
-    latin: tu
-
-  tuli:
-    latin: tuli
-
-  unpa:
-    latin: unpa
-
-  unu:
-    latin: unu
-
-  usawi:
-    latin: usawi
-
-  uta:
-    latin: uta
-
-  utala:
-    latin: utala
-
-  wa:
-    latin: wa
-
-  waleja:
-    latin: waleja
-
-  walo:
-    latin: walo
-
-  wan:
-    latin: wan
-
-  waso:
-    latin: waso
-
-  wawa:
-    latin: wawa
-
-  weka:
-    latin: weka
-
-  wekama:
-    latin: wekama
-
+    excepted:
+      hanzi: 语
+      cyrillic: токи
+      hiragana: とき
+      katakana: トキ
+  pona:
+    latin: pona
+    excepted:
+      hanzi: 好
+      cyrillic: пона
+      hiragana: ほな
+      katakana: ホナ
+  jan:
+    latin: jan
+    excepted:
+      hanzi: 人
+      cyrillic: јан
+      hiragana: やん
+      katakana: ヤン
   wile:
     latin: wile
-
-  yupekosi:
-    latin: yupekosi
+    excepted:
+      hanzi: 要
+      cyrillic: виле
+      hiragana: ゐれ
+      katakana: ヰレ
