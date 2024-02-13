@@ -13,7 +13,7 @@ def get_func_name(method, param_num, params):
     return func_name
 
 
-class TestCorrectnessTest(AbstractLangCodeTest):
+class TestPropertiesCorrectnessTest(AbstractLangCodeTest):
     @parameterized.expand(
         AbstractLangCodeTest.all_langs,
         name_func=get_func_name
