@@ -1,4 +1,4 @@
-characteristics:
+test_properties:
   valid_schema: true
   valid_restrictions: true
   should_load: true
@@ -9,4 +9,53 @@ characteristics:
     compound: false
   exceptions: false
   multiple_scripts: false
-  feature_forming: true
+  features:
+    morphemes:  # TODO: think of predicting morpheme features from rules as preprocessing if not specified
+      gender: false
+      definiteness: false
+      number: false
+      cases: false
+      tenses: false
+      aspects: false
+      mood: false
+    graphemes:
+      phonetic_spelling: false
+      logographic: false
+
+  rules:
+    add:
+      graphemes: false
+      morphemes:
+        number:
+          plural: false
+        definiteness:
+          definite: false
+          indefinite: false
+
+    features:
+      graphemes: false
+      morphemes:
+        script:
+          exists: false
+          exceptions: false
+        gender:
+          exists: false
+          exceptions: false
+        number:
+          exists: false  # TODO: think conditional and unconditional instead of exist
+          exceptions: false
+        definiteness:
+          exists: false
+          exceptions: false
+        cases:
+          exists: false
+          exceptions: false
+        tenses:
+          exists: false
+          exceptions: false
+        aspects:
+          exists: false
+          exceptions: false
+        mood:
+          exists: false
+          exceptions: false

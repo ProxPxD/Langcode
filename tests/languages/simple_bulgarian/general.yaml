@@ -1,0 +1,29 @@
+test_properties: # TODO
+  valid_schema: true
+  valid_restrictions: true
+  sound_change: false
+  bound_morphemes: false
+  word_formation: false
+  exceptions: false
+  multiple_scripts: true
+  features:
+    morphemes:
+      gender: true
+      definiteness: true
+      number: true
+    graphemes: true
+
+  rules:
+    graphemes:
+      features: true
+    morphemes:
+      features:
+        gender: true
+        number: true
+        definiteness: true
+      add:
+        number:
+          plural: true
+        definiteness:
+          definite: true
+

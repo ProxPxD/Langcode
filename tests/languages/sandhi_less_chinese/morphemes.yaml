@@ -1,38 +1,39 @@
-女:
-  form: 女
-  pinyin: nǚ
-  bound: True
+elems:
+  女:
+    form: 女
+    pinyin: nǚ
+    bound: True
 
-男:
-  form: 男
-  pinyin: nán
-  bound: True
+  男:
+    form: 男
+    pinyin: nán
+    bound: True
 
-人:
-  form: 人
-  pinyin: rén
+  人:
+    form: 人
+    pinyin: rén
 
-女人:
-  compound:
-    - 女
-    - 人
+  女人:
+    compound:
+      - 女
+      - 人
 
-男人:
-  compound:
-    - 男
-    - 人
+  男人:
+    compound:
+      - 男
+      - 人
 
-朋:
-  form: 朋
-  pinyin: péng
-  bound: True
+  朋:
+    form: 朋
+    pinyin: péng
+    bound: True
 
-友:
-  form: 友
-  pinyin: yǒu
-  bound: True
+  友:
+    form: 友
+    pinyin: yǒu
+    bound: True
 
-朋友:  # TODO: write a test and a rule for inserting such keys as "pinyin"
-  compound:
-    - 朋
-    - 友
+  朋友:  # TODO: write a test and a rule for inserting such keys as "pinyin"
+    compound:
+      - 朋
+      - 友

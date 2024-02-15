@@ -9,23 +9,24 @@ from src.lang_factory import LangFactory
 from tests.lang_code_test import AbstractLangCodeTest
 
 
-# from pyxdameraulevenshtein import damerau_levenshtein_distance
+def get_func_name(method, param_num, params):
+    lang_name = params[0][0]
+    general = AbstractLangCodeTest.all_test_properties[lang_name]
+    state = 'is_valid' if general.valid_schema and general.valid_restrictions else\
+            'violates_restrictions' if general.valid_schema and not general.valid_restrictions else\
+            'is_invalid' if not general.valid_schema else NotImplemented
+    func_name = f'{method.__name__}_if_{lang_name}_{state}'
+    return func_name
 
 
 class LoadingTest(AbstractLangCodeTest):
-
-    @parameterized.expand([
-        ('toki_pona', ),
-        ('simplified_chinese', ),
-        ('incompatible_chinese', Messages.FORMING_KEYS_TOGETHER),
-        ('only_compound', Messages.NO_FORMING_KEY),
-        ('sandhi_less_chinese', ),
-        ('simple_sandhi_chinese', ),
-        ('chinese', ),
-        ],
-        # name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
+    @parameterized.expand(
+        AbstractLangCodeTest.all_langs,
+        name_func=get_func_name
     )
-    def test_lang_validation(self, lang_name: str, message=None):
+    def test(self, lang_name: str, message=None):
+        # TODO: consider spliting into many functions
+        # TODO: add messages according to state
         lf = LangFactory(Paths.LANGUAGES, lang_name)
         try:
             lang = lf.load()

@@ -1,0 +1,15 @@
+elems:
+  verba:
+  volant:
+  scripta:
+  manent:
+
+
+features:
+  noun:
+    - verba
+    - scripta
+  verb:
+    - volant
+    - manent
+

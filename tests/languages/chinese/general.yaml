@@ -1,4 +1,4 @@
-characteristics:
+test_properties:
   valid_schema: true
   valid_restrictions: true
   sound_change: true
@@ -7,4 +7,4 @@ characteristics:
     compound: true
   exceptions: false
   multiple_scripts: false
-  feature_forming: true
+  features: true

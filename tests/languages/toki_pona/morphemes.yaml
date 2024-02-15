@@ -1,23 +1,85 @@
-li:
-  form: li
-
-e:
-  form: e
-
-pi:
-  form: pi
-
-tawa:
-  form: tawa
-
-toki:
-  form: toki
-
-pona:
-  form: pona
-
-jan:
-  form: jan
-
-wile:
-  form: wile
+elems:
+  mi:
+    latin: mi
+    excepted:
+      hanzi: 我
+      cyrillic: ми
+      hiragana: み
+      katakana: ミ
+  sina:
+    latin: sina
+    excepted:
+      hanzi: 你
+      cyrillic: сина
+      hiragana: しな
+      katakana: シナ
+  ona:
+    latin: ona
+    excepted:
+      hanzi: 他
+      cyrillic: она
+      hiragana: おな
+      katakana: おな
+  li:
+    latin: li
+    excepted:
+      hanzi: 则
+      cyrillic: ли
+      hiragana: り
+      katakana: リ
+  e:
+    latin: e
+    excepted:
+      hanzi: 之
+      cyrillic: е
+      hiragana: え
+      katakana: エ
+  pi:
+    latin: pi
+    excepted:
+      hanzi: 得
+      cyrillic: пи
+      hiragana: ひ
+      katakana: ヒ
+  la:
+    latin: la
+    excepted:
+      hanzi: 者
+      cyrillic: ла
+      hiragana: ら
+      katakana: ラ
+  tawa:
+    latin: tawa
+    excepted:
+      hanzi: 向
+      cyrillic: тава
+      hiragana: たわ
+      katakana: タワ
+  toki:
+    latin: toki
+    excepted:
+      hanzi: 语
+      cyrillic: токи
+      hiragana: とき
+      katakana: トキ
+  pona:
+    latin: pona
+    excepted:
+      hanzi: 好
+      cyrillic: пона
+      hiragana: ほな
+      katakana: ホナ
+  jan:
+    latin: jan
+    excepted:
+      hanzi: 人
+      cyrillic: јан
+      hiragana: やん
+      katakana: ヤン
+  wile:
+    latin: wile
+    excepted:
+      hanzi: 要
+      cyrillic: виле
+      hiragana: ゐれ
+      katakana: ヰレ

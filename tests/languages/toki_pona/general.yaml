@@ -1,4 +1,4 @@
-characteristics:
+test_properties:
   valid_schema: true
   valid_restrictions: true
   sound_change: false
@@ -6,3 +6,6 @@ characteristics:
   word_formation: false
   exceptions: false
   multiple_scripts: true
+  rules:
+    morphemes:
+      script: true
