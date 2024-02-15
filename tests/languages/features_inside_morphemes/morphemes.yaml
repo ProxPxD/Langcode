@@ -1,0 +1,16 @@
+elems:
+  verba:
+    pos: noun
+
+  volant:
+    pos: verb
+
+  scripta:
+    pos: noun
+
+  manent:
+    pos: verb
+
+
+features:
+

@@ -1,0 +1,61 @@
+# TODO: proposed division:
+# elems
+# [add feature] x [grapheme(s) morpheme(s)]
+# [morpheme(s) grapheme(s)] x [add feature(s)]
+# TODO: prepare separate test and language for the structure
+# TODO: because it can be infinite for morphemes, it has to be lazy, for features it might
+
+morphemes:
+  features:
+    gender:
+      from: cyrillic
+      to: gender
+      cond: # TODO: not needed if only one condition
+        - when: 'a$'
+          then: F
+        - when: '(o|e)$'  # TODO: elif (note that somewhere else an remove todo)
+          then: N
+        - then: M  # TODO: else (note that somewhere else an remove todo)
+    number:
+      # TODO: No "from" and/or no "when" means unconditionally
+      to: number
+      then: singular
+    definiteness:
+      to: definiteness
+      then: indefinite
+  add:
+    pluralization:
+      when: SG  # TODO: short for "{'when': {'number': 'SG'}}"
+      then:
+        name:  # TODO: for now, no configuration name's generated. Think later
+        new:
+          # NOTE: if a feature is not mentioned as gender here, it remain the same. TODO: Note it somewhere officially
+          number: PL  # NOTE: Prevents infinite recurrent definitions. TODO: Note it somewhere officially
+          cyrillic:
+          - when:
+              gender: M
+            then:  # TODO: add monosyllability checking: https://en.wikipedia.org/wiki/Bulgarian_grammar
+              match: '$'
+              replace: 'и'
+          - when:
+              gender: F
+            then: '(а|я)$ => и'  # NOTE: alternative syntax to match-replace. TODO: implement and note it
+          - when:
+              gender: N
+            then:
+            - when: 'о$'
+              then: 'а'
+            - 'е$ => та'  # NOTE: alternative syntax to when-then. TODO: implement and note it.
+    definitivization:
+      when: indefinite
+      then:
+        name:
+        new: #TODO: finish
+graphemes:
+  features:
+    phon:
+      when:
+        and:
+         - not: vowel
+         - not: none
+      then: consonant

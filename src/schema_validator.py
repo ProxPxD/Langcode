@@ -6,6 +6,9 @@ from src.language import Language
 
 from strictyaml import load, Map, Str, Int, Any, Seq, YAMLError, MapPattern, MapCombined, Optional, Bool
 
+# TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag
+# see: https://github.com/ProxPxD/Langcode/issues/7
+
 general_schema = Map({
 
 })

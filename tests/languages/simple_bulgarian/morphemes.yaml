@@ -1,0 +1,9 @@
+elems:
+  chair:
+    cyrillic: стол
+  table:
+    cyrillic: маса
+  button:
+    cyrillic: копче
+  animal:
+    cyrillic: животно

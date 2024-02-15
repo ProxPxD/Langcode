@@ -1,11 +1,12 @@
-朋:
-  form: 朋
+elems:
+  朋:
+    form: 朋
 
-友:
-  form: 友
+  友:
+    form: 友
 
-朋友:
-  form: 朋友
-  compound:
-    - 朋
-    - 友
+  朋友:
+    form: 朋友
+    compound:
+      - 朋
+      - 友

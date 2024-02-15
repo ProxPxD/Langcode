@@ -1,0 +1,33 @@
+# #TODO: note that no elems here
+graphemes:
+  phon:
+    vowel:
+      - а
+      - о
+      - е
+      - и
+      - у
+      - ъ
+      - ю
+      - я
+    none: ь
+    consonant:
+
+
+morpheme:
+  gender:
+    masculine:
+      alias: M  # TODO: implement and make it work both with alias and aliases
+    feminine:
+      alias: F
+    neuter:
+      alias: N
+
+  number:
+    plural:
+      alias: PL
+    singular:
+      alias: SG
+  definiteness:
+    definite:
+    indefinite:

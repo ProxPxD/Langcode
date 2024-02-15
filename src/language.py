@@ -29,7 +29,7 @@ class IKind:
         raise NotImplementedError  # probably never allowed
 
 
-class Langel(IName, IKind):
+class Unit(IName, IKind):
     def __init__(self, name: str, kind: str):
         super().__init__(name=name, kind=kind)
 

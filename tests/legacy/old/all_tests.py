@@ -1,8 +1,8 @@
 import unittest
 from typing import Iterable
 
-from tests.old.Grammar.grammar_test import GrammarTest
-from tests.old.abstractTest import AbstractTest
+from tests.legacy.old.Grammar.grammar_test import GrammarTest
+from tests.legacy.old.abstractTest import AbstractTest
 
 all_tests = [
     #ApplicationTest,
