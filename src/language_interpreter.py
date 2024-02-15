@@ -21,16 +21,16 @@ class LangaugeInterpreter:
         self._interpret_graphemes(config.graphemes)
         self._interpret_morphemes(config.morphemes)
 
-    def _interpret_general(self, config: dict) -> None:
+    def _interpret_general(self, config: DotDict) -> None:
         pass
 
-    def _interpret_graphemes(self, config: dict) -> None:
+    def _interpret_graphemes(self, config: DotDict) -> None:
         self._interpret_units_from(config, SimpleTerms.GRAPHEME)
 
-    def _interpret_morphemes(self, config: dict) -> None:
+    def _interpret_morphemes(self, config: DotDict) -> None:
         self._interpret_units_from(config, SimpleTerms.MORPHEME)
 
-    def _interpret_units_from(self, config: complex_yaml_type, kind: str) -> None:
+    def _interpret_units_from(self, config: DotDict, kind: str) -> None:
         for name, config in config.elems.items():
             self._language.add_unit(name, config, kind)
 

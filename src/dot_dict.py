@@ -37,7 +37,7 @@ class DotDict:
         curr = self.get()
         if not isinstance(curr, dict):
             return bool(curr)
-        sub_dot_dicts = (DotDict(val, defaults=self._defaults[key]) for key, val in curr.items())
+        sub_dot_dicts = (DotDict(val, defaults=self._get_default(key)) for key, val in curr.items())
         return any(map(bool, sub_dot_dicts))
 
     def __contains__(self, path: str | Sequence[str]):
@@ -54,7 +54,10 @@ class DotDict:
         yield from self._curr.keys() if isinstance(self._curr, dict) else (None, )
 
     def values(self):
-        yield from self._curr.values() if isinstance(self._curr, dict) else (self._curr, )
+        if isinstance(self._curr, dict):
+            yield from (DotDict(val, defaults=self._get_default(key)) for key, val in self._curr.items())
+        else:
+            yield from (DotDict(self._curr), )
 
     def items(self):
         yield from zip(self.keys(), self.values())
