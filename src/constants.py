@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-basic_yaml_type = str | int | bool
+basic_yaml_type = str | int | bool | None
 complex_yaml_type = dict | list
 yaml_type = basic_yaml_type | complex_yaml_type
 

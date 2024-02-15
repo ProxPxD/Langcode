@@ -19,7 +19,7 @@ class TestPropertiesCorrectnessTest(AbstractLangCodeTest):
         name_func=get_func_name
     )
     def test(self, lang_name: str):
-        expected_properties = DotDict(DotDict.orig_defaults).test_properties
+        expected_properties = DotDict(self.defaults).test_properties
         actual_properties = self.all_test_properties[lang_name]
 
         to_check = list(map(to_list, actual_properties.get().keys()))
