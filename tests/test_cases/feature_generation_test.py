@@ -25,7 +25,7 @@ def generate_test_cases():
         except:
             continue
         for unit in lang.units:
-            for feature_name, expected_value in unit['expected'].items():
+            for feature_name, expected_value in unit.get('expected', {}).items():
                 yield lang_name, unit.kind + 's', unit.name, feature_name, expected_value
 
 
