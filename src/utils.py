@@ -1,5 +1,9 @@
 from typing import Iterable, Callable, Any, Collection, Tuple
 
+from toolz import curry
+
+from src.constants import basic_yaml_type
+
 
 def get_name(instance):
     return instance.name if 'name' in instance.__dir__ else instance['name'] if '__contains__' in instance.__dir__ and 'name' in instance else instance if isinstance(instance, str) else None
@@ -77,3 +81,32 @@ def get_extreme_points(col: list | str, midpoint: int, remove_range: int, right_
     min_point = max(midpoint-left_range, 0)
     max_point = min(midpoint+right_range+1, len(col))
     return min_point, max_point
+
+
+def to_list(smth) -> list:
+    return [smth] if isinstance(smth, str) else list(smth)
+
+
+@curry
+def is_instance_of(reduct_func, atype, iterable: Iterable):
+    return reduct_func(map(lambda elem: isinstance(elem, atype), iterable))
+
+
+is_all_instance_of = is_instance_of(all)
+is_any_instance_of = is_instance_of(any)
+
+
+@curry
+def is_all_len_n(n: int, iterable: Iterable):
+    return all(map(lambda elem: len(elem) == n, iterable))
+
+
+is_all_len_one = is_all_len_n(1)
+
+
+def is_list_of_dicts(to_check: list) -> bool:
+    return is_all_instance_of(dict, to_check) and is_all_len_one(to_check)
+
+
+def is_list_of_basics(to_check: list) -> bool:
+    return is_all_instance_of(basic_yaml_type, to_check)
