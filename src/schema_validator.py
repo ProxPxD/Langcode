@@ -1,6 +1,6 @@
 from types import NoneType
 
-from src.constants import LangData
+from src.constants import SimpleTerms
 from src.exceptions import InvalidYamlException, Messages
 from src.language import Language
 

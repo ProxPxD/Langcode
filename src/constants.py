@@ -2,8 +2,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-@dataclass
-class LangData:
+basic_yaml_type = str | int | bool | None
+complex_yaml_type = dict | list
+yaml_type = basic_yaml_type | complex_yaml_type
+
+
+@dataclass(frozen=True)
+class SimpleTerms:
     LANGUAGES = 'languages'
     LANGUAGE = 'language'
     GENERAL = 'general'
@@ -12,15 +17,23 @@ class LangData:
     RULES = 'rules'
     MORPHOLOGY = 'morphology'
     MORPHEMES = 'morphemes'
+    MORPHEME = 'morpheme'
     ORTHOGRAPHY = 'orthography'
     SCRIPT = 'script'
     GRAPHEMES = 'graphemes'
+    GRAPHEME = 'grapheme'
+    ELEMS = 'elems'
     FORM = 'form'
     COMPOUND = 'compound'
 
-    FORMING_KEYS = (FORM, COMPOUND)
+
+@dataclass(frozen=True)
+class ComplexTerms:
+    UNTIS = (SimpleTerms.GRAPHEMES, SimpleTerms.MORPHEMES)
+    UNTI = (SimpleTerms.GRAPHEME, SimpleTerms.MORPHEME)
+    FORMING_KEYS = (SimpleTerms.FORM, SimpleTerms.COMPOUND)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Paths:
-    LANGUAGES = Path(__file__).parent / LangData.LANGUAGES
+    LANGUAGES = Path(__file__).parent / SimpleTerms.LANGUAGES

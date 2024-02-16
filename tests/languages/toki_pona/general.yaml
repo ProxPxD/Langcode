@@ -7,5 +7,5 @@ test_properties:
   exceptions: false
   multiple_scripts: true
   rules:
-    morphemes:
-      script: true
+    features:
+      morphemes: true

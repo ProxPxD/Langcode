@@ -14,14 +14,14 @@ test_properties: # TODO
     graphemes: true
 
   rules:
-    graphemes:
-      features: true
-    morphemes:
-      features:
+    features:
+      graphemes: true
+      morphemes:
         gender: true
         number: true
         definiteness: true
-      add:
+    add:
+      morphemes:
         number:
           plural: true
         definiteness:

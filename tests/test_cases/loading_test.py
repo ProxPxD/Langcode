@@ -1,6 +1,8 @@
 from __future__ import annotations
 from tests.lang_code_test import Paths
 
+import traceback
+
 from parameterized import parameterized
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 
@@ -32,6 +34,8 @@ class LoadingTest(AbstractLangCodeTest):
             lang = lf.load()
             if message:
                 self.fail(f'Language {lang_name} should be invalid, but succeeds to load. Expected message: {message}')
+        except NotImplementedError:
+            self.fail(traceback.format_exc())
         except InvalidYamlException as iye:
             if message:
                 dl = damerau_levenshtein_distance(iye.args[-1], message)

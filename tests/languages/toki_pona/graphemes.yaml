@@ -1,5 +1,5 @@
-latin:  # TODO rewrite and decide on schema for graphemes
-  elems:
+features:
+  latin:
     - a
     - e
     - i
@@ -15,8 +15,7 @@ latin:  # TODO rewrite and decide on schema for graphemes
     - u
     - w
 
-cyrillic:
-  elems:
+  cyrillic:
     - а
     - в
     - е
@@ -32,8 +31,7 @@ cyrillic:
     - т
     - у
 
-hanzi:
-  elems:
+  hanzi:
     - 我
     - 你
     - 他
@@ -46,9 +44,8 @@ hanzi:
     - 好
     - 人
     - 要
-hebrew:
-hiragana:
-  elems:
+  hebrew:
+  hiragana:
     # -
     - あ
     - い
@@ -104,4 +101,4 @@ hiragana:
     - を
     # -n
     - ん
-katakana:
+  katakana:
