@@ -7,6 +7,7 @@ from typing import Optional, Callable, Iterable, Sequence
 import yaml
 from toolz import valfilter, valmap
 
+from src.data_normalizer import DataNormalizer
 from src.dot_dict import DotDict
 from src.lang_factory import LangaugeInterpreter, LangFactory
 from src.loaders import LangDataLoader
@@ -28,6 +29,7 @@ class AbstractLangCodeTest(AbstractTest):
     defaults = yaml.safe_load(open(Paths.DEFAULTS, 'r'))
     data_loader = LangDataLoader(Paths.LANGUAGES)
     lang_interpreter = LangaugeInterpreter()
+    data_normalizer = DataNormalizer()
     lang_factory = LangFactory(Paths.LANGUAGES)
 
     not_language_files = ('general_defaults', )

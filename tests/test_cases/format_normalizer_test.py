@@ -39,9 +39,8 @@ class FeatureGenerationTest(AbstractLangCodeTest):
     def test(self, lang_name: str):
         # TODO: How to handle expected file when schema will work?
         normalization = self.all_test_properties[lang_name].normalization
-        dn = DataNormalizer()
         original = self.data_loader.load(lang_name)
-        normalized = dn.normalize(original)
+        normalized = self.data_normalizer.normalize(original)
 
         for filename, config in normalization.items():
             if config:
