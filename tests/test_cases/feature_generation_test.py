@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from itertools import chain
+
 from parameterized import parameterized
 
 from src.utils import to_list
@@ -21,14 +23,20 @@ def generate_test_cases():
     lang_names = AbstractLangCodeTest.get_langs_where(lambda d: d.rules.features)
     for lang_name in lang_names:
         try:
-            lang = AbstractLangCodeTest.lang_factory.load(lang_name)
-            # TODO: work with standarized yaml and find exceptions
-            #lang_data = DotDict(AbstractLangCodeTest.data_loader.load(lang_name))
+            raw_data = AbstractLangCodeTest.data_loader.load(lang_name)
+            data = AbstractLangCodeTest.data_normalizer.normalize(raw_data)
         except:
             continue
-        for unit in lang.units:
-            for feature_name, expected_value in unit.get('expected', {}).items():
-                yield lang_name, unit.kind + 's', unit.name, feature_name, expected_value
+
+        morphemes = data.get('morphemes', {}).get('elems', {})
+        # TODO: rn there's no test lang for graphemes but it should be adjust
+        # TODO: once grapheme features are added
+        graphemes = data.get('graphemes', {}).get('elems', {})
+        all_units = {'morphemes': morphemes, 'graphemes': graphemes}
+        for kind, units in all_units.items():
+            for name, config in units.items():
+                for feature_name, expected_value in config.get('expected', {}).items():
+                    yield lang_name, kind, name, feature_name, expected_value
 
 
 class FeatureGenerationTest(AbstractLangCodeTest):
