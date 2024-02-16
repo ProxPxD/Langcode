@@ -42,7 +42,7 @@ class FeatureGenerationTest(AbstractLangCodeTest):
         skip_on_empty=True,
     )
     def test(self, lang_name: str, unit_kind: str, unit_name: str, feature_name: str, expected: yaml_types):
-        lang = self.lang_factory.load(lang_name)
+        lang = self.load_lang(lang_name)
         actual = lang.get_units(unit_kind).get(unit_name)[feature_name]
         self.assertEquals(expected, actual)
 
