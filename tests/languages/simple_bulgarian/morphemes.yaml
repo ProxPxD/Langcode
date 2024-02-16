@@ -1,9 +1,22 @@
 elems:
   chair:
     cyrillic: стол
+    expected:
+      gender: masculine
+      number: singular
+      definiteness: indefinite
+
   table:
     cyrillic: маса
+    expected:
+      gender: feminine
+
   button:
     cyrillic: копче
+    expected:
+      gender: neuter
+
   animal:
     cyrillic: животно
+    expected:
+      gender: neuter
