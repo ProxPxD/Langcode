@@ -1,4 +1,7 @@
 elems:
+  carpet:
+    cyrillic: килим
+
   chair:
     cyrillic: стол
     expected:
@@ -20,3 +23,39 @@ elems:
     cyrillic: животно
     expected:
       gender: neuter
+
+  expected:
+    # TODO: implement skipping words with this keyword
+    # TODO: potentially the name of the keyword should be configurable
+    skip: true
+    pluralization-of-carpet:
+      cyrillic: килими
+      gender: masculine
+      definiteness: indefinite
+    pluralization-of-chair:
+      cyrillic: столове
+      gender: masculine
+      definiteness: indefinite
+    pluralization-of-table:
+      cyrillic: маси
+      gender: feminine
+      definiteness: indefinite
+    pluralization-of-button:
+      cyrillic: копчета
+      gender: neuter
+      definiteness: indefinite
+    pluralization-of-animal:
+      cyrillic: животна
+      gender: neuter
+      definiteness: indefinite
+
+#    definitivization-of-carpet:
+#      cyrillic: килим
+#    definitivization-of-chair:
+#      cyrillic: стол
+#    definitivization-of-table:
+#      cyrillic: маса
+#    definitivization-of-button:
+#      cyrillic: копче
+#    definitivization-of-animal:
+#      cyrillic: животно
