@@ -52,11 +52,26 @@ class Unit(IName, IKind):
     def get(self, key: str, default: Any = None):
         return self[key] if key in self else default
 
+    def __repr__(self):
+        return self.kind.capitalize() + f'({self.name=}, {self._features=})'
+
+
+class Feature(IName, IKind):
+    def __init__(self, name: str, kind: str, tree: Optional[dict] = None):
+        super().__init__(name=name, kind=kind)
+
 
 class Language(IName):
     def __init__(self, name: str):
         super().__init__(name=name)
         self._units: dict[str, list[Unit]] = {}
+        self._features: dict[str, list[Feature]] = {}
+
+    def __repr__(self):
+        return f'{self.name}({self._units=})'
+
+    def __str__(self):
+        return self.name
 
     @property
     def units(self) -> Iterable[Unit]:
@@ -80,3 +95,18 @@ class Language(IName):
         unit = Unit(name=name, kind=kind, features=config)
         self._units.setdefault(kind, []).append(unit)
 
+    def add_grapheme_feature(self, name: str, config: dict) -> None:
+        self.add_feature(name, config, SimpleTerms.GRAPHEME)
+
+    def add_morpheme_feature(self, name: str, config: dict) -> None:
+        self.add_feature(name, config, SimpleTerms.MORPHEME)
+
+    def add_feature(self, name, config: yaml_type, kind: str) -> None:
+        if self._is_complex_feature(config):
+            for subname, subconfig in config.items():
+                self.add_feature(subname, subconfig, kind)
+        feature = Feature(name=name, kind=kind, tree=config)
+        self._features.setdefault(kind, []).append(feature)
+
+    def _is_complex_feature(self, config: yaml_type) -> bool:
+        return isinstance(config, dict)

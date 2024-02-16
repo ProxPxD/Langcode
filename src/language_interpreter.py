@@ -16,7 +16,6 @@ class LangaugeInterpreter:
         return self._language
 
     def _interpret(self, config: DotDict) -> None:
-
         self._interpret_general(config.general)
         self._interpret_graphemes(config.graphemes)
         self._interpret_morphemes(config.morphemes)
@@ -31,6 +30,17 @@ class LangaugeInterpreter:
         self._interpret_units_from(config, SimpleTerms.MORPHEME)
 
     def _interpret_units_from(self, config: DotDict, kind: str) -> None:
+        self._interpret_units_from_elems(config, kind)
+        self._interpret_units_from_features(config, kind)
+
+    def _interpret_units_from_elems(self, config: DotDict, kind: str) -> None:
         for name, config in config.elems.items():
             self._language.add_unit(name, config, kind)
 
+    def _interpret_units_from_features(self, config: DotDict, kind: str) -> None:
+        for feature, elems in config.features.items():
+            self._language.add_feature(feature, None, kind)  # TODO: think of refactor
+            self._interpret_units_from_feature(elems, feature, kind)
+
+    def _interpret_units_from_feature(self, config: DotDict, feature: str, kind: str) -> None:
+        self._language.add_feature()
