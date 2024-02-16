@@ -30,7 +30,7 @@ def generate_test_cases():
     raise NotImplementedError
 
 
-class FeatureGenerationTest(AbstractLangCodeTest):
+class DataNormalizerTest(AbstractLangCodeTest):
     @parameterized.expand(
         AbstractLangCodeTest.get_langs_where(lambda d: d.normalization),
         name_func=get_func_name,

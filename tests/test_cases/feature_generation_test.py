@@ -1,14 +1,10 @@
 from __future__ import annotations
 
-from itertools import chain
-
 from parameterized import parameterized
 
-from src.utils import to_list
-from tests.lang_code_test import DotDict, AbstractLangCodeTest, yaml_types
+from tests.lang_code_test import AbstractLangCodeTest, yaml_types
 
 
-# name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
 def get_func_name(method, param_num, params):
     lang_name, unit_kind, unit_name, feature_name, expected = params[0]
     general = AbstractLangCodeTest.all_test_properties[lang_name]
