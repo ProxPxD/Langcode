@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence, Optional
+from typing import Iterable, Sequence, Optional, Any
 
 from src.constants import yaml_type
 from src.utils import to_list
 
 
 class DotDict:
-    def __init__(self, d: yaml_type | DotDict, *, defaults: Optional[dict] = None):
-        self._curr: yaml_type = d if isinstance(d, yaml_type) else d()
+    def __init__(self, d: Any, *, defaults: Optional[dict] = None):
+        self._curr: yaml_type | Any = d() if isinstance(d, DotDict) else d
         self._defaults = defaults
 
-    def _get_default(self, item: str, curr_defaults: Optional[dict] = None) -> yaml_type:
+    def _get_default(self, item: str, curr_defaults: Optional[dict] = None) -> Any:
         curr_defaults = curr_defaults or self._defaults
         return curr_defaults[item] if curr_defaults is not None else None
 
@@ -27,7 +27,7 @@ class DotDict:
     def __getattr__(self, path: str | Sequence[str]) -> DotDict:
         return self[path]
 
-    def get(self) -> yaml_type:
+    def get(self) -> Any:
         return self._curr
 
     def __call__(self):
@@ -57,7 +57,7 @@ class DotDict:
         if isinstance(self._curr, dict):
             yield from (DotDict(val, defaults=self._get_default(key)) for key, val in self._curr.items())
         else:
-            yield from (DotDict(self._curr), )
+            yield DotDict(self._curr)
 
     def items(self):
         yield from zip(self.keys(), self.values())
