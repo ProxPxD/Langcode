@@ -2,16 +2,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Callable, Iterable, Sequence
+from typing import Callable, Iterable
 
 import yaml
-from toolz import valfilter, valmap
+from toolz import valfilter
 
 from src.data_normalizer import DataNormalizer
 from src.dot_dict import DotDict
 from src.lang_factory import LangaugeInterpreter, LangFactory
+from src.language import Language
 from src.loaders import LangDataLoader
-from src.utils import to_list
 from tests.abstractTest import AbstractTest
 
 yaml_types = dict | bool | str | int | None
@@ -37,6 +37,15 @@ class AbstractLangCodeTest(AbstractTest):
     all_langs: list[str]
     all_data: dict[str, dict]
     all_test_properties: dict[str, DotDict]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._loaded_langs = {}
+
+    def load_lang(self, name: str) -> Language:
+        if name not in self._loaded_langs:
+            self._loaded_langs[name] = self.lang_factory.load(name)
+        return self._loaded_langs[name]
 
     @classmethod
     def init(cls):
