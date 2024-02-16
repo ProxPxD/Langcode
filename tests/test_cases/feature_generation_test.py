@@ -22,6 +22,8 @@ def generate_test_cases():
     for lang_name in lang_names:
         try:
             lang = AbstractLangCodeTest.lang_factory.load(lang_name)
+            # TODO: work with standarized yaml and find exceptions
+            #lang_data = DotDict(AbstractLangCodeTest.data_loader.load(lang_name))
         except:
             continue
         for unit in lang.units:

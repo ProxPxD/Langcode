@@ -21,7 +21,6 @@ test_properties:
     graphemes:
       phonetic_spelling: false
       logographic: false
-
   rules:
     add:
       graphemes: false
@@ -59,3 +58,11 @@ test_properties:
         mood:
           exists: false
           exceptions: false
+  normalization:
+    morphemes:
+      elems: false
+      features:
+        as_list:
+          exist: false
+          single: false
+

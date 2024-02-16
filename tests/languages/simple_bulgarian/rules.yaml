@@ -3,7 +3,7 @@
 # [add feature] x [grapheme(s) morpheme(s)]
 # [morpheme(s) grapheme(s)] x [add feature(s)]
 # TODO: prepare separate test and language for the structure
-# TODO: because it can be infinite for morphemes, it has to be lazy, for features it might
+# TODO: because it can be infinite for morphemes.yaml, it has to be lazy, for features it might
 
 morphemes:
   features:

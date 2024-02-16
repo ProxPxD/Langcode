@@ -1,0 +1,7 @@
+test_properties:
+  valid_schema: true
+  should_load: true
+  normalization:
+    morphemes:
+      features:
+        as_list: true

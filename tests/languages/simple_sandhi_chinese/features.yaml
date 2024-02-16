@@ -1,8 +1,8 @@
 tone:
   # TODO: graphemes are not defined explicitly. There should be a separate language to cover only this
   # TODO: moreover it should be noted in the test_properties as "not_explicit_graphemes". Search for other cases and note in defaults
-  # TODO: how to extract it from morphemes? Here it's from basic one-character morphemes.
-  # NOTE: it's good to put it in morphemes as the same grapheme can have various tones like 的(de, dì, dí, dē)
+  # TODO: how to extract it from morphemes.yaml? Here it's from basic one-character morphemes.yaml.
+  # NOTE: it's good to put it in morphemes.yaml as the same grapheme can have various tones like 的(de, dì, dí, dē)
   unit: grapheme
   elems:
     - 1

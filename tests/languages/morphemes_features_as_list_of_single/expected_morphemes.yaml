@@ -1,0 +1,16 @@
+elems:
+  morphemes: none
+  as: none
+  list: none
+  should: none
+  be: none
+  dict: none
+
+features:
+  single:
+    - should
+    - be
+  as_dict:
+    - morphemes
+    - list
+    - dict

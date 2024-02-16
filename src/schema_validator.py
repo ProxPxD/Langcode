@@ -39,7 +39,7 @@ rules_schema = Map({
 
 lang_schema = Map({
     'general': general_schema,
-    'features': features_schema,  # TODO: think if should be inside graphemes and morphemes
+    'features': features_schema,  # TODO: think if should be inside graphemes and morphemes.yaml
     'graphemes': graphemes_schema,
     'morphemes': morphemes_schema,
     'rules': rules_schema,
