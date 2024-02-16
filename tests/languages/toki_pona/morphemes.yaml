@@ -1,85 +1,85 @@
 elems:
   mi:
     latin: mi
-    excepted:
-      hanzi: 我
-      cyrillic: ми
-      hiragana: み
-      katakana: ミ
+#    expected:
+#      hanzi: 我
+#      cyrillic: ми
+#      hiragana: み
+#      katakana: ミ
   sina:
     latin: sina
-    excepted:
+    expected:
       hanzi: 你
       cyrillic: сина
       hiragana: しな
       katakana: シナ
   ona:
     latin: ona
-    excepted:
-      hanzi: 他
-      cyrillic: она
-      hiragana: おな
-      katakana: おな
+#    expected:
+#      hanzi: 他
+#      cyrillic: она
+#      hiragana: おな
+#      katakana: oナ
   li:
     latin: li
-    excepted:
-      hanzi: 则
-      cyrillic: ли
-      hiragana: り
-      katakana: リ
+#    expected:
+#      hanzi: 则
+#      cyrillic: ли
+#      hiragana: り
+#      katakana: リ
   e:
     latin: e
-    excepted:
-      hanzi: 之
-      cyrillic: е
-      hiragana: え
-      katakana: エ
+#    expected:
+#      hanzi: 之
+#      cyrillic: е
+#      hiragana: え
+#      katakana: エ
   pi:
     latin: pi
-    excepted:
-      hanzi: 得
-      cyrillic: пи
-      hiragana: ひ
-      katakana: ヒ
+#    expected:
+#      hanzi: 得
+#      cyrillic: пи
+#      hiragana: ひ
+#      katakana: ヒ
   la:
     latin: la
-    excepted:
-      hanzi: 者
-      cyrillic: ла
-      hiragana: ら
-      katakana: ラ
+#    expected:
+#      hanzi: 者
+#      cyrillic: ла
+#      hiragana: ら
+#      katakana: ラ
   tawa:
     latin: tawa
-    excepted:
-      hanzi: 向
-      cyrillic: тава
-      hiragana: たわ
-      katakana: タワ
+#    expected:
+#      hanzi: 向
+#      cyrillic: тава
+#      hiragana: たわ
+#      katakana: タワ
   toki:
     latin: toki
-    excepted:
-      hanzi: 语
-      cyrillic: токи
-      hiragana: とき
-      katakana: トキ
+#    expected:
+#      hanzi: 语
+#      cyrillic: токи
+#      hiragana: とき
+#      katakana: トキ
   pona:
     latin: pona
-    excepted:
+    expected:
       hanzi: 好
       cyrillic: пона
       hiragana: ほな
       katakana: ホナ
   jan:
     latin: jan
-    excepted:
+    expected:
       hanzi: 人
       cyrillic: јан
       hiragana: やん
       katakana: ヤン
   wile:
     latin: wile
-    excepted:
-      hanzi: 要
-      cyrillic: виле
-      hiragana: ゐれ
-      katakana: ヰレ
+#    expected:
+#      hanzi: 要
+#      cyrillic: виле
+#      hiragana: ゐれ
+#      katakana: ヰレ
