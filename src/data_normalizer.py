@@ -21,9 +21,17 @@ class DataNormalizer:
 
     def list_to_dict(self, to_cast: list) -> dict:
         if is_list_of_dicts(to_cast):
-            return dict(ChainMap(*to_cast))
+            return self.dict_list_to_dict(to_cast)
         if is_list_of_basics(to_cast):
             return dict.fromkeys(to_cast)
+
+    def dict_list_to_dict(self, to_cast: list[dict[str, str | list[str]]]) -> dict[str, list[str]]:
+        casted = {}
+        for subdict in to_cast:
+            for key, value in subdict.items():
+                for single_value in (value if isinstance(value, list) else (value,)):
+                    casted.setdefault(key, []).append(single_value)
+        return casted
 
     def normalize(self, config: dict) -> dict | None:
         for unit_type in ComplexTerms.UNTIS:
@@ -32,5 +40,6 @@ class DataNormalizer:
         return config
 
     def _normalize_unit(self, config: dict) -> None:
-        if SimpleTerms.ELEMS in config:
-            config[SimpleTerms.ELEMS] = self.yaml_type_to_dict(config[SimpleTerms.ELEMS])
+        for subkey in ComplexTerms.UNIT_SUBKEYS:
+            if subkey in config:
+                config[subkey] = self.yaml_type_to_dict(config[subkey])

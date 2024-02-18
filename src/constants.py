@@ -30,7 +30,8 @@ class SimpleTerms:
 @dataclass(frozen=True)
 class ComplexTerms:
     UNTIS = (SimpleTerms.GRAPHEMES, SimpleTerms.MORPHEMES)
-    UNTI = (SimpleTerms.GRAPHEME, SimpleTerms.MORPHEME)
+    UNIT = (SimpleTerms.GRAPHEME, SimpleTerms.MORPHEME)
+    UNIT_SUBKEYS = (SimpleTerms.ELEMS, SimpleTerms.FEATURES)
     FORMING_KEYS = (SimpleTerms.FORM, SimpleTerms.COMPOUND)
 
 
