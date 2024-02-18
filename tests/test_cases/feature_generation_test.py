@@ -32,7 +32,7 @@ def generate_test_cases():
         all_units = {unit_name: dotdict[unit_name].elems or {} for unit_name in unit_names}
         for kind, units in all_units.items():
             for name, config in units.items():
-                for feature_name, expected_value in config.get('expected', {}).items():
+                for feature_name, expected_value in config.expected.items():
                     yield lang_name, kind, name, feature_name, expected_value
 
 
