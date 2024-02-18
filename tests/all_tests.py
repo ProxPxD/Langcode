@@ -1,21 +1,16 @@
+import importlib
 import inspect
+import re
 import unittest
 from pathlib import Path
 from typing import Iterable
-import importlib
 
 from abstractTest import AbstractTest
-from test_cases.loading_test import LoadingTest
-from tests.test_cases.test_properties_correctness_test import TestPropertiesCorrectnessTest
-from iteration_utilities import starfilter, flatten, nth
 
-all_tests = [
-    # TestPropertiesCorrectnessTest,
-    # LoadingTest,
-]
+all_tests = []
 
 
-def get_tests_from_dir(dir_name: str = None):
+def get_tests_from_dir(dir_name: str = None, name_pattern: str = None):
     if not dir_name:
         return all_tests
     test_dir_path = Path(__file__).parent / dir_name
@@ -23,7 +18,8 @@ def get_tests_from_dir(dir_name: str = None):
         module = importlib.import_module(f'{dir_name}.{path.stem}')
         for name, test_class in inspect.getmembers(module, inspect.isclass):
             if name.endswith('Test'):
-                yield test_class
+                if name_pattern is None or re.match(name_pattern, name):
+                    yield test_class
 
 
 def run_tests(to_runs: Iterable):
