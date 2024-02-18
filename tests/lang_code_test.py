@@ -41,6 +41,7 @@ class AbstractLangCodeTest(AbstractTest):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._loaded_langs = {}
+        self.maxDiff = None
 
     def load_lang(self, name: str) -> Language:
         if name not in self._loaded_langs:
