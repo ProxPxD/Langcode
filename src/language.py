@@ -64,8 +64,8 @@ class Feature(IName, IKind):
 class Language(IName):
     def __init__(self, name: str):
         super().__init__(name=name)
-        self._units: dict[str, list[Unit]] = {}
-        self._features: dict[str, list[Feature]] = {}
+        self._units: dict[str, dict[str, list[Unit]]] = {}
+        self._features: dict[str, dict[str, Feature]] = {}
 
     def __repr__(self):
         return f'{self.name}({self._units=})'
@@ -73,16 +73,19 @@ class Language(IName):
     def __str__(self):
         return self.name
 
-    @property
-    def units(self) -> Iterable[Unit]:
-        return flatten(self._units.values())
+    def get_units(self, kind: str = None) -> dict:
+        return self._units[kind] if kind and self._units.get(kind) else self._units
 
     @property
-    def morphemes(self) -> Iterable[Unit]:
+    def units(self) -> dict:
+        return self._units
+
+    @property
+    def morphemes(self) -> dict[str, list[Unit]]:
         return self._units.get(SimpleTerms.MORPHEME, [])
 
     @property
-    def graphemes(self) -> Iterable[Unit]:
+    def graphemes(self) -> dict[str, list[Unit]]:
         return self._units.get(SimpleTerms.GRAPHEME, [])
 
     def add_morpheme(self, name: str, config: dict) -> None:
@@ -93,7 +96,7 @@ class Language(IName):
 
     def add_unit(self, name: str, config: dict, kind: str) -> None:
         unit = Unit(name=name, kind=kind, features=config)
-        self._units.setdefault(kind, []).append(unit)
+        self._units.setdefault(kind, {}).setdefault(name, []).append(unit)
 
     def add_grapheme_feature(self, name: str, config: dict) -> None:
         self.add_feature(name, config, SimpleTerms.GRAPHEME)
@@ -106,7 +109,7 @@ class Language(IName):
             for subname, subconfig in config.items():
                 self.add_feature(subname, subconfig, kind)
         feature = Feature(name=name, kind=kind, tree=config)
-        self._features.setdefault(kind, []).append(feature)
+        self._features.setdefault(kind, {}).setdefault(name, feature)
 
     def _is_complex_feature(self, config: yaml_type) -> bool:
         return isinstance(config, dict)
