@@ -3,7 +3,7 @@ import inspect
 import re
 import unittest
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Optional
 
 from abstractTest import AbstractTest
 

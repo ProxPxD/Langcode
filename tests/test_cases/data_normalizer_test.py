@@ -52,7 +52,7 @@ class DataNormalizerTest(AbstractLangCodeTest):
             if config:
                 expected = original[f'expected_{filename}']
                 actual = normalized[filename]
-                self.assertEquals(expected, actual)
+                self.assertEqual(expected, actual)
 
 
 

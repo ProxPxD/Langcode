@@ -44,7 +44,7 @@ class UnitGenerationTest(AbstractLangCodeTest):
         units = lang.get_units(unit_kind)
         unit_label = f'{unit_kind.capitalize()} {units}'
         self.assertIn(unit_name, units, f'{unit_label} has not been generated in {lang_name}')
-        self.assertEquals(expected, units[unit_name], f'{unit_label} has not expected fields. \nFound: {units[unit_name]}\nExpected: {expected}')
+        self.assertEqual(expected, units[unit_name], f'{unit_label} has not expected fields. \nFound: {units[unit_name]}\nExpected: {expected}')
 
 
 
