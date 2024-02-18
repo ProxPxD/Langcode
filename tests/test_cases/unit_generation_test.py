@@ -42,8 +42,8 @@ class UnitGenerationTest(AbstractLangCodeTest):
     def test(self, lang_name: str, unit_kind: str, unit_name: str, expected: yaml_types):
         lang = self.load_lang(lang_name)
         units = lang.get_units(unit_kind)
-        unit_label = f'{unit_kind.capitalize()} {units}'
-        self.assertIn(unit_name, units, f'{unit_label} has not been generated in {lang_name}')
+        unit_label = f'{unit_kind[:-1].capitalize()} "{unit_name}"'
+        self.assertIn(unit_name, units.keys(), f'{unit_label} has not been generated in "{lang_name}"')
         self.assertEqual(expected, units[unit_name], f'{unit_label} has not expected fields. \nFound: {units[unit_name]}\nExpected: {expected}')
 
 
