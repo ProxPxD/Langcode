@@ -20,8 +20,14 @@ def get_func_name(method, param_num, params):
             func_name += '_features'
             if normalization.morphemes.features.as_list:
                 func_name += '_from_list'
-                if normalization.morphemes.features.as_list.single:
+                is_single = normalization.morphemes.features.as_list.single
+                is_multiple = normalization.morphemes.features.as_list.multiple
+                if is_single and is_multiple:
+                    func_name += '_with_single_and_multiple'
+                elif is_single:
                     func_name += '_with_single'
+                elif is_multiple:
+                    func_name += '_with_multiple'
 
     return func_name
 

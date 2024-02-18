@@ -4,4 +4,6 @@ test_properties:
   normalization:
     morphemes:
       features:
-        as_list: true
+        as_list:
+          multiple: true
+          single: false

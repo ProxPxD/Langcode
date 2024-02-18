@@ -64,5 +64,6 @@ test_properties:
       features:
         as_list:
           exist: false
+          multiple: false
           single: false
 

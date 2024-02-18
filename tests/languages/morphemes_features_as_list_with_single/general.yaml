@@ -6,3 +6,4 @@ test_properties:
       features:
         as_list:
           single: true
+          multiple: true
