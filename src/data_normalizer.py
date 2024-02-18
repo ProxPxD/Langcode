@@ -14,7 +14,7 @@ class DataNormalizer:
                 return elems
             case list():
                 return self.list_to_dict(elems)
-            case basic_yaml_type():
+            case int() | str() | bool() | None:
                 raise NotImplementedError
             case _:
                 raise AttributeError
