@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from parameterized import parameterized
 
+from src.dot_dict import DotDict
 from tests.lang_code_test import AbstractLangCodeTest, yaml_types
 
 
@@ -21,14 +22,14 @@ def generate_test_cases():
         try:
             raw_data = AbstractLangCodeTest.data_loader.load(lang_name)
             data = AbstractLangCodeTest.data_normalizer.normalize(raw_data)
+            dotdict = DotDict(data)
         except:
             continue
 
-        morphemes = data.get('morphemes', {}).get('elems', {})
         # TODO: rn there's no test lang for graphemes but it should be adjust
         # TODO: once grapheme features are added
-        graphemes = data.get('graphemes', {}).get('elems', {})
-        all_units = {'morphemes': morphemes, 'graphemes': graphemes}
+        unit_names = 'morphemes', 'graphemes'
+        all_units = {unit_name: dotdict[unit_name].elems or {} for unit_name in unit_names}
         for kind, units in all_units.items():
             for name, config in units.items():
                 for feature_name, expected_value in config.get('expected', {}).items():
