@@ -59,5 +59,11 @@ class AbstractLangCodeTest(AbstractTest):
     def get_langs_where(cls, condition: Callable[[DotDict], bool] = lambda _: True) -> Iterable[str]:
         return valfilter(condition, cls.all_test_properties).keys()
 
+    @classmethod
+    def get_normalised_data(cls, lang_name: str) -> DotDict:
+        raw_data = cls.data_loader.load(lang_name)
+        data = cls.data_normalizer.normalize(raw_data)
+        dotdict = DotDict(data)
+        return dotdict
 
 AbstractLangCodeTest.init()

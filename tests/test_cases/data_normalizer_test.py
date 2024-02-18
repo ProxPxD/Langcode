@@ -2,9 +2,7 @@ from __future__ import annotations
 
 from parameterized import parameterized
 
-from src.data_normalizer import DataNormalizer
-from src.utils import to_list
-from tests.lang_code_test import DotDict, AbstractLangCodeTest, yaml_types
+from tests.lang_code_test import AbstractLangCodeTest
 
 
 # name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
@@ -30,10 +28,6 @@ def get_func_name(method, param_num, params):
                     func_name += '_with_multiple'
 
     return func_name
-
-
-def generate_test_cases():
-    raise NotImplementedError
 
 
 class DataNormalizerTest(AbstractLangCodeTest):

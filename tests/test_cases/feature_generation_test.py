@@ -20,9 +20,7 @@ def generate_test_cases():
     lang_names = AbstractLangCodeTest.get_langs_where(lambda d: d.rules.features)
     for lang_name in lang_names:
         try:
-            raw_data = AbstractLangCodeTest.data_loader.load(lang_name)
-            data = AbstractLangCodeTest.data_normalizer.normalize(raw_data)
-            dotdict = DotDict(data)
+            dotdict = AbstractLangCodeTest.get_normalised_data(lang_name)
         except:
             continue
 
