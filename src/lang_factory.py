@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from src.data_normalizer import DataNormalizer
-from src.language import Language
+from src.language_components import Language
 from src.language_interpreter import LangaugeInterpreter
 from src.loaders import ILoader, IPath, LangDataLoader
 

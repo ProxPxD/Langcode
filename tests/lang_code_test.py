@@ -10,7 +10,7 @@ from toolz import valfilter
 from src.data_normalizer import DataNormalizer
 from src.dot_dict import DotDict
 from src.lang_factory import LangaugeInterpreter, LangFactory
-from src.language import Language
+from src.language_components import Language
 from src.loaders import LangDataLoader
 from tests.abstractTest import AbstractTest
 

@@ -2,7 +2,7 @@ from types import NoneType
 
 from src.constants import SimpleTerms
 from src.exceptions import InvalidYamlException, Messages
-from src.language import Language
+from src.language_components import Language
 
 from strictyaml import load, Map, Str, Int, Any, Seq, YAMLError, MapPattern, MapCombined, Optional, Bool
 

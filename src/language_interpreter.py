@@ -1,7 +1,7 @@
 from typing import Optional
 
 from src.constants import SimpleTerms, complex_yaml_type
-from src.language import Language
+from src.language_components import Language
 from tests.lang_code_test import DotDict
 
 
