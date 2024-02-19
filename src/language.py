@@ -1,8 +1,7 @@
-from typing import Any, Iterable, Optional
-
-from iteration_utilities import flatten
+from typing import Any, Optional
 
 from src.constants import SimpleTerms, yaml_type
+from src.dot_dict import DotDict
 
 
 class IName:
@@ -57,8 +56,9 @@ class Unit(IName, IKind):
 
 
 class Feature(IName, IKind):
-    def __init__(self, name: str, kind: str, tree: Optional[dict] = None):
+    def __init__(self, name: str, kind: str, tree: Optional[dict | DotDict] = None):
         super().__init__(name=name, kind=kind)
+        self._tree = tree
 
 
 class Language(IName):

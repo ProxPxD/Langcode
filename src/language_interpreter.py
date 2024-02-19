@@ -17,17 +17,20 @@ class LangaugeInterpreter:
 
     def _interpret(self, config: DotDict) -> None:
         self._interpret_general(config.general)
-        self._interpret_graphemes(config.graphemes)
-        self._interpret_morphemes(config.morphemes)
+        self._interpret_features(config.features)
+        self._interpret_units_from(config.graphemes, SimpleTerms.GRAPHEME)
+        self._interpret_units_from(config.morphemes, SimpleTerms.MORPHEME)
 
     def _interpret_general(self, config: DotDict) -> None:
         pass
 
-    def _interpret_graphemes(self, config: DotDict) -> None:
-        self._interpret_units_from(config, SimpleTerms.GRAPHEME)
+    def _interpret_features(self, config: DotDict) -> None:
+        self._interpret_unit_features(config.graphemes, SimpleTerms.GRAPHEME)
+        self._interpret_unit_features(config.morphemes, SimpleTerms.MORPHEME)
 
-    def _interpret_morphemes(self, config: DotDict) -> None:
-        self._interpret_units_from(config, SimpleTerms.MORPHEME)
+    def _interpret_unit_features(self, config: DotDict, kind: str) -> None:
+        for name, subconfig in config.items():
+            self._language.add_feature(name, subconfig, kind)
 
     def _interpret_units_from(self, config: DotDict, kind: str) -> None:
         self._interpret_units_from_elems(config, kind)
@@ -39,7 +42,6 @@ class LangaugeInterpreter:
 
     def _interpret_units_from_features(self, config: DotDict, kind: str) -> None:
         for feature, elems in config.features.items():
-            self._language.add_feature(feature, None, kind)  # TODO: think of refactor
             self._interpret_units_from_feature(elems, feature, kind)
 
     def _interpret_units_from_feature(self, config: DotDict, feature: str, kind: str) -> None:

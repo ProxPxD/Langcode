@@ -36,9 +36,8 @@ class LoadingTest(AbstractLangCodeTest):
     def test(self, lang_name: str, valid_schema, should_load, message=None):
         # TODO: consider spliting into many functions
         # TODO: add messages according to state
-        lf = LangFactory(Paths.LANGUAGES, lang_name)
         try:
-            lang = lf.load()
+            lang = self.lang_factory.load()
         except NotImplementedError:
             self.fail(traceback.format_exc())
         except InvalidYamlException as iye:

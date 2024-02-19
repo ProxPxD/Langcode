@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence, Optional, Any, Never
+from typing import Iterable, Sequence, Optional, Any, Never, Type
 
 from src.constants import yaml_type
 from src.utils import to_list
@@ -34,11 +34,13 @@ class DotDict:
     def __getattr__(self, path: str | Sequence[str]) -> DotDict:
         return self[path]
 
-    def get(self) -> Any:
+    def get(self, default: Any = DotDictNone()) -> Any:
+        if isinstance(self._curr, DotDictNone):
+            return self._curr if isinstance(default, DotDictNone) else default
         return self._curr
 
-    def __call__(self):
-        return self.get()
+    def __call__(self, *args, **kwargs):
+        return self.get(*args, **kwargs)
 
     def __bool__(self):
         curr = self.get()
@@ -77,3 +79,23 @@ class DotDict:
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self._curr})'
+
+    def is_(self, atype: Type | None) -> bool:
+        if atype is None:
+            return self._curr is None
+        return isinstance(self._curr, atype)
+
+    def is_dict(self) -> bool:
+        return self.is_(dict)
+
+    def is_none(self) -> bool:
+        return self.is_(None)
+
+    def is_list(self) -> bool:
+        return self.is_(list)
+
+    def is_int(self) -> bool:
+        return self.is_(int)
+
+    def is_bool(self) -> bool:
+        return self.is_(bool)
