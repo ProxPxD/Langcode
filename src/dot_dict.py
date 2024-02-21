@@ -36,7 +36,7 @@ class DotDict:
 
     def get(self, default: Any = DotDictNone()) -> Any:
         if isinstance(self._curr, DotDictNone):
-            return self._curr if isinstance(default, DotDictNone) else default
+            return None if isinstance(default, DotDictNone) else default
         return self._curr
 
     def __call__(self, *args, **kwargs):
