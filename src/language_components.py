@@ -3,62 +3,29 @@ from typing import Any, Optional
 from src.constants import SimpleTerms, yaml_type
 from src.dot_dict import DotDict
 
+from neomodel import (config, StructuredNode, StringProperty, IntegerProperty,
+    UniqueIdProperty, RelationshipTo)
 
-class IName:
-    def __init__(self, name: str, **kwargs):
-        super().__init__(**kwargs)
-        self._name: str = name
 
-    @property
-    def name(self) -> str:
-        return self._name
+class IName(StructuredNode):
+    name = StringProperty(unique_index=True, required=True)
 
-    @name.setter
-    def name(self, name: str) -> None:
+
+class IKind(StructuredNode):
+    kind = StringProperty()
+
+
+class Unit(StructuredNode, IName, IKind):
+
+    def get(self, feature_name: str) -> yaml_type:
+        raise NotImplementedError
+
+    def is_(self, feature: str) -> bool:
         raise NotImplementedError
 
 
-class IKind:
-    def __init__(self, kind: str, **kwargs):
-        super().__init__(**kwargs)
-        self._kind: str = kind
-
-    @property
-    def kind(self) -> str:
-        return self._kind
-
-    @kind.setter
-    def kind(self, kind: str) -> None:
-        raise NotImplementedError  # TODO: probably never allowed
-
-
-class Unit(IName, IKind):
-    def __init__(self, name: str, kind: str, features: Optional[dict] = None):
-        super().__init__(name=name, kind=kind)
-        self._features = features or {}
-
-    def __getitem__(self, key: str) -> yaml_type:
-        # TODO: make available nested values
-        return self._features[key]
-
-    def __setitem__(self, key: str, value: yaml_type) -> None:
-        self._features[key] = value
-
-    def __contains__(self, item: yaml_type):
-        # TODO: adjust to nested values when implemented
-        return item in self._features
-
-    def get(self, key: str, default: Any = None):
-        return self[key] if key in self else default
-
-    def __repr__(self):
-        return self.kind.capitalize() + f'({self.name=}, {self._features=})'
-
-
-class Feature(IName, IKind):
-    def __init__(self, name: str, kind: str, tree: Optional[dict | DotDict] = None):
-        super().__init__(name=name, kind=kind)
-        self._tree = tree
+class Feature(StructuredNode, IName, IKind):
+    pass
 
 
 class Language(IName):
