@@ -66,4 +66,5 @@ class AbstractLangCodeTest(AbstractTest):
         dotdict = DotDict(data)
         return dotdict
 
+
 AbstractLangCodeTest.init()
