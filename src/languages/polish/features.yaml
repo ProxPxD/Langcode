@@ -1,0 +1,14 @@
+bind:
+  grapheme:
+    bind:
+      script:
+        elems:
+          - latin
+      vowel:
+        mode: disjoint
+        bind:
+          oral:
+          nasal:
+      consonant:
+
+  morpheme:
