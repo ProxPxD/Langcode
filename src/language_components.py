@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 from typing import Any, Optional
 
 from src.constants import SimpleTerms, yaml_type
 from src.dot_dict import DotDict
 
 from neomodel import (config, StructuredNode, StringProperty, IntegerProperty,
-    UniqueIdProperty, RelationshipTo)
+    UniqueIdProperty, RelationshipTo, StructuredRel)
 
 
 class IName(StructuredNode):
@@ -15,17 +17,34 @@ class IKind(StructuredNode):
     kind = StringProperty()
 
 
-class Unit(StructuredNode, IName, IKind):
-
-    def get(self, feature_name: str) -> yaml_type:
-        raise NotImplementedError
-
-    def is_(self, feature: str) -> bool:
-        raise NotImplementedError
-
-
 class Feature(StructuredNode, IName, IKind):
     pass
+
+
+class Featuring(StructuredRel):
+    rel_name = 'features'
+
+
+class Unit(StructuredNode, IName, IKind):
+    features = RelationshipTo(Feature.__class__.__name__, Featuring.rel_name, model=Featuring)
+
+    def get(self, feature_name: str) -> yaml_type:
+        # consonant
+        # vowel
+        # - horizontal
+        #   - front
+        #   - back
+        # - vertical
+        #   - high
+        #   - mid
+        #   - low
+        feature = Feature.nodes.get(name=feature_name)
+
+        self.features.manager.all_relationships
+
+    def is_(self, feature_name: str) -> bool:
+
+        raise NotImplementedError
 
 
 class Language(IName):
