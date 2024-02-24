@@ -26,4 +26,4 @@ graphemes:
               - oral
               - nasal
         consonant:
-morphemes:
+morphemes:  # TODO: how to note the features that are build on lower-level units (as the scripts)?
