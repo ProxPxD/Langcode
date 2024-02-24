@@ -1,0 +1,9 @@
+test_properties:
+  valid_schema: true
+  valid_restrictions: true
+  sound_change: false
+  bound_morphemes: false
+  word_formation: false
+  exceptions: false
+  multiple_scripts: false
+  features: false
