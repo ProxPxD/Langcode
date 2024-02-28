@@ -85,7 +85,7 @@ class Unit(LangCodeNode, IName, IKind):
     def get_all_next(self, feature_name: str) -> Iterable[yaml_type]:
         return self._get_all_nth(feature_name, 1)
 
-    def get_one(self, feature_name: str) -> yaml_type:
+    def get_one_next(self, feature_name: str) -> yaml_type:
         next_features = list(self.get_all_next(feature_name))
         if not next_features:
             raise DoNotExistException(feature_name, self.kind)
