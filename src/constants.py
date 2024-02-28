@@ -14,6 +14,7 @@ class SimpleTerms:
     GENERAL = 'general'
     NATIVE_NAME = 'native-name'
     FEATURES = 'features'
+    FEATURE = 'feature'
     RULES = 'rules'
     MORPHOLOGY = 'morphology'
     MORPHEMES = 'morphemes'
