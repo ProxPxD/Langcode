@@ -93,6 +93,12 @@ class Unit(LangCodeNode, IName, IKind):
             raise AmbiguousSubFeaturesException(feature_name, self.kind)
         return next_features[1]
 
+    def get_next(self, feature_name: str) -> yaml_type:
+        match len(all_nexts := list(self.get_all_next(feature_name))):
+            case 0: return None
+            case 1: return all_nexts[0]
+            case _: return all_nexts
+
     def is_(self, feature_name: str) -> bool:
         paths = self._get_paths_down_for(feature_name)
         return bool(paths)
