@@ -1,8 +1,12 @@
 from typing import Iterable, Callable, Any, Collection, Tuple
 
-from toolz import curry
+from toolz.curried import *
 
 from src.constants import basic_yaml_type
+import operator as op
+
+fjoin = compose = pipeline = compose_left
+eq = curry(op.eq)
 
 
 def get_name(instance):
@@ -97,8 +101,13 @@ is_any_instance_of = is_instance_of(any)
 
 
 @curry
+def is_all_cond_len(cond: Callable[[int], bool], iterable: Iterable):
+    return all(map(fjoin(len, cond), iterable))
+
+
+@curry
 def is_all_len_n(n: int, iterable: Iterable):
-    return all(map(lambda elem: len(elem) == n, iterable))
+    return is_all_cond_len(eq(n), iterable)
 
 
 is_all_len_one = is_all_len_n(1)

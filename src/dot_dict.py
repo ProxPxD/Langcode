@@ -75,10 +75,10 @@ class DotDict:
         yield from zip(self.keys(), self.values())
 
     def __str__(self):
-        return f'{self.__class__.__name__}({self._curr})'
+        return f'{self.__class__.__name__}({self._curr.__str__()})'
 
     def __repr__(self):
-        return f'{self.__class__.__name__}({self._curr})'
+        return f'{self.__class__.__name__}({self._curr.__repr__()})'
 
     def is_(self, atype: Type | None) -> bool:
         if atype is None:
