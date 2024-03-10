@@ -17,7 +17,7 @@ class IKind(StructuredNode):
     kind = StringProperty()
 
 
-class LangCodeNode(StructuredNode, IName, IKind):
+class LangCodeNode(IName, IKind, StructuredNode):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
