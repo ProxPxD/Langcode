@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Type, Iterable
+from typing import Iterable, Dict, Optional
 
 import neomodel
 from neomodel import (StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath)
 
-from src.constants import SimpleTerms, yaml_type
+from src.constants import SimpleTerms, ComplexTerms
 from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException
+from src.lang_typing import YamlType, Kind, Config, BasicYamlType
+from src.utils import is_dict
 
 
 class IName(StructuredNode):
@@ -32,16 +34,19 @@ class LangCodeNode(IName, IKind, StructuredNode):
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')
 
     @classmethod
-    def _get_from_all(cls, node_class: Type[StructuredNode], name: str | StringProperty, kind: str | StringProperty) -> LangCodeNode:
+    def _get_from_all(cls, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
         try:
-            node = node_class.nodes.get(name=name, kind=kind)
+            return cls.nodes.get(**kwargs)
         except MultipleNodesReturned:
-            raise AmbiguousNameException(name=name, kind=kind)
+            exception = AmbiguousNameException(**kwargs)
         except DoesNotExist:
-            raise DoNotExistException(name=name, kind=kind)
-        except:
-            raise
-        return node
+            exception = DoNotExistException(**kwargs)
+        except Exception as e:
+            exception = e
+
+        if raises and exception:
+            raise exception
+        return None
 
 
 class Featuring(StructuredRel):
@@ -53,11 +58,15 @@ class IsSuperOf(StructuredRel):
 
 
 class Feature(LangCodeNode):
+    type = StringProperty(choices=ComplexTerms.FEATURE_TYPES)
     children = RelationshipTo(
-        cls_name='Feature',  # TODO: check if "Feature.__class__.__nam/e__" can work
+        cls_name='Feature',  # TODO: check if "Feature.__class__.__name__" can work
         relation_type=IsSuperOf.rel_name,
         model=IsSuperOf,
     )
+
+    def is_leaf(self) -> bool:
+        return not self.children.manager.is_connected()
 
 
 class Unit(LangCodeNode, IName, IKind):
@@ -67,25 +76,25 @@ class Unit(LangCodeNode, IName, IKind):
         model=Featuring,
     )
 
-    def _get_paths_down_for(self, feature_name: str) -> yaml_type:
-        feature: Feature = self._get_from_all(Feature, feature_name, self.kind)
+    def _get_paths_down_for(self, feature_name: str) -> YamlType:
+        feature: Feature = Feature._get_from_all(feature_name, self.kind)
         feature_hierarchy_part = f'{feature:node}-[:{IsSuperOf.rel_name}*]-(:{feature:label})'
         paths: list[NeomodelPath] = neomodel.db.cypher_query(f'MATCH p = {feature_hierarchy_part}<-[:{Featuring.rel_name}]-{self:node} return p')
         return paths
 
-    def _get_all_nth(self, feature_name: str, n: int) -> Iterable[yaml_type]:
+    def _get_all_nth(self, feature_name: str, n: int) -> Iterable[YamlType]:
         paths = self._get_paths_down_for(feature_name)
         n -= int(n < 0)
         features = map(lambda p: p.nodes[:-1][n], paths)
         return features
 
-    def get_all_leafs(self, feature_name: str) -> Iterable[yaml_type]:
+    def get_all_leafs(self, feature_name: str) -> Iterable[YamlType]:
         return self._get_all_nth(feature_name, -1)
 
-    def get_all_next(self, feature_name: str) -> Iterable[yaml_type]:
+    def get_all_next(self, feature_name: str) -> Iterable[YamlType]:
         return self._get_all_nth(feature_name, 1)
 
-    def get_one_next(self, feature_name: str) -> yaml_type:
+    def get_one_next(self, feature_name: str) -> YamlType:
         next_features = list(self.get_all_next(feature_name))
         if not next_features:
             raise DoNotExistException(feature_name, self.kind)
@@ -93,7 +102,7 @@ class Unit(LangCodeNode, IName, IKind):
             raise AmbiguousSubFeaturesException(feature_name, self.kind)
         return next_features[1]
 
-    def get_next(self, feature_name: str) -> yaml_type:
+    def get_next(self, feature_name: str) -> YamlType:
         match len(all_nexts := list(self.get_all_next(feature_name))):
             case 0: return None
             case 1: return all_nexts[0]
@@ -102,6 +111,29 @@ class Unit(LangCodeNode, IName, IKind):
     def is_(self, feature_name: str) -> bool:
         paths = self._get_paths_down_for(feature_name)
         return bool(paths)
+
+    def load_conf(self, conf: Config) -> None:
+        for feature_name, val in conf.items():
+            self.connect_feature(feature_name, val)
+
+    def connect_feature(self, feature_name: str, val: BasicYamlType | Dict) -> None:
+        # TODO: think how to handle lists
+        # TODO: think of and analyze a critical section to differentiate the exceptions of
+        #  - non-existance
+        #  - non-connnection
+        #  PS: add retries
+        feature = Feature._get_from_all(name=feature_name, kind=self.kind, raises=False)
+        featuring_feature = Feature._get_from_all(name=val, kind=self.kind, raises=False)
+        if not feature:
+            setattr(self, feature_name, val)  # Either a dict or not
+        elif feature and featuring_feature:
+            self.features.manager.connect(featuring_feature)
+        elif feature and not featuring_feature and not is_dict(val):
+            self.features.manager.connect(feature, {'val': val})
+        elif feature and not featuring_feature and is_dict(val):
+            self.load_conf(val)  # TODO: add validation by feature type
+        else:
+            raise ValueError
 
 
 class Language(IName):
@@ -147,12 +179,12 @@ class Language(IName):
     def add_morpheme_feature(self, name: str, config: dict) -> None:
         self.add_feature(name, config, SimpleTerms.MORPHEME)
 
-    def add_feature(self, name, config: yaml_type, kind: str) -> None:
+    def add_feature(self, name, config: YamlType, kind: Kind) -> None:
         if self._is_complex_feature(config):
             for subname, subconfig in config.items():
                 self.add_feature(subname, subconfig, kind)
         feature = Feature(name=name, kind=kind, tree=config)
         self._features.setdefault(kind, {}).setdefault(name, feature)
 
-    def _is_complex_feature(self, config: yaml_type) -> bool:
+    def _is_complex_feature(self, config: YamlType) -> bool:
         return isinstance(config, dict)
