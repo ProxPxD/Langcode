@@ -1,14 +1,11 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 
 
-basic_yaml_type = str | int | bool | None
-complex_yaml_type = dict | list
-yaml_type = basic_yaml_type | complex_yaml_type
-
-
-@dataclass(frozen=True)
-class SimpleTerms:
+class SimpleTerms(Enum):
     LANGUAGES = 'languages'
     LANGUAGE = 'language'
     GENERAL = 'general'
@@ -26,14 +23,18 @@ class SimpleTerms:
     ELEMS = 'elems'
     FORM = 'form'
     COMPOUND = 'compound'
+    TYPE = 'type'
+    JOINT = 'joint'
+    DISJOINT = 'disjoint'
+    VAL = 'val'
 
 
-@dataclass(frozen=True)
-class ComplexTerms:
+class ComplexTerms(Enum):
     UNTIS = (SimpleTerms.GRAPHEMES, SimpleTerms.MORPHEMES)
     UNIT = (SimpleTerms.GRAPHEME, SimpleTerms.MORPHEME)
     UNIT_SUBKEYS = (SimpleTerms.ELEMS, SimpleTerms.FEATURES)
     FORMING_KEYS = (SimpleTerms.FORM, SimpleTerms.COMPOUND)
+    FEATURE_TYPES = (SimpleTerms.JOINT, SimpleTerms.DISJOINT)
 
 
 @dataclass(frozen=True)
