@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from typing import Iterable, Sequence, Optional, Any, Never, Type
+from typing import Iterable, Sequence, Optional, Any, Type
 
-from src.constants import yaml_type
+from src.lang_typing import YamlType
 from src.utils import to_list
 
 
@@ -13,7 +13,7 @@ class DotDictNone(object):
 
 class DotDict:
     def __init__(self, d: Any = DotDictNone(), *, defaults: Optional[dict] = DotDictNone(), default_val: Any = DotDictNone()):
-        self._curr: yaml_type | Any = d() if isinstance(d, DotDict) else d
+        self._curr: YamlType | Any = d() if isinstance(d, DotDict) else d
         self._defaults = defaults
         self._default_val: Any = default_val
 
