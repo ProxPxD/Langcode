@@ -56,9 +56,18 @@ class MorphemesSchema(UnitSchema):
     elems: Optional[UnitConf]
     features: Optional[MorphemesFeaturesSchema]
 
-    @field_validator('elems')  # TODO: think of validating it deeper
+    @field_validator('elems')
     def val_elems(self, elems) -> Iterable[Unit]:
         return self.map_unit_conf_to_units(elems, SimpleTerms.MORPHEME)
+
+
+class GraphemesSchema(UnitSchema):
+    elems: Optional[UnitConf]
+    features: Optional[MorphemesFeaturesSchema]
+
+    @field_validator('elems')
+    def val_elems(self, elems) -> Iterable[Unit]:
+        return self.map_unit_conf_to_units(elems, SimpleTerms.GRAPHEME)
 
 
 class RulesSchema(BaseModel):
@@ -112,5 +121,6 @@ class FeaturesSchema(BaseModel):
 class LanguageSchema(BaseModel):  # TODO: think if morphemes shouldn't be required
     general: Optional[GeneralSchema]
     morphemes: Optional[MorphemesSchema]
+    graphemes: Optional[GraphemesSchema]
     rules: Optional[RulesSchema]
     features: Optional[FeaturesSchema]
