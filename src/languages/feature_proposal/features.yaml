@@ -11,7 +11,7 @@ graphemes:
         vowel:
           type: joint
           elems:
-            height:  # disjoint by default?
+            height:  # disjoint by default? Or maybe whatever (unspecified)
               - high
               - mid
               - low
