@@ -19,17 +19,17 @@ class InvalidYamlException(LangCodeException):
 
 
 class AmbiguousNameException(LangCodeException):
-    def __init__(self, name, kind, *args):
+    def __init__(self, name, kind, *args, **kwargs):
         self.name = name
         self.kind = kind
-        self.args = (f'There exist more than one {kind} {name}', ) + args
+        self.args = (f'There exist more than one {kind} {name} (Additional: {kwargs})', ) + args
 
 
 class DoNotExistException(LangCodeException):
-    def __init__(self, name, kind=None, *args):
+    def __init__(self, name, kind=None, *args, **kwargs):
         self.name = name
         self.kind = kind
-        self.args = (f'{kind} {name} has not been found', ) + args
+        self.args = (f'{kind} {name} has not been found (Additional: {kwargs})', ) + args
 
 
 class AmbiguousSubFeaturesException(LangCodeException):
