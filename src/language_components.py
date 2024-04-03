@@ -135,6 +135,7 @@ class Unit(LangCodeNode, IName, IKind):
         return bool(paths)
 
     def load_conf(self, conf: Config) -> None:
+        conf = conf or {}  # TODO: think of renaming to update and/or handling changing the conf
         for feature_name, val in conf.items():
             self.connect_feature(feature_name, val)
 
