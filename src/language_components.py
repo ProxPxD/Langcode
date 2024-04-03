@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, Dict, Optional
+from typing import Iterable, Dict, Optional, Callable
 
 import neomodel
 from neomodel import (StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath)
@@ -12,6 +12,14 @@ from src.constants import SimpleTerms, ComplexTerms
 from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException
 from src.lang_typing import YamlType, Kind, Config, BasicYamlType
 from src.utils import is_dict
+
+
+def adjust_str(old: str, new: str = ''):
+    def decorator(func: Callable[..., str]):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs).replace(old, new)
+        return wrapper
+    return decorator
 
 
 class IName(StructuredNode):
@@ -51,6 +59,10 @@ class LangCodeNode(IName, IKind, StructuredNode):
             raise exception
         return None
 
+    @adjust_str('.self')
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.name=}, {self.kind=})'
+
 
 class Featuring(StructuredRel):
     rel_name = 'FEATURES'
@@ -69,6 +81,11 @@ class Feature(LangCodeNode):
         relation_type=IsSuperOf.rel_name,
         model=IsSuperOf,
     )
+
+    @adjust_str('.self')
+    def __repr__(self):
+        repr: str = super().__repr__()
+        return repr[:-1] + f', {self.type=})'
 
     def is_leaf(self) -> bool:
         return not self.children.manager.is_connected()

@@ -38,6 +38,10 @@ class AmbiguousSubFeaturesException(LangCodeException):
         self.args = (feature,) + args
 
 
+class ConflictingKeysException(LangCodeException):
+    pass
+
+
 @dataclass
 class Messages:
     FORMING_KEYS_TOGETHER = '{SimpleTerms.FORMING_KEYS} cannot occur together'

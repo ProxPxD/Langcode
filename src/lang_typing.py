@@ -1,6 +1,6 @@
-from typing import Dict, Any, Literal, AnyStr, List
+from __future__ import annotations
 
-from src.constants import SimpleTerms
+from typing import Dict, Any, Literal, AnyStr, List
 
 BasicYamlType = str | int | bool | None
 ComplexYamlType = dict | list

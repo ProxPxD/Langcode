@@ -1,22 +1,23 @@
 from __future__ import annotations
 
 from abc import ABC
-from itertools import starmap
+from functools import reduce
+from itertools import starmap, filterfalse
 from typing import Optional, List, AnyStr, Iterable, Dict, Tuple, Any
 
 from more_itertools import side_effect, consume
-from pydantic import BaseModel, field_validator, model_validator
-from toolz import curry
+from pydantic import BaseModel, field_validator, model_validator, PrivateAttr
+from toolz import curry, keyfilter
 
 import src.utils as utils
+import operator as op
 from src.constants import SimpleTerms
+from src.exceptions import ConflictingKeysException
 from src.lang_typing import Config, Kind, Resolution, UnitConf
 from src.language_components import Unit, Feature, Language
 
 # TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag
 # see: https://github.com/ProxPxD/Langcode/issues/7
-
-ID = AnyStr
 
 
 @curry
@@ -70,19 +71,34 @@ class RulesSchema(BaseModel):
     pass
 
 
+# ListConfigFeature = List[FeatureSchema | AnyStr]
+# DictConfigFeature = Dict[AnyStr, FeatureSchema] | Dict[AnyStr, AnyStr]
+# ConfigFeature = ListConfigFeature | DictConfigFeature
+
+
 class FeatureSchema(BaseModel):
     type: Optional[Resolution] = None
-    elems: List[FeatureSchema | AnyStr] | Dict[AnyStr, FeatureSchema] | Dict[AnyStr, AnyStr] = None  # TODO: name such type(s)
+    elems: Optional[List[FeatureSchema | AnyStr] | Dict[AnyStr, FeatureSchema] | Dict[AnyStr, AnyStr]] = None  # TODO: name such type(s)
+    __data: Optional[Dict[str, Any]] = PrivateAttr({})
+
+    def __init__(self, **data):
+        allowed_keys = (SimpleTerms.ELEMS, SimpleTerms.TYPE)
+        direct_definitions = list(filterfalse(allowed_keys.__contains__, data.keys()))
+        if direct_definitions and SimpleTerms.ELEMS in data:
+            raise ConflictingKeysException(direct_definitions)
+        data[SimpleTerms.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get(SimpleTerms.ELEMS, []))))
+        data = dict(keyfilter(allowed_keys.__contains__, data))
+        super().__init__(**data)
 
     @field_validator('elems')
     def create_features(cls, elems) -> List[Tuple[Feature, Dict]]:
-        normalized = utils.map_conf_list_to_dict(elems)
-        features = [(Feature(name=name, kind=None), conf) for name, conf in normalized.items()]
+        # normalized = utils.map_conf_list_to_dict(elems)
+        features = [(Feature(name=name, kind=None), conf or {}) for name, conf in elems.items()]
         return features
 
     @model_validator(mode='after')
     def set_children_and_type(cls, values):
-        features: List[Tuple[Feature, Dict]] = values.get(SimpleTerms.ELEMS)
+        features: List[Tuple[Feature, Dict]] = values.elems or []
         for feature, conf in features:
             if elems := conf.get(SimpleTerms.ELEMS):
                 children, children_conf = tuple(zip(*elems))
@@ -93,25 +109,27 @@ class FeatureSchema(BaseModel):
 
 
 class FeaturesSchema(BaseModel):
-    graphemes: FeatureSchema
-    morphemes: FeatureSchema
+    graphemes: Optional[FeatureSchema]
+    morphemes: Optional[FeatureSchema]
 
     @classmethod
     def set_kind(cls, phemes: list[Feature], kind: Kind) -> List[Feature]:
         utils.apply_to_tree(
-            phemes,
+            phemes or [],
             lambda curr: setattr(curr, 'kind', kind),
             lambda curr: curr.children,
         )
         return phemes
 
+    @classmethod
     @field_validator('graphemes')
     def val_graphemes(cls, graphemes):
-        return cls.set_kind(graphemes, SimpleTerms.GRAPHEME)
+        return cls.set_kind(graphemes.elems, SimpleTerms.GRAPHEME)
 
+    @classmethod
     @field_validator('morphemes')
     def val_morphemes(cls, morphemes):
-        return cls.set_kind(morphemes, SimpleTerms.MORPHEME)
+        return cls.set_kind(morphemes.elems, SimpleTerms.MORPHEME)
 
 
 class LanguageSchema(BaseModel):  # TODO: think if morphemes shouldn't be required
