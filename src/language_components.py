@@ -4,7 +4,10 @@ from typing import Iterable, Dict, Optional
 
 import neomodel
 from neomodel import (StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath)
+# noinspection PyUnresolvedReferences
+from neomodel import NodeMeta  # For some reason, the neomodel requires to import it
 
+from src import utils
 from src.constants import SimpleTerms, ComplexTerms
 from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException
 from src.lang_typing import YamlType, Kind, Config, BasicYamlType
@@ -58,7 +61,9 @@ class IsSuperOf(StructuredRel):
 
 
 class Feature(LangCodeNode):
-    type = StringProperty(choices=ComplexTerms.FEATURE_TYPES)
+    type = StringProperty(
+        choices=utils.map_conf_list_to_dict(ComplexTerms.FEATURE_TYPES)
+    )
     children = RelationshipTo(
         cls_name='Feature',  # TODO: check if "Feature.__class__.__name__" can work
         relation_type=IsSuperOf.rel_name,

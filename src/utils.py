@@ -1,5 +1,5 @@
 import operator as op
-from typing import Iterable, Callable, Any, List, AnyStr, Dict, Type, TypeVar
+from typing import Iterable, Callable, Any, List, AnyStr, Dict, Type, TypeVar, Sequence
 
 from toolz.curried import *
 
@@ -14,6 +14,7 @@ is_dict = is_(dict)
 is_list = is_(list)
 is_int = is_(int)
 is_str = is_(str)
+is_sequence = is_(Sequence)
 
 
 def get_name(instance):
@@ -77,14 +78,15 @@ def map_arg(*funcs_or_num_funcs, **pos_funcs):
                 args[i] = func(args[i]) if func else args[i]
         return args
 
-    def handle_dicts(args: list) -> list:
+    def handle_dicts(args: list) -> list:  # TODO: does not work
         '''
         Assumes "pos_funcs" in form: {_0=F1, _1=F2, __1, ...} (not necessarily in order)
         where _ means positive and __ means negative
         '''
         for _i, func in pos_funcs.items():
             sign = 2*int(not _i.startswith('__')) - 1
-            i = sign * int(_i.removeprefix('_').removeprefix('_'))
+            num = int(_i.removeprefix('_').removeprefix('_'))
+            i = sign * num
             args[i] = func(args[i])
         return args
 
@@ -135,20 +137,20 @@ def is_list_of_basics(to_check: list) -> bool:
     return is_all_instance_of(BasicYamlType, to_check)
 
 
-is_dict_of = map_arg(__1=dict.values)(is_instance_of)
+is_dict_of = curry(lambda reduct_func, _type, iterable: is_instance_of(reduct_func, _type, iterable.values())) #map_arg(_3=dict.values)(is_instance_of)
 is_all_dict_of = is_dict_of(all)
 is_any_dict_of = is_dict_of(any)
 is_all_dict_of_none = is_all_dict_of(None)
 is_any_dict_of_none = is_any_dict_of(None)
 
 
-def map_conf_list_to_dict(to_map: List[AnyStr | Any] | Dict[AnyStr, Any]) -> Dict[AnyStr, Any]:
+def map_conf_list_to_dict(to_map: Sequence[str | Any] | Dict[str, Any]) -> Dict[AnyStr, Any]:
     match to_map:
-        case d if is_dict(d) and is_all_instance_of(AnyStr, d.keys()):
+        case d if is_dict(d) and is_all_instance_of(str, d.keys()):
             return to_map
-        case l if is_list(l) and is_all_instance_of(AnyStr, l):
+        case l if is_sequence(l) and is_all_instance_of(str, l):
             return {elem: None for elem in to_map}
-        case l if is_list(l) and is_all_instance_of(Dict, l):  # TODO: should form as default identifier be used?
+        case l if is_sequence(l) and is_all_instance_of(dict, l):  # TODO: should form as default identifier be used?
             return {elem['form']: elem for elem in to_map}
         case _:
             raise NotImplementedError

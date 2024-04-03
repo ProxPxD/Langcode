@@ -5,7 +5,8 @@ from enum import Enum
 from pathlib import Path
 
 
-class SimpleTerms(Enum):
+@dataclass(frozen=True)
+class SimpleTerms:
     LANGUAGES = 'languages'
     LANGUAGE = 'language'
     GENERAL = 'general'
@@ -29,7 +30,8 @@ class SimpleTerms(Enum):
     VAL = 'val'
 
 
-class ComplexTerms(Enum):
+@dataclass(frozen=True)
+class ComplexTerms:
     UNTIS = (SimpleTerms.GRAPHEMES, SimpleTerms.MORPHEMES)
     UNIT = (SimpleTerms.GRAPHEME, SimpleTerms.MORPHEME)
     UNIT_SUBKEYS = (SimpleTerms.ELEMS, SimpleTerms.FEATURES)
@@ -39,4 +41,4 @@ class ComplexTerms(Enum):
 
 @dataclass(frozen=True)
 class Paths:
-    LANGUAGES = Path(__file__).parent / SimpleTerms.LANGUAGES
+    LANGUAGES = Path(__file__).parent / str(SimpleTerms.LANGUAGES)

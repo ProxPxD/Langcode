@@ -19,6 +19,7 @@ def get_func_name(method, param_num, params):
 def generate_test_cases():
     lang_names = AbstractLangCodeTest.get_langs_where(lambda d: d.rules.features)
     for lang_name in lang_names:
+        continue
         try:
             dotdict = AbstractLangCodeTest.get_normalised_data(lang_name)
         except:

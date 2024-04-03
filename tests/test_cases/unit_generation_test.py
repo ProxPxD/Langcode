@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from parameterized import parameterized
 
 from src.dot_dict import DotDict
@@ -19,8 +21,7 @@ def generate_test_cases():
     lang_names = AbstractLangCodeTest.get_langs_where(lambda d: d.rules.features)
     for lang_name in lang_names:
         try:
-            raw_data = AbstractLangCodeTest.data_loader.load(lang_name)
-            data = AbstractLangCodeTest.data_normalizer.normalize(raw_data)
+            raw_data = AbstractLangCodeTest.data_loader.load(Path(lang_name) / '')
             dotdict = DotDict(data)
         except:
             continue

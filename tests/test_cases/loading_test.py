@@ -1,4 +1,7 @@
 from __future__ import annotations
+
+from unittest import SkipTest
+
 from tests.lang_code_test import Paths
 
 import traceback
@@ -37,7 +40,7 @@ class LoadingTest(AbstractLangCodeTest):
         # TODO: consider spliting into many functions
         # TODO: add messages according to state
         try:
-            lang = self.lang_factory.load()
+            lang = self.lang_factory.load(lang_name)
         except NotImplementedError:
             self.fail(traceback.format_exc())
         except InvalidYamlException as iye:

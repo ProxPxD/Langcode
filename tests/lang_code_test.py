@@ -7,9 +7,8 @@ from typing import Callable, Iterable
 import yaml
 from toolz import valfilter
 
-from src.data_normalizer import DataNormalizer
 from src.dot_dict import DotDict
-from src.lang_factory import LangaugeInterpreter, LangFactory
+from src.lang_factory import LangFactory
 from src.language_components import Language
 from src.loaders import LangDataLoader
 from tests.abstractTest import AbstractTest
@@ -28,8 +27,6 @@ class AbstractLangCodeTest(AbstractTest):
 
     defaults = yaml.safe_load(open(Paths.DEFAULTS, 'r'))
     data_loader = LangDataLoader(Paths.LANGUAGES)
-    lang_interpreter = LangaugeInterpreter()
-    data_normalizer = DataNormalizer()
     lang_factory = LangFactory(Paths.LANGUAGES)
 
     not_language_files = ('general_defaults', )
@@ -58,13 +55,6 @@ class AbstractLangCodeTest(AbstractTest):
     @classmethod
     def get_langs_where(cls, condition: Callable[[DotDict], bool] = lambda _: True) -> Iterable[str]:
         return valfilter(condition, cls.all_test_properties).keys()
-
-    @classmethod
-    def get_normalised_data(cls, lang_name: str) -> DotDict:
-        raw_data = cls.data_loader.load(lang_name)
-        data = cls.data_normalizer.normalize(raw_data)
-        dotdict = DotDict(data)
-        return dotdict
 
 
 AbstractLangCodeTest.init()

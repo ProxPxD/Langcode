@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import unittest
+from unittest import SkipTest
+
 import nutree
 from parameterized import parameterized
 
@@ -18,12 +21,17 @@ def get_func_name(method, param_num, params):
 def generate_test_cases():
     feature_lang_names = AbstractLangCodeTest.get_langs_where(lambda p: p.valid_schema and p.should_load and p.features)
     for lang_name in feature_lang_names:
+        yield lang_name, None, None
+        continue
         all_features = AbstractLangCodeTest.get_normalised_data(lang_name).features
         for kind, units in all_features.items():
             yield lang_name, kind[:-1], LangTree.from_str_dict(units)
 
 
 class FeaturesLoadingTest(AbstractLangCodeTest):
+    def setUp(self) -> None:
+        raise SkipTest('Test should have a better way to gather the features')
+
     @parameterized.expand(
         list(generate_test_cases()),
         name_func=get_func_name

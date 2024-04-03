@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import unittest
+from unittest import SkipTest
+
 from parameterized import parameterized
 
 from tests.lang_code_test import AbstractLangCodeTest
@@ -31,6 +34,10 @@ def get_func_name(method, param_num, params):
 
 
 class DataNormalizerTest(AbstractLangCodeTest):
+
+    def setUp(self) -> None:
+        raise SkipTest("Data normalizer does not exist anymore. It should probably be covered by the loading test")
+
     @parameterized.expand(
         AbstractLangCodeTest.get_langs_where(lambda d: d.normalization),
         name_func=get_func_name,
