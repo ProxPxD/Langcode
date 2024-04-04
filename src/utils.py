@@ -1,4 +1,5 @@
 import operator as op
+from copy import copy
 from typing import Iterable, Callable, Any, List, AnyStr, Dict, Type, TypeVar, Sequence
 
 from toolz.curried import *
@@ -152,12 +153,14 @@ def map_conf_list_to_dict(to_map: Sequence[str | Any] | Dict[str, Any]) -> Dict[
             return {elem: None for elem in to_map}
         case l if is_sequence(l) and is_all_instance_of(dict, l):  # TODO: should form as default identifier be used?
             return {elem['form']: elem for elem in to_map}
+        case None:
+            return {}
         case _:
             raise NotImplementedError
 
 
 def apply_to_tree(elems: list[T], apply_func: Callable, get_children: Callable[[T], Iterable[T]] = lambda curr: curr.children) -> None:
-    to_applies = elems[:]
+    to_applies = list(copy(elems))
     while to_applies:
         curr: T = to_applies.pop()
         apply_func(curr)
