@@ -1,17 +1,12 @@
 from __future__ import annotations
 
-from unittest import SkipTest
-
-from tests.lang_code_test import Paths
-
 import traceback
 
 from parameterized import parameterized
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 
-from src.exceptions import InvalidYamlException, InvalidPathException, Messages
-from src.lang_factory import LangFactory
-from tests.lang_code_test import AbstractLangCodeTest
+from src.exceptions import InvalidYamlException, InvalidPathException, ConflictingKeysException
+from tests.lang_code_test import Paths, AbstractLangCodeTest
 
 
 def get_func_name(method, param_num, params):
@@ -20,7 +15,7 @@ def get_func_name(method, param_num, params):
     state = 'is_valid' if valid_schema and general.valid_restrictions else\
             'violates_restrictions' if valid_schema and not general.valid_restrictions else\
             'is_invalid' if not valid_schema else NotImplemented
-    func_name = f'{method.__name__}_if_{lang_name}_{state}'.lower()
+    func_name = f'{method.__name__}_if_{lang_name}_{state}'.lower().replace('-', '_')
     return func_name
 
 
@@ -43,6 +38,8 @@ class LoadingTest(AbstractLangCodeTest):
             lang = self.lang_factory.load(lang_name)
         except NotImplementedError:
             self.fail(traceback.format_exc())
+        except ConflictingKeysException:
+            self.fail(f'Language {lang_name} has conflicting keys')
         except InvalidYamlException as iye:
             if valid_schema:
                 self.fail(f"Language {lang_name} should be valid, but it's not, {iye.reason}")

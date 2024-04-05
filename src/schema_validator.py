@@ -6,15 +6,15 @@ from functools import reduce
 from itertools import starmap
 from typing import Optional, List, AnyStr, Iterable, Dict, Tuple, Any
 
-from more_itertools import side_effect, consume
 from pydantic import BaseModel, field_validator, model_validator, Extra
 from toolz import curry, keyfilter
 
 import src.utils as utils
-from src.constants import SimpleTerms
+from src.constants import ST
 from src.exceptions import ConflictingKeysException
 from src.lang_typing import Config, Kind, Resolution, UnitConf
 from src.language_components import Unit, Feature, Language
+from src.utils import is_list, is_
 
 
 # TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag
@@ -56,7 +56,7 @@ class MorphemesSchema(UnitSchema):
 
     @field_validator('elems')
     def val_elems(cls, elems) -> Iterable[Unit]:
-        return cls.map_unit_conf_to_units(elems, SimpleTerms.MORPHEME)
+        return cls.map_unit_conf_to_units(elems, ST.MORPHEME)
 
 
 class GraphemesSchema(UnitSchema):
@@ -65,91 +65,118 @@ class GraphemesSchema(UnitSchema):
 
     @field_validator('elems')
     def val_elems(cls, elems) -> Iterable[Unit]:
-        return cls.map_unit_conf_to_units(elems, SimpleTerms.GRAPHEME)
+        return cls.map_unit_conf_to_units(elems, ST.GRAPHEME)
 
 
 class RulesSchema(BaseModel):
     pass
 
 
-# ListConfigFeature = List[FeatureSchema | AnyStr]
-# DictConfigFeature = Dict[AnyStr, FeatureSchema] | Dict[AnyStr, AnyStr]
-# ConfigFeature = ListConfigFeature | DictConfigFeature
-
-
 class FeatureSchema(BaseModel):
     type: Optional[Resolution] = None
-    elems: Optional[List[FeatureSchema | AnyStr] | Dict[AnyStr, FeatureSchema] | Dict[AnyStr, AnyStr | List[AnyStr | FeatureSchema]]] = None  # TODO: name such type(s)
-    # __data: Optional[Dict[str, Any]] = PrivateAttr({})
-
-    class Config:
-        extra = Extra.allow
-
-    def __init__(self, **data):
-        super().__init__(**self.normalize_feature_schema(data))
+    elems: Optional[
+        None
+        | List[AnyStr]
+        | Dict[AnyStr, None]
+        | List[FeatureSchema]
+        | Dict[AnyStr, FeatureSchema]
+        | Dict[AnyStr, List[Any] | Dict[AnyStr, AnyStr]]
+    ] = None
 
     @classmethod
-    def normalize_feature_schema(cls, data: dict) -> dict:
-        allowed_keys = (SimpleTerms.ELEMS, SimpleTerms.TYPE)
+    def normalize_feature_schema(cls, data: dict | list) -> dict:
+        allowed_keys = (ST.ELEMS, ST.TYPE)
         direct_definitions = keyfilter(lambda key: key not in allowed_keys, data)
 
-        if direct_definitions and SimpleTerms.ELEMS in data:
+        if direct_definitions and ST.ELEMS in data:
             raise ConflictingKeysException(direct_definitions)
 
-        data[SimpleTerms.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get(SimpleTerms.ELEMS, []))))
         data = keyfilter(allowed_keys.__contains__, data)
+        data[ST.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get(ST.ELEMS, []))))
         return data
 
+    @model_validator(mode='before')
     @classmethod
+    def normalize_schema(cls, values):
+        values = utils.map_conf_list_to_dict(values)# if is_list(values) or values is None else values
+        return cls.normalize_feature_schema(values)
+
     @field_validator('elems')
-    def create_features(cls, elems) -> List[Tuple[Feature, Dict]]:
-        features = [(Feature(name=name, kind=None), conf) for name, conf in elems.items()]
+    @classmethod
+    def create_features(cls, elems) -> List[Tuple[Feature, FeatureSchema]]:
+        features = [(Feature(name=name, kind=None), conf if is_(FeatureSchema, conf) else FeatureSchema(elems=conf)) for name, conf in elems.items()]
         return features
 
-    @classmethod
     @model_validator(mode='after')
+    @classmethod
     def set_children_and_type(cls, values):
-        features: List[Tuple[Feature, Dict]] = values.elems or []
+        features: List[Tuple[Feature, FeatureSchema]] = values.elems or []
+        if not is_list(features):
+            return values
         for feature, conf in features:
-            if elems := conf.get(SimpleTerms.ELEMS):
+            if elems := conf.elems:
                 children, children_conf = tuple(zip(*elems))
-                default_feature_type = SimpleTerms.DISJOINT if utils.is_all_dict_of_none(children_conf) else SimpleTerms.JOINT
-                feature.type = conf.get(SimpleTerms.TYPE, default_feature_type)
-                consume(side_effect(feature.children.manager.connect, children))
+                default_feature_type = ST.DISJOINT if all(filter(lambda schema: not schema.elems, children_conf)) else ST.JOINT  # TODO: verify the condition in case if only some values have sub values as in Polish gender
+                feature.type = conf.type or default_feature_type
+                # TODO: base
+                # consume(side_effect(feature.children.connect, children))
         return values
 
 
-class FeaturesSchema(BaseModel):
+class MainFeaturesSchema(BaseModel):
     graphemes: Optional[FeatureSchema] = None
     morphemes: Optional[FeatureSchema] = None
 
     @classmethod
-    def set_kind(cls, phemes: list[Feature], kind: Kind) -> List[Feature]:
+    def set_kind(cls, phemes: list[tuple[Feature, ...]], kind: Kind) -> list[tuple[Feature, ...]]:
         utils.apply_to_tree(
             phemes or [],
-            lambda curr: setattr(curr, 'kind', kind),
-            lambda curr: curr.children,
+            apply_func=lambda a: a,  # lambda curr: setattr(curr, 'kind', kind),  # TODO: base
+            get_children=lambda a: [],  #lambda curr: curr.children.all(),  # TODO: base
+            map_curr=lambda pair: pair[0],
         )
         return phemes
 
+    @field_validator('graphemes', mode='after')
     @classmethod
-    @field_validator('graphemes')
     def val_graphemes(cls, graphemes):
-        return cls.set_kind(graphemes.elems, SimpleTerms.GRAPHEME)
+        return cls.set_kind(graphemes.elems, ST.GRAPHEME) if graphemes else None
 
+    @field_validator('morphemes', mode='after')
     @classmethod
-    @field_validator('morphemes')
     def val_morphemes(cls, morphemes):
-        return cls.set_kind(morphemes.elems, SimpleTerms.MORPHEME)
+        return cls.set_kind(morphemes.elems, ST.MORPHEME) if morphemes else None
 
 
 class LanguageSchema(BaseModel):  # TODO: think if morphemes shouldn't be required
     general: Optional[Any] = None
+    features: Optional[MainFeaturesSchema] = None
     morphemes: Optional[MorphemesSchema] = None
     graphemes: Optional[GraphemesSchema] = None
     rules: Optional[RulesSchema] = None
-    features: Optional[FeaturesSchema] = None
+
+    class Config:
+        extra = Extra.allow
 
     @classmethod
     def to_lang(cls) -> Language:
         raise NotImplementedError
+
+
+try:
+    schema = FeatureSchema(  # TODO: Create test langs to test all combinations for features (and pot. other parts) [incl. Nones, dicts, lists, different levels of nesting, etc.]
+        elems={
+            'a1': {
+                'b1': None,
+                'b2': [],
+                'b3': {
+                    'c1': None,
+                },
+            },
+        }
+    )
+except Exception as e:
+    print('FAIL!')
+    raise e
+else:
+    print('Success!')

@@ -9,6 +9,7 @@ from src.lang_typing import BasicYamlType
 fjoin = compose = pipeline = compose_left
 eq = curry(op.eq)
 T = TypeVar('T')
+K = TypeVar('K')
 
 is_ = flip(isinstance)
 is_dict = is_(dict)
@@ -64,6 +65,13 @@ def map_n(func: Callable, iterable: Iterable, n: int | tuple[int]):
 @curry
 def map_nth(n: int, iterable: Iterable):
     return map(nth(n), iterable)
+
+
+@curry
+def mapif(map_func: Callable[[T], Any], cond: Callable[[T], bool], val: T, else_val: Any = NotImplemented) -> Any:
+    return map_func(val) if cond(val) else (val if else_val is NotImplemented else else_val)
+
+# TODO: mapifnot with map_args?
 
 
 def map_arg(*funcs_or_num_funcs, **pos_funcs):
@@ -159,9 +167,15 @@ def map_conf_list_to_dict(to_map: Sequence[str | Any] | Dict[str, Any]) -> Dict[
             raise NotImplementedError
 
 
-def apply_to_tree(elems: list[T], apply_func: Callable, get_children: Callable[[T], Iterable[T]] = lambda curr: curr.children) -> None:
+def apply_to_tree(
+        elems: list[T],
+        apply_func: Callable[[K], Any],
+        get_children: Callable[[K], Iterable[T]] = lambda curr: curr.children,
+        map_curr: Callable[[T], K] = lambda a: a,
+    ) -> None:
     to_applies = list(copy(elems))
     while to_applies:
         curr: T = to_applies.pop()
-        apply_func(curr)
-        to_applies.extend(get_children(curr))
+        mapped = map_curr(curr)
+        apply_func(mapped)
+        to_applies.extend(get_children(mapped))

@@ -8,7 +8,7 @@ from neomodel import (StructuredNode, StringProperty, RelationshipTo, Structured
 from neomodel import NodeMeta  # For some reason, the neomodel requires to import it
 
 from src import utils
-from src.constants import SimpleTerms, ComplexTerms
+from src.constants import ST, CT
 from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException
 from src.lang_typing import YamlType, Kind, Config, BasicYamlType
 from src.utils import is_dict
@@ -74,7 +74,7 @@ class IsSuperOf(StructuredRel):
 
 class Feature(LangCodeNode):
     type = StringProperty(
-        choices=utils.map_conf_list_to_dict(ComplexTerms.FEATURE_TYPES)
+        choices=utils.map_conf_list_to_dict(CT.FEATURE_TYPES)
     )
     children = RelationshipTo(
         cls_name='Feature',  # TODO: check if "Feature.__class__.__name__" can work
@@ -180,27 +180,27 @@ class Language(IName):
 
     @property
     def morphemes(self) -> dict[str, list[Unit]]:
-        return self._units.get(SimpleTerms.MORPHEME, [])
+        return self._units.get(ST.MORPHEME, [])
 
     @property
     def graphemes(self) -> dict[str, list[Unit]]:
-        return self._units.get(SimpleTerms.GRAPHEME, [])
+        return self._units.get(ST.GRAPHEME, [])
 
     def add_morpheme(self, name: str, config: dict) -> None:
-        self.add_unit(name, config, SimpleTerms.MORPHEME)
+        self.add_unit(name, config, ST.MORPHEME)
 
     def add_grapheme(self, name: str, config: dict) -> None:
-        self.add_unit(name, config, SimpleTerms.GRAPHEME)
+        self.add_unit(name, config, ST.GRAPHEME)
 
     def add_unit(self, name: str, config: dict, kind: str) -> None:
         unit = Unit(name=name, kind=kind, features=config)
         self._units.setdefault(kind, {}).setdefault(name, []).append(unit)
 
     def add_grapheme_feature(self, name: str, config: dict) -> None:
-        self.add_feature(name, config, SimpleTerms.GRAPHEME)
+        self.add_feature(name, config, ST.GRAPHEME)
 
     def add_morpheme_feature(self, name: str, config: dict) -> None:
-        self.add_feature(name, config, SimpleTerms.MORPHEME)
+        self.add_feature(name, config, ST.MORPHEME)
 
     def add_feature(self, name, config: YamlType, kind: Kind) -> None:
         if self._is_complex_feature(config):

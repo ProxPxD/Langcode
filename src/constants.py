@@ -42,3 +42,7 @@ class ComplexTerms:
 @dataclass(frozen=True)
 class Paths:
     LANGUAGES = Path(__file__).parent / str(SimpleTerms.LANGUAGES)
+
+
+ST = SimpleTerms
+CT = ComplexTerms
