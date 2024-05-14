@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import traceback
+from unittest import SkipTest
 
 from parameterized import parameterized
 from pyxdameraulevenshtein import damerau_levenshtein_distance

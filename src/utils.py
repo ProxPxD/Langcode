@@ -1,10 +1,11 @@
 import operator as op
 from copy import copy
-from typing import Iterable, Callable, Any, List, AnyStr, Dict, Type, TypeVar, Sequence
+from types import NoneType
+from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence
 
 from toolz.curried import *
 
-from src.lang_typing import BasicYamlType
+from src.lang_typing import BasicYamlType, YamlType
 
 fjoin = compose = pipeline = compose_left
 eq = curry(op.eq)
@@ -17,6 +18,10 @@ is_list = is_(list)
 is_int = is_(int)
 is_str = is_(str)
 is_sequence = is_(Sequence)
+
+is_basic_yaml_type = is_((str, int, float))
+is_complex_yaml_type = is_((dict, list))
+is_yaml_type = is_((str, int, float, dict, list))
 
 
 def get_name(instance):
@@ -123,6 +128,7 @@ def is_instance_of(reduct_func: Callable, _type: Type, iterable: Iterable):
 
 is_all_instance_of = is_instance_of(all)
 is_any_instance_of = is_instance_of(any)
+is_all_instance_of_none = is_all_instance_of(NoneType)
 
 
 @curry
@@ -149,22 +155,35 @@ def is_list_of_basics(to_check: list) -> bool:
 is_dict_of = curry(lambda reduct_func, _type, iterable: is_instance_of(reduct_func, _type, iterable.values())) #map_arg(_3=dict.values)(is_instance_of)
 is_all_dict_of = is_dict_of(all)
 is_any_dict_of = is_dict_of(any)
-is_all_dict_of_none = is_all_dict_of(None)
-is_any_dict_of_none = is_any_dict_of(None)
+is_all_dict_of_none = is_all_dict_of(NoneType)
+is_any_dict_of_none = is_any_dict_of(NoneType)
+
+
+def map_simple_dicts_to_dict(simple_dict_list: list[dict]) -> dict[str, YamlType]:
+    proper_dict = {}
+    for simple_dict in simple_dict_list:
+        key, val = next(iter(itemmap(tuple, simple_dict).items()))
+        if is_dict(val):
+            proper_dict.setdefault(key, {}).update(val)
+        else:
+            proper_dict.setdefault(key, []).extend(to_list(val))
+    return proper_dict
 
 
 def map_conf_list_to_dict(to_map: Sequence[str | Any] | Dict[str, Any]) -> Dict[AnyStr, Any]:
     match to_map:
-        case d if is_dict(d) and is_all_instance_of(str, d.keys()):
+        case proper_dict if is_dict(proper_dict) and is_all_instance_of(str, proper_dict.keys()):
             return to_map
-        case l if is_sequence(l) and is_all_instance_of(str, l):
+        case string_list if is_sequence(string_list) and is_all_instance_of(str, string_list):
             return {elem: None for elem in to_map}
-        case l if is_sequence(l) and is_all_instance_of(dict, l):  # TODO: should form as default identifier be used?
-            return {elem['form']: elem for elem in to_map}
+        case simple_dict_list if is_sequence(simple_dict_list) and is_list_of_simple_dicts(simple_dict_list):
+            return map_simple_dicts_to_dict(simple_dict_list)
+        case complex_dict_list if is_sequence(complex_dict_list) and is_all_instance_of(dict, complex_dict_list):  # TODO: should form as default identifier be used?
+            return {elem['form']: elem for elem in complex_dict_list}
         case None:
             return {}
         case _:
-            raise NotImplementedError
+            raise ValueError
 
 
 def apply_to_tree(
@@ -179,3 +198,24 @@ def apply_to_tree(
         mapped = map_curr(curr)
         apply_func(mapped)
         to_applies.extend(get_children(mapped))
+
+
+def merge_to_flat_dict(to_merge: dict) -> dict[str, list]:  # TODO: validate if the structure is as in features
+    flattened = {}
+    normalized = map_conf_list_to_dict(to_merge)
+    for key, next_layer in normalized.items():
+        preprocessed = preprocess_for_merge_to_flat_dict(next_layer)
+        if is_all_dict_of_none(preprocessed):
+            flattened.setdefault(key, []).extend(preprocessed.keys())
+        else:
+            for subkey, sublist in merge_to_flat_dict(preprocessed):
+                flattened.setdefault(subkey, []).extend(sublist)
+    return flattened
+
+
+def preprocess_for_merge_to_flat_dict(to_preprocess: YamlType) -> dict[BasicYamlType, YamlType]:
+    match to_preprocess:
+        case dict(): return to_preprocess
+        case list(): return map_conf_list_to_dict(to_preprocess)
+        case basic if is_basic_yaml_type(basic): return {to_preprocess: None}
+        case _: raise ValueError

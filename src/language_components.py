@@ -91,7 +91,7 @@ class Feature(LangCodeNode):
         return not self.children.manager.is_connected()
 
 
-class Unit(LangCodeNode, IName, IKind):
+class Unit(LangCodeNode):
     features = RelationshipTo(
         cls_name=Feature.__class__.__name__,
         relation_type=Featuring.rel_name,
