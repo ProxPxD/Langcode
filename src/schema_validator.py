@@ -175,23 +175,3 @@ class LanguageSchema(BaseModel):  # TODO: think if morphemes shouldn't be requir
     @classmethod
     def to_lang(cls) -> Language:
         raise NotImplementedError
-
-
-try:
-    pass
-    # schema = FeatureSchema(  # TODO: Create test langs to test all combinations for features (and pot. other parts) [incl. Nones, dicts, lists, different levels of nesting, etc.]
-    #     elems={
-    #         'a1': {
-    #             'b1': None,
-    #             'b2': [],
-    #             'b3': {
-    #                 'c1': None,
-    #             },
-    #         },
-    #     }
-    # )
-except Exception as e:
-    print('FAIL!')
-    raise e
-else:
-    print('Success!')

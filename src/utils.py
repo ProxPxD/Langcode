@@ -49,9 +49,9 @@ class if_:
     class _IfNone(object):
         pass
 
-    def __init__(self, arg: T, cond: Callable[[T], bool] = bool):
+    def __init__(self, arg: T, cond: Callable[[T], bool] | None = bool):
         self._arg = arg
-        self._cond = cond
+        self._cond = cond if cond is not None else lambda x: x is None
         self.apply = self.then_apply
 
     def _meets(self):
@@ -69,6 +69,10 @@ class if_:
 
     def else_(self, false: G) -> T | G:
         return self.then_(self._arg, false)
+
+    def raise_(self, to_raise: Exception) -> None:
+        if self._meets():
+            raise to_raise
 
     def then_apply(self, true: Callable[[T], K], false: Callable[[T], G] = _IfNone(), *, default: Any = _IfNone()) -> T | K | G:
         if flow(all, map(is_not(if_._IfNone))(false, default)):

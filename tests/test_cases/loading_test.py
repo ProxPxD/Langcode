@@ -38,6 +38,9 @@ class LoadingTestGenerator(Generator):
 
 
 class LoadingTest(AbstractLangCodeTest):
+    """
+        description: The test checks if the configurations load or fail accordingly to the configuration correctness
+    """
     @parameterized.expand(
         LoadingTestGenerator.generate_test_cases(),
         name_func=get_func_name

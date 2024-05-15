@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Iterable, Dict, Optional, Callable
+from typing import Iterable, Dict, Optional
 
 import neomodel
-from neomodel import (StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath)
 # noinspection PyUnresolvedReferences
-from neomodel import NodeMeta  # For some reason, the neomodel requires to import it
+from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, \
+    NodeMeta  # For some reason, the neomodel requires to import it
 
 from src import utils
 from src.constants import ST, CT
@@ -15,11 +15,7 @@ from src.utils import is_dict
 
 
 def adjust_str(old: str, new: str = ''):
-    def decorator(func: Callable[..., str]):
-        def wrapper(*args, **kwargs):
-            return func(*args, **kwargs).replace(old, new)
-        return wrapper
-    return decorator
+    return lambda f: lambda *args, **kwargs: f(*args, **kwargs).replace(old, new)
 
 
 class IName(StructuredNode):
@@ -159,7 +155,7 @@ class Unit(LangCodeNode):
             raise ValueError
 
 
-class Language(IName):
+class Language(IName):  # TODO: think if should be neo4j node
     def __init__(self, name: str):
         super().__init__(name=name)
         self._units: dict[str, dict[str, list[Unit]]] = {}
