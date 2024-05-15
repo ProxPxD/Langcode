@@ -5,15 +5,19 @@ from pathlib import Path
 from parameterized import parameterized
 
 from src.dot_dict import DotDict
-from tests.lang_code_test import AbstractLangCodeTest, yaml_types
+from tests.lang_code_test import AbstractLangCodeTest, yaml_types, test_generator, Generator
 
 
 def get_func_name(method, param_num, params):
-    lang_name, unit_kind, unit_name, expected = params[0]
-    general = AbstractLangCodeTest.all_test_properties[lang_name]
-    # TODO: think of specifying how the features are generated.
-    # TODO: do they use aliases, ands ors, what forms, etc
-    func_name = f'{method.__name__}_if_in_{lang_name}_{unit_kind}_generated_{unit_name}_correctly'
+    try:
+        lang_name, unit_kind, unit_name, expected = params[0]
+    except ValueError:
+        func_name = f'{method.__name__}_unit_generation_{params[0]}'
+    else:
+        general = AbstractLangCodeTest.all_test_properties[lang_name]
+        # TODO: think of specifying how the features are generated.
+        # TODO: do they use aliases, ands ors, what forms, etc
+        func_name = f'{method.__name__}_if_in_{lang_name}_{unit_kind}_generated_{unit_name}_correctly'
     return func_name
 
 
@@ -34,9 +38,15 @@ def generate_test_cases():
                 yield lang_name, kind, name, expected.get()
 
 
+@test_generator
+class UnitGenerationTestGenerator(Generator):
+    props_paths_to_add = ('rules.add', )
+    lang_name_regexes = ''
+
+
 class UnitGenerationTest(AbstractLangCodeTest):
     @parameterized.expand(
-        list(generate_test_cases()),
+        UnitGenerationTestGenerator.generate_test_cases(),
         name_func=get_func_name,
         skip_on_empty=True,
     )

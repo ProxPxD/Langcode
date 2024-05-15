@@ -1,27 +1,97 @@
-import operator as op
-from copy import copy
+from __future__ import annotations
+
+import re
+from copy import copy, deepcopy
+from operator import *
 from types import NoneType
 from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence
 
+import pydash as _
+from pydash import flow, chain as c
 from toolz.curried import *
+from toolz.curried.operator import *
 
 from src.lang_typing import BasicYamlType, YamlType
 
 fjoin = compose = pipeline = compose_left
-eq = curry(op.eq)
+revarg = curry(lambda *args, **kwargs: lambda f: f(*args, **kwargs))
+
 T = TypeVar('T')
 K = TypeVar('K')
+G = TypeVar('G')
 
-is_ = flip(isinstance)
+is_ = curry(flip(isinstance))  # overrrides operator
+is_not = curry(_.negate(is_))
 is_dict = is_(dict)
 is_list = is_(list)
 is_int = is_(int)
 is_str = is_(str)
 is_sequence = is_(Sequence)
 
+is_many = curry(lambda reduc, type_, elems: reduc(map(is_(type_), elems)))
+is_all = is_many(all)
+is_any = is_many(any)
+
 is_basic_yaml_type = is_((str, int, float))
 is_complex_yaml_type = is_((dict, list))
 is_yaml_type = is_((str, int, float, dict, list))
+to_unary_func = lambda to_map: to_map if is_(Callable, to_map) else lambda whatever: to_map
+
+
+class if_:
+    '''
+        # if_(elems).then_(any, all)
+        # if_(elems).then(any).else_(all)
+        # if_(func).then(func).elif_(elems).then_(any, all)
+        # if_(func).elif_(elems).then_(any, all)
+    '''
+
+    class _IfNone(object):
+        pass
+
+    def __init__(self, arg: T, cond: Callable[[T], bool] = bool):
+        self._arg = arg
+        self._cond = cond
+        self.apply = self.then_apply
+
+    def _meets(self):
+        return self._cond(self._arg)
+
+    def _proper_false(self, false: Any) -> T | Any:
+        return self._arg if is_(if_._IfNone, false) else false
+
+    def then_(self, true: K, false: G = _IfNone()) -> T | K | G:
+        false = self._proper_false(false)
+        return true if self._meets() else false
+
+    def then(self, true: K) -> if_:
+        return self.then_(if_(true, _.negate(self._cond)), self)
+
+    def else_(self, false: G) -> T | G:
+        return self.then_(self._arg, false)
+
+    def then_apply(self, true: Callable[[T], K], false: Callable[[T], G] = _IfNone(), *, default: Any = _IfNone()) -> T | K | G:
+        if flow(all, map(is_not(if_._IfNone))(false, default)):
+            raise ValueError('false and default cannot be set together')
+
+        false = self._proper_false(if_(default).is_not(if_._IfNone).then(false))
+        transform = to_unary_func(self.then_(true, false))
+        return transform(self._arg)
+
+    def else_apply(self, false: Callable[[T], G]):
+        return self.then_apply(self._arg, false)
+
+    def is_(self, _type: Type) -> if_:
+        self._cond = is_(_type)
+        return self
+
+    def is_not(self, _type: Type) -> if_:
+        self._cond = is_not(_type)
+        return self
+
+    def elif_(self, arg: T, cond: Callable[[T], bool] = bool):
+        return self.then_(if_(self._arg, cond=self._cond), if_(arg, cond=cond))
+        # return self.then_(self._arg, if_(arg, cond=cond))
 
 
 def get_name(instance):
@@ -113,21 +183,25 @@ def map_arg(*funcs_or_num_funcs, **pos_funcs):
     return decorator
 
 
-def to_iter(smth) -> Iterable:
-    return smth if isinstance(smth, Iterable) and not isinstance(smth, str) else (smth, )
+def get_to_sequence(method, _type: T = None, is_type=None) -> Callable[[Any], T]:
+    if _type and is_type:
+        raise ValueError
+    is_type = if_(is_type).elif_(_type).then(is_(_type)).else_(is_(method))
+
+    def _map(to_map) -> T:
+        match to_map:
+            case _ if is_str(to_map): return method((to_map,))
+            case _ if is_type(to_map): return to_map
+            case _: return method(to_map)
+    return _map
 
 
-def to_list(smth) -> list:
-    return [smth] if isinstance(smth, str | int | float | bool | None) else list(smth)
+to_iter = get_to_sequence(tuple, Iterable)
+to_list = get_to_sequence(list)
+to_tuple = get_to_sequence(tuple)
 
-
-@curry
-def is_instance_of(reduct_func: Callable, _type: Type, iterable: Iterable):
-    return reduct_func(map(lambda elem: isinstance(elem, _type), iterable))
-
-
-is_all_instance_of = is_instance_of(all)
-is_any_instance_of = is_instance_of(any)
+is_all_instance_of = is_many(all)  # think of renaming to is_all
+is_any_instance_of = is_many(any)
 is_all_instance_of_none = is_all_instance_of(NoneType)
 
 
@@ -140,19 +214,13 @@ def is_all_cond_len(cond: Callable[[int], bool], iterable: Iterable):
 def is_all_len_n(n: int, iterable: Iterable):
     return is_all_cond_len(eq(n), iterable)
 
+is_len_n = curry(lambda n, iterable: eq(n, len(iterable)))
+is_list_of_simple_dicts = _.conjoin(is_dict, is_len_n(1))
 
-is_all_len_one = is_all_len_n(1)
-
-
-def is_list_of_simple_dicts(to_check: list) -> bool:
-    return is_all_instance_of(dict, to_check) and is_all_len_one(to_check)
+is_list_of_basics = is_many(BasicYamlType)
 
 
-def is_list_of_basics(to_check: list) -> bool:
-    return is_all_instance_of(BasicYamlType, to_check)
-
-
-is_dict_of = curry(lambda reduct_func, _type, iterable: is_instance_of(reduct_func, _type, iterable.values())) #map_arg(_3=dict.values)(is_instance_of)
+is_dict_of = curry(lambda reduct_func, _type, iterable: is_many(reduct_func, _type, iterable.values())) #map_arg(_3=dict.values)(is_instance_of)
 is_all_dict_of = is_dict_of(all)
 is_any_dict_of = is_dict_of(any)
 is_all_dict_of_none = is_all_dict_of(NoneType)
@@ -219,3 +287,14 @@ def preprocess_for_merge_to_flat_dict(to_preprocess: YamlType) -> dict[BasicYaml
         case list(): return map_conf_list_to_dict(to_preprocess)
         case basic if is_basic_yaml_type(basic): return {to_preprocess: None}
         case _: raise ValueError
+
+
+compile_regexes = c().map_(re.compile)
+compile_regexes_to_funcs = compile_regexes.pluck('search')
+join_regexes_to_juxt = flow(compile_regexes_to_funcs, _.spread(_.juxtapose))
+is_matching = curry(lambda reduc, regexes, elems: c().apply(join_regexes_to_juxt).flow(reduc)(regexes)(elems))
+# is_matching = curry(c().apply(join_regexes_to_juxt).flow)  # Unfortunately, lambda is necessary to avoid calling all args separately
+
+# compile_regexes_to_funcs = flow(compile_regexes, _.map(_.property_('search')))
+# join_regexes_to_juxt = c().apply(compile_regexes_to_funcs).apply(_.spread(_.juxtapose))
+# is_matching = curry(lambda reduc, regexes: flow(join_regexes_to_juxt(regexes), reduc))

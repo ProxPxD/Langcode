@@ -12,7 +12,7 @@ from toolz import curry, keyfilter
 import src.utils as utils
 from src.constants import ST
 from src.exceptions import ConflictingKeysException
-from src.lang_typing import Config, Kind, Resolution, UnitConf, ComplexYamlType
+from src.lang_typing import Config, Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf
 from src.language_components import Unit, Feature, Language
 from src.utils import is_, is_list
 
@@ -45,7 +45,7 @@ class UnitFeaturesSchema(IToDict, BaseModel):
 
 class UnitSchema(IToDict, BaseModel, ABC):
     @classmethod
-    def map_unit_conf_to_units(cls, elems: UnitConf, kind: Kind) -> Iterable[Unit]:
+    def map_unit_conf_to_units(cls, elems: ElemsConf, kind: Kind) -> Iterable[Unit]:
         normalized = utils.map_conf_list_to_dict(elems)
         unit_elems = list(starmap(cls.create_unit(kind), normalized.items()))  # TODO: think if initial structure of morpheme config is not required such as checking if features exist
         return unit_elems
@@ -60,8 +60,8 @@ class UnitSchema(IToDict, BaseModel, ABC):
 
 
 class MorphemesSchema(UnitSchema):
-    elems: Optional[UnitConf] = None
-    features: Optional[UnitFeaturesSchema] = None
+    elems: Optional[ElemsConf] = None
+    features: Optional[UnitFeaturesSchema | FeatureConf] = None
 
     @field_validator('elems')
     @classmethod
@@ -70,8 +70,8 @@ class MorphemesSchema(UnitSchema):
 
 
 class GraphemesSchema(UnitSchema):
-    elems: Optional[UnitConf] = None
-    features: Optional[UnitFeaturesSchema] = None
+    elems: Optional[ElemsConf] = None
+    features: Optional[UnitFeaturesSchema | FeatureConf] = None
 
     @field_validator('elems')
     def val_elems(cls, elems) -> Iterable[Unit]:

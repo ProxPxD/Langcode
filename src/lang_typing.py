@@ -10,4 +10,5 @@ Config = Dict[str, Any]  # TODO: Check recurrent hinting  # TODO: verify name an
 Kind = Literal['morpheme', 'grapheme']
 Resolution = Literal['joint', 'disjoint']
 Elems = Literal['elems']
-UnitConf = Dict[AnyStr, Any] | List[AnyStr | Any]
+ElemsConf = Dict[AnyStr, Any] | List[AnyStr | Any]
+FeatureConf = Dict[AnyStr, List[AnyStr] | None]

@@ -1,36 +1,42 @@
 from __future__ import annotations
 
-import unittest
 from unittest import SkipTest
 
+import pydash as _
 from parameterized import parameterized
 
-from tests.lang_code_test import AbstractLangCodeTest
+from tests.lang_code_test import AbstractLangCodeTest, test_generator, Generator
 
 
 # name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
 def get_func_name(method, param_num, params):
     lang_name = params[0][0]
     func_name = f'{method.__name__}_{param_num}_normalization_of'
-    normalization = AbstractLangCodeTest.all_test_properties[lang_name].normalization
-    if normalization.morphemes:
+    normalization = AbstractLangCodeTest.all_test_properties[lang_name]['normalization']
+    get = _.property_of(normalization)
+    if get('morphemes'):
         func_name += '_morphemes'
-        if normalization.morphemes.elems:
-            func_name += '_elems'
-        elif normalization.morphemes.features:
-            func_name += '_features'
-            if normalization.morphemes.features.as_list:
-                func_name += '_from_list'
-                is_single = normalization.morphemes.features.as_list.single
-                is_multiple = normalization.morphemes.features.as_list.multiple
-                if is_single and is_multiple:
-                    func_name += '_with_single_and_multiple'
-                elif is_single:
-                    func_name += '_with_single'
-                elif is_multiple:
-                    func_name += '_with_multiple'
-
+    if get('morphemes.elems'):
+        func_name += '_elems'
+    elif get('morphemes.features'):
+        func_name += '_features'
+        if get('morphemes.features.as_list'):
+            func_name += '_from_list'
+            is_single = get('morphemes.features.as_list.single')
+            is_multiple = get('morphemes.features.as_list.multiple')
+            if is_single and is_multiple:
+                func_name += '_with_single_and_multiple'
+            elif is_single:
+                func_name += '_with_single'
+            elif is_multiple:
+                func_name += '_with_multiple'
     return func_name
+
+
+@test_generator
+class DataNormalizerTestGenerator(Generator):
+    props_paths_to_add = ('normalization',)
+    lang_name_regexes = ''
 
 
 class DataNormalizerTest(AbstractLangCodeTest):
@@ -39,7 +45,7 @@ class DataNormalizerTest(AbstractLangCodeTest):
         raise SkipTest("Data normalizer does not exist anymore. It should probably be covered by the loading test")
 
     @parameterized.expand(
-        AbstractLangCodeTest.get_langs_where(lambda d: d.normalization),
+        DataNormalizerTestGenerator.generate_test_cases(),
         name_func=get_func_name,
         skip_on_empty=True,
     )

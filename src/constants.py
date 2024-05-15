@@ -28,6 +28,7 @@ class SimpleTerms:
     JOINT = 'joint'
     DISJOINT = 'disjoint'
     VAL = 'val'
+    AS_LIST = 'as_list'
 
 
 @dataclass(frozen=True)

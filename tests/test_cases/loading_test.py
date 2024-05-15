@@ -1,35 +1,45 @@
 from __future__ import annotations
 
 import traceback
-from unittest import SkipTest
 
 from parameterized import parameterized
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 from src.exceptions import InvalidYamlException, InvalidPathException, ConflictingKeysException
-from tests.lang_code_test import Paths, AbstractLangCodeTest
+from tests.lang_code_test import Paths, AbstractLangCodeTest, Generator, test_generator
 
+
+# @generator
+# class LoadingTestGenerator(Generator):
+#     test_1 = lambda x: x
+#     # generate_test_case = lambda lang_name: Generator.generate_test_case(lang_name) + AbstractLangCodeTest.all_test_properties
+#
+#     @classmethod
+#     def test_2(cls, x):
+#         return x
+#
+#     def test_3(self, x):
+#         return x
 
 def get_func_name(method, param_num, params):
     lang_name, valid_schema, should_load = params[0]
     general = AbstractLangCodeTest.all_test_properties[lang_name]
-    state = 'is_valid' if valid_schema and general.valid_restrictions else\
-            'violates_restrictions' if valid_schema and not general.valid_restrictions else\
+    state = 'is_valid' if valid_schema and general['valid_restrictions'] else\
+            'violates_restrictions' if valid_schema and not general['valid_restrictions'] else\
             'is_invalid' if not valid_schema else NotImplemented
     func_name = f'{method.__name__}_if_{lang_name}_{state}'.lower().replace('-', '_')
     return func_name
 
 
-def generate_test_cases():
-    lang_names = AbstractLangCodeTest.all_langs
-    for lang_name in lang_names:
-        properties = AbstractLangCodeTest.all_test_properties[lang_name]
-        yield lang_name, properties.valid_schema, properties.should_load
+@test_generator
+class LoadingTestGenerator(Generator):
+    props_paths_to_add = ('valid_schema', 'should_load')
+    lang_name_regexes = ''
 
 
 class LoadingTest(AbstractLangCodeTest):
     @parameterized.expand(
-        generate_test_cases(),
+        LoadingTestGenerator.generate_test_cases(),
         name_func=get_func_name
     )
     def test(self, lang_name: str, valid_schema, should_load, message=None):

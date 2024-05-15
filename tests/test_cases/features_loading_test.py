@@ -7,7 +7,7 @@ import nutree
 from parameterized import parameterized
 
 from src.langtree import LangTree
-from tests.lang_code_test import AbstractLangCodeTest
+from tests.lang_code_test import AbstractLangCodeTest, Generator, test_generator
 
 
 def get_func_name(method, param_num, params):
@@ -19,7 +19,6 @@ def get_func_name(method, param_num, params):
 
 
 def generate_test_cases():
-    feature_lang_names = AbstractLangCodeTest.get_langs_where(lambda p: p.valid_schema and p.should_load and p.features)
     for lang_name in feature_lang_names:
         yield lang_name, None, None
         continue
@@ -28,12 +27,19 @@ def generate_test_cases():
             yield lang_name, kind[:-1], LangTree.from_str_dict(units)
 
 
+@test_generator
+class FeaturesLoadingTestGenerator(Generator):
+    props_paths_to_add = ('valid_schema', 'should_load', 'features',)
+    lang_name_regexes = ''
+    get_lang_parameters = lambda _: (None, None)
+
+
 class FeaturesLoadingTest(AbstractLangCodeTest):
     def setUp(self) -> None:
         raise SkipTest('Test should have a better way to gather the features')
 
     @parameterized.expand(
-        list(generate_test_cases()),
+        FeaturesLoadingTestGenerator.generate_test_cases(),
         name_func=get_func_name
     )
     def test(self, lang_name: str, kind: str, expected_features: LangTree):
