@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import pydash as _
 from parameterized import parameterized
 
-from src.dot_dict import DotDict
 from tests.lang_code_test import AbstractLangCodeTest, yaml_types, Generator, test_generator
-import pydash as _
 
 
 def get_func_name(method, param_num, params):

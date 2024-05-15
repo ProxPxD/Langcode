@@ -4,7 +4,6 @@ from pathlib import Path
 
 from parameterized import parameterized
 
-from src.dot_dict import DotDict
 from tests.lang_code_test import AbstractLangCodeTest, yaml_types, test_generator, Generator
 
 
@@ -26,12 +25,12 @@ def generate_test_cases():
     for lang_name in lang_names:
         try:
             raw_data = AbstractLangCodeTest.data_loader.load(Path(lang_name) / '')
-            dotdict = DotDict(data)
+            dotdict = {}
         except:
             continue
 
         unit_names = 'morphemes', 'graphemes'
-        all_units = {unit_name: dotdict[unit_name].elems or DotDict() for unit_name in unit_names}
+        all_units = {unit_name: dotdict[unit_name].elems or {} for unit_name in unit_names}
         for kind, units in all_units.items():
             expected_units = {key: val for key, val in units.expected.items() if key != 'skip'}
             for name, expected in expected_units.items():

@@ -12,10 +12,10 @@ import yaml
 from pydash import chain as c
 from toolz import valfilter
 from toolz.curried import *
+from typing_extensions import deprecated
 
 from src import utils
 from src.constants import ST
-from src.dot_dict import DotDict
 from src.lang_factory import LangFactory
 from src.language_components import Language
 from src.loaders import LangDataLoader
@@ -68,7 +68,8 @@ class AbstractLangCodeTest(AbstractTest):
         # cls.all_test_properties: dict[str, dict] = {lang: DotDict(data.get('general'), defaults=cls.defaults).test_properties for lang, data in cls.all_data.items()}
 
     @classmethod
-    def get_langs_where(cls, condition: Callable[[DotDict], bool] = lambda _: True) -> Iterable[str]:
+    @deprecated('Think if implement or remove')
+    def get_langs_where(cls, condition: Callable[[dict], bool] = lambda _: True) -> Iterable[str]:
         return valfilter(condition, cls.all_test_properties).keys()
 
 
