@@ -28,7 +28,42 @@ class IKind(StructuredNode):
     kind = StringProperty()
 
 
-class LangCodeNode(IName, IKind, StructuredNode):
+class IProperties:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__custom_property_names: set = set()
+
+    @property
+    def custom_property_names(self) -> set:
+        return self.__custom_property_names.copy()
+
+    @property
+    def _core_property_names(self) -> Iterable[str]:
+        interface_to_name = c().get('__name__').tail().snake_case()
+        interfaces_to_names = c().map_(interface_to_name)
+        return interfaces_to_names((IName, IKind))
+
+    def get_property(self, name: str) -> YamlType:
+        if name not in self.custom_property_names:
+            raise PropertyNotFound(self, name)
+        return self.__getattribute__(name)
+
+    @exceptions_to()
+    def has_property(self, name: str) -> bool:
+        return self.get_property(name)
+
+    def set_property(self, name: str, val: YamlType = None) -> None:
+        if name not in self.custom_property_names and hasattr(self, name):
+            raise CannotCreatePropertyException(name)
+        self.__custom_property_names.add(name)
+        setattr(self, name, val)
+
+    def remove_property(self, name: str) -> None:
+        if self.has_property(name):
+            self.__delattr__(name)
+
+
+class LangCodeNode(IName, IKind, StructuredNode, IProperties):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
@@ -71,35 +106,6 @@ class LangCodeNode(IName, IKind, StructuredNode):
     @adjust_str('.self')
     def __repr__(self):
         return f'{self.__class__.__name__}({self.name=}, {self.kind=})'
-
-    @property
-    def custom_property_names(self) -> set:
-        return self.__custom_property_names.copy()
-
-    @property
-    def _core_property_names(self) -> Iterable[str]:
-        interface_to_name = c().get('__name__').tail().snake_case()
-        interfaces_to_names = c().map_(interface_to_name)
-        return interfaces_to_names((IName, IKind))
-
-    def get_property(self, name: str) -> YamlType:
-        if name not in self.custom_property_names:
-            raise PropertyNotFound(self, name)
-        return self.__getattribute__(name)
-
-    @exceptions_to()
-    def has_property(self, name: str) -> bool:
-        return self.get_property(name)
-
-    def set_property(self, name: str, val: YamlType = None) -> None:
-        if name not in self.custom_property_names and hasattr(self, name):
-            raise CannotCreatePropertyException(name)
-        self.__custom_property_names.add(name)
-        setattr(self, name, val)
-
-    def remove_property(self, name: str) -> None:
-        if self.has_property(name):
-            self.__delattr__(name)
 
 
 class Featuring(StructuredRel):
