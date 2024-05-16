@@ -15,7 +15,7 @@ from src import utils
 from src.constants import CT
 from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException, CannotCreatePropertyException, PropertyNotFound
 from src.lang_typing import YamlType, Config, BasicYamlType
-from src.utils import is_dict, adjust_str, exceptions_to_bool
+from src.utils import is_dict, adjust_str, exceptions_to
 
 config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
 
@@ -64,7 +64,7 @@ class LangCodeNode(IName, IKind, StructuredNode):
         return None
 
     @classmethod
-    @exceptions_to_bool(true=AmbiguousNameException, false=DoesNotExist, if_none=True)
+    @exceptions_to(true=AmbiguousNameException, false=DoesNotExist, if_none=True)
     def is_node_existing(cls, **kwargs):  # The name to minimalize the chances for the name to be a property
         return cls.get_from_all(raises=True, **kwargs)
 
@@ -87,7 +87,7 @@ class LangCodeNode(IName, IKind, StructuredNode):
             raise PropertyNotFound(self, name)
         return self.__getattribute__(name)
 
-    @exceptions_to_bool()
+    @exceptions_to()
     def has_property(self, name: str) -> bool:
         return self.get_property(name)
 

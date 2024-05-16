@@ -319,8 +319,18 @@ is_matching = curry(lambda reduc, regexes, elems: c().apply(join_regexes_to_juxt
 # join_regexes_to_juxt = c().apply(compile_regexes_to_funcs).apply(_.spread(_.juxtapose))
 # is_matching = curry(lambda reduc, regexes: flow(join_regexes_to_juxt(regexes), reduc))
 
+'Works for bools, but not necesssary completly for other types'
+def exceptions_to(*,
+        true: vec_seq = tuple(),
+        false: vec_seq = tuple(),
+        other: bool | None = Empty(),
+        exceptions_to_false: bool = None,
+        flow_to_bool: bool = None,
+        if_none: bool | None = Empty(),
+        if_true: bool = True,
+        if_false: bool = False,
+    ):
 
-def exceptions_to_bool(*, true: vec_seq = tuple(), false: vec_seq = tuple(), other: bool | None = Empty(), if_none: bool | None = Empty(), exceptions_to_false: bool = None, flow_to_bool: bool = None):
     switch_if_empty = lambda val, else_: else_ if is_empty(val) else val
 
     if exceptions_to_false is not None and flow_to_bool is not None:
@@ -356,9 +366,9 @@ def exceptions_to_bool(*, true: vec_seq = tuple(), false: vec_seq = tuple(), oth
             try:
                 result = f(*args, **kwargs)
             except true:
-                return True
+                return if_true
             except false:
-                return False
+                return if_false
             except Exception:
                 if other is None:
                     raise
