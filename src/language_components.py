@@ -4,22 +4,21 @@ from typing import Iterable, Dict, Optional
 
 import neomodel
 # noinspection PyUnresolvedReferences
-from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, \
-    NodeMeta  # For some reason, the neomodel requires to import it
+from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, NodeMeta, \
+    config  # For some reason, the neomodel requires to import it
+from pydash import chain as c
 
 from src import utils
-from src.constants import ST, CT
+from src.constants import CT
 from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException
-from src.lang_typing import YamlType, Kind, Config, BasicYamlType
-from src.utils import is_dict
+from src.lang_typing import YamlType, Config, BasicYamlType
+from src.utils import is_dict, adjust_str
 
-
-def adjust_str(old: str, new: str = ''):
-    return lambda f: lambda *args, **kwargs: f(*args, **kwargs).replace(old, new)
+config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
 
 
 class IName(StructuredNode):
-    name = StringProperty(unique_index=True, required=True)
+    name = StringProperty(required=True)
 
 
 class IKind(StructuredNode):
@@ -101,9 +100,9 @@ class Unit(LangCodeNode):
         return paths
 
     def _get_all_nth(self, feature_name: str, n: int) -> Iterable[YamlType]:
-        paths = self._get_paths_down_for(feature_name)
         n -= int(n < 0)
-        features = map(lambda p: p.nodes[:-1][n], paths)
+        paths = self._get_paths_down_for(feature_name)
+        features = c(paths).drop_right().nth(n).value()
         return features
 
     def get_all_leafs(self, feature_name: str) -> Iterable[YamlType]:
@@ -112,19 +111,17 @@ class Unit(LangCodeNode):
     def get_all_next(self, feature_name: str) -> Iterable[YamlType]:
         return self._get_all_nth(feature_name, 1)
 
-    def get_one_next(self, feature_name: str) -> YamlType:
-        next_features = list(self.get_all_next(feature_name))
-        if not next_features:
-            raise DoNotExistException(feature_name, self.kind)
-        if len(next_features) > 1:
-            raise AmbiguousSubFeaturesException(feature_name, self.kind)
-        return next_features[1]
-
     def get_next(self, feature_name: str) -> YamlType:
         match len(all_nexts := list(self.get_all_next(feature_name))):
             case 0: return None
             case 1: return all_nexts[0]
             case _: return all_nexts
+
+    def get_one_next(self, feature_name: str) -> YamlType:
+        match next_node := self.get_next(feature_name):
+            case None: raise DoNotExistException(feature_name, self.kind)
+            case list(): raise AmbiguousSubFeaturesException(feature_name, self.kind)
+            case _: return next_node
 
     def is_(self, feature_name: str) -> bool:
         paths = self._get_paths_down_for(feature_name)
@@ -140,7 +137,7 @@ class Unit(LangCodeNode):
         # TODO: think of and analyze a critical section to differentiate the exceptions of
         #  - non-existance
         #  - non-connnection
-        #  PS: add retries
+        #  PS: add retries as decorator
         feature = Feature._get_from_all(name=feature_name, kind=self.kind, raises=False)
         featuring_feature = Feature._get_from_all(name=val, kind=self.kind, raises=False)
         if not feature:
@@ -154,56 +151,3 @@ class Unit(LangCodeNode):
         else:
             raise ValueError
 
-
-class Language(IName):  # TODO: think if should be neo4j node
-    def __init__(self, name: str):
-        super().__init__(name=name)
-        self._units: dict[str, dict[str, list[Unit]]] = {}
-        self._features: dict[str, dict[str, Feature]] = {}
-
-    def __repr__(self):
-        return f'{self.name}({self._units=})'
-
-    def __str__(self):
-        return self.name
-
-    def get_units(self, kind: str = None) -> dict:
-        return self._units[kind] if kind and self._units.get(kind) else self._units
-
-    @property
-    def units(self) -> dict:
-        return self._units
-
-    @property
-    def morphemes(self) -> dict[str, list[Unit]]:
-        return self._units.get(ST.MORPHEME, [])
-
-    @property
-    def graphemes(self) -> dict[str, list[Unit]]:
-        return self._units.get(ST.GRAPHEME, [])
-
-    def add_morpheme(self, name: str, config: dict) -> None:
-        self.add_unit(name, config, ST.MORPHEME)
-
-    def add_grapheme(self, name: str, config: dict) -> None:
-        self.add_unit(name, config, ST.GRAPHEME)
-
-    def add_unit(self, name: str, config: dict, kind: str) -> None:
-        unit = Unit(name=name, kind=kind, features=config)
-        self._units.setdefault(kind, {}).setdefault(name, []).append(unit)
-
-    def add_grapheme_feature(self, name: str, config: dict) -> None:
-        self.add_feature(name, config, ST.GRAPHEME)
-
-    def add_morpheme_feature(self, name: str, config: dict) -> None:
-        self.add_feature(name, config, ST.MORPHEME)
-
-    def add_feature(self, name, config: YamlType, kind: Kind) -> None:
-        if self._is_complex_feature(config):
-            for subname, subconfig in config.items():
-                self.add_feature(subname, subconfig, kind)
-        feature = Feature(name=name, kind=kind, tree=config)
-        self._features.setdefault(kind, {}).setdefault(name, feature)
-
-    def _is_complex_feature(self, config: YamlType) -> bool:
-        return isinstance(config, dict)

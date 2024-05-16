@@ -9,13 +9,7 @@ from pydash import spread
 from toolz.curried.operator import *
 
 print(
-    _.property_of({'a': {
-        'b': {
-            'c': 4
-        }
-    },
-
-    })('a.b.c')
+    _.nth(list(range(5)), -2)
 )
 
 

@@ -95,7 +95,10 @@ class if_:
 
     def elif_(self, arg: T, cond: Callable[[T], bool] = bool):
         return self.then_(if_(self._arg, cond=self._cond), if_(arg, cond=cond))
-        # return self.then_(self._arg, if_(arg, cond=cond))
+
+
+def adjust_str(old: str, new: str = ''):
+    return lambda f: lambda *args, **kwargs: f(*args, **kwargs).replace(old, new)
 
 
 def get_name(instance):
@@ -116,7 +119,7 @@ def reapply(fn, arg, n=None, until=None, as_long=None):
 to_last_list = lambda elem: reapply(lambda c: c[0], elem, as_long=lambda c: isinstance(c, list) and len(c) == 1 and isinstance(c[0], list))
 
 
-class DictClass:
+class DictClass:  # TODO - base on already implemented probably
     def __getitem__(self, item):
         return self.__dict__[item]
 
@@ -136,7 +139,7 @@ class DictClass:
 
 
 @curry
-def map_n(func: Callable, iterable: Iterable, n: int | tuple[int]):
+def map_nths(func: Callable, iterable: Iterable, n: int | tuple[int]):
     to_change = to_iter(n)
     return (func(elem) if i in to_change else elem for i, elem in enumerate(iterable))
 
@@ -210,13 +213,18 @@ is_all_instance_of_none = is_all_instance_of(NoneType)
 
 
 @curry
-def is_all_cond_len(cond: Callable[[int], bool], iterable: Iterable):
-    return all(map(fjoin(len, cond), iterable))
+def is_cond_len(reduc: Callable[[Iterable], bool], cond: Callable[[int], bool], iterable: Iterable):
+    return reduc(map(flow(len, cond), iterable))
+
+
+is_all_cond_len = is_cond_len(all)
+is_any_cond_len = is_cond_len(any)
 
 
 @curry
 def is_all_len_n(n: int, iterable: Iterable):
     return is_all_cond_len(eq(n), iterable)
+
 
 is_len_n = curry(lambda n, iterable: eq(n, len(iterable)))
 is_list_of_simple_dicts = _.conjoin(is_dict, is_len_n(1))
