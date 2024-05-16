@@ -16,12 +16,20 @@ from src.lang_typing import BasicYamlType, YamlType
 fjoin = compose = pipeline = compose_left
 revarg = curry(lambda *args, **kwargs: lambda f: f(*args, **kwargs))
 
+
+class Empty(object):
+    pass
+
+
 T = TypeVar('T')
 K = TypeVar('K')
 G = TypeVar('G')
 
+vec_seq = Sequence[T] | T
+
 is_ = curry(flip(isinstance))  # overrrides operator
 is_not = curry(_.negate(is_))
+is_empty = is_(Empty)
 is_dict = is_(dict)
 is_list = is_(list)
 is_int = is_(int)
@@ -310,3 +318,53 @@ is_matching = curry(lambda reduc, regexes, elems: c().apply(join_regexes_to_juxt
 # compile_regexes_to_funcs = flow(compile_regexes, _.map(_.property_('search')))
 # join_regexes_to_juxt = c().apply(compile_regexes_to_funcs).apply(_.spread(_.juxtapose))
 # is_matching = curry(lambda reduc, regexes: flow(join_regexes_to_juxt(regexes), reduc))
+
+
+def exceptions_to_bool(*, true: vec_seq = tuple(), false: vec_seq = tuple(), other: bool | None = Empty(), if_none: bool | None = Empty(), exceptions_to_false: bool = None, flow_to_bool: bool = None):
+    switch_if_empty = lambda val, else_: else_ if is_empty(val) else val
+
+    if exceptions_to_false is not None and flow_to_bool is not None:
+        raise ValueError(f'"{exceptions_to_false.__name__}" and "{flow_to_bool.__name__}" cannot be set together')
+    elif exceptions_to_false is not None:
+        false = Exception
+        if_none = None
+        other = switch_if_empty(other, False)
+    elif flow_to_bool is not None:
+        false = Exception
+        if_none = True
+        other = switch_if_empty(other, False)
+    elif not true and not false:
+        false = Exception
+        if_none = switch_if_empty(if_none, True)
+        other = switch_if_empty(other, False)
+    elif true and false:
+        if_none = switch_if_empty(if_none, None)
+        other = switch_if_empty(other, None)
+    elif false:
+        if_none = switch_if_empty(if_none, True)
+        other = switch_if_empty(other, None)
+    elif true:
+        if_none = switch_if_empty(if_none, False)
+        other = switch_if_empty(other, False)
+    else:
+        raise ValueError
+
+    true, false = c().map_(to_tuple)((true, false))
+
+    def decorator(f):
+        def wrapper(*args, **kwargs):
+            try:
+                result = f(*args, **kwargs)
+            except true:
+                return True
+            except false:
+                return False
+            except Exception:
+                if other is None:
+                    raise
+                return other
+            if if_none is None:
+                return result
+            return if_none
+        return wrapper
+    return decorator

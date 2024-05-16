@@ -1,18 +1,21 @@
 from __future__ import annotations
 
+import operator as op
 from typing import Iterable, Dict, Optional
 
 import neomodel
+import pydash as _
 # noinspection PyUnresolvedReferences
-from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, NodeMeta, \
-    config  # For some reason, the neomodel requires to import it
+from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, NodeMeta, config, \
+    Property  # For some reason, the neomodel requires to import it
 from pydash import chain as c
+from toolz import keyfilter, itemmap
 
 from src import utils
 from src.constants import CT
-from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException
+from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException, CannotCreatePropertyException, PropertyNotFound
 from src.lang_typing import YamlType, Config, BasicYamlType
-from src.utils import is_dict, adjust_str
+from src.utils import is_dict, adjust_str, exceptions_to_bool
 
 config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
 
@@ -32,15 +35,21 @@ class LangCodeNode(IName, IKind, StructuredNode):
     # def main_label(cls) -> str:
     #     return cls.__class__.__name__
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.__custom_property_names: set = set()
+
     def __format__(self, format_spec) -> str:
         match format_spec:
             case 'label' | 'l': return self.__class__.__name__
+            case 'kind': return str(self.kind)
+            case 'name': return str(self.name)
             case 'properties' | 'props': return f'{{ name: {self.name}, kind: {self.kind} }}'
             case 'node' | 'n': return f'(:{self:label} {self:properties})'
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')
 
     @classmethod
-    def _get_from_all(cls, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
+    def get_from_all(cls, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
         try:
             return cls.nodes.get(**kwargs)
         except MultipleNodesReturned:
@@ -54,9 +63,43 @@ class LangCodeNode(IName, IKind, StructuredNode):
             raise exception
         return None
 
+    @classmethod
+    @exceptions_to_bool(true=AmbiguousNameException, false=DoesNotExist, if_none=True)
+    def is_langcode_node_existing(cls, **kwargs):  # The name to minimalize the chances for the name to be a property
+        return cls.get_from_all(raises=True, **kwargs)
+
     @adjust_str('.self')
     def __repr__(self):
         return f'{self.__class__.__name__}({self.name=}, {self.kind=})'
+
+    @property
+    def custom_property_names(self) -> set:
+        return self.__custom_property_names.copy()
+
+    @property
+    def _core_property_names(self) -> Iterable[str]:
+        interface_to_name = c().get('__name__').tail().snake_case()
+        interfaces_to_names = c().map_(interface_to_name)
+        return interfaces_to_names((IName, IKind))
+
+    def get_property(self, name: str) -> YamlType:
+        if name not in self.custom_property_names:
+            raise PropertyNotFound(self, name)
+        return self.__getattribute__(name)
+
+    @exceptions_to_bool()
+    def has_property(self, name: str) -> bool:
+        return self.get_property(name)
+
+    def set_property(self, name: str, val: YamlType = None) -> None:
+        if name not in self.custom_property_names and hasattr(self, name):
+            raise CannotCreatePropertyException(name)
+        self.__custom_property_names.add(name)
+        setattr(self, name, val)
+
+    def remove_property(self, name: str) -> None:
+        if self.has_property(name):
+            self.__delattr__(name)
 
 
 class Featuring(StructuredRel):
@@ -94,7 +137,7 @@ class Unit(LangCodeNode):
     )
 
     def _get_paths_down_for(self, feature_name: str) -> YamlType:
-        feature: Feature = Feature._get_from_all(feature_name, self.kind)
+        feature: Feature = Feature.get_from_all(feature_name, self.kind)
         feature_hierarchy_part = f'{feature:node}-[:{IsSuperOf.rel_name}*]-(:{feature:label})'
         paths: list[NeomodelPath] = neomodel.db.cypher_query(f'MATCH p = {feature_hierarchy_part}<-[:{Featuring.rel_name}]-{self:node} return p')
         return paths
@@ -127,19 +170,27 @@ class Unit(LangCodeNode):
         paths = self._get_paths_down_for(feature_name)
         return bool(paths)
 
-    def load_conf(self, conf: Config) -> None:
-        conf = conf or {}  # TODO: think of renaming to update and/or handling changing the conf. Compare with "connect_feature"
-        for feature_name, val in conf.items():
-            self.connect_feature(feature_name, val)
+    def set_conf(self, conf: Config) -> None:
+        self.clean_conf()
+        self.update_conf(conf)
 
-    def connect_feature(self, feature_name: str, val: BasicYamlType | Dict) -> None:
+    def clean_conf(self) -> None:
+        c(self.__class__.__all_properties__).keys().without(self._core_property_names).for_each(self.__delattr__)  # TODO: make sure that for_each executes the statement
+
+    def update_conf(self, conf: Config) -> None:
+        itemmap(_.spread(self.set_conf_entry), conf or {})
+
+    def set_conf_entry(self, key: str, val: YamlType) -> None:
+        self
+
+    def set_feature(self, feature_name: str, val: BasicYamlType | Dict) -> None:
         # TODO: think how to handle lists
         # TODO: think of and analyze a critical section to differentiate the exceptions of
         #  - non-existance
         #  - non-connnection
         #  PS: add retries as decorator
-        feature = Feature._get_from_all(name=feature_name, kind=self.kind, raises=False)
-        featuring_feature = Feature._get_from_all(name=val, kind=self.kind, raises=False)
+        feature = Feature.get_from_all(name=feature_name, kind=self.kind, raises=False)
+        featuring_feature = Feature.get_from_all(name=val, kind=self.kind, raises=False)
         if not feature:
             setattr(self, feature_name, val)  # Either a dict or not
         elif feature and featuring_feature:
@@ -147,7 +198,7 @@ class Unit(LangCodeNode):
         elif feature and not featuring_feature and not is_dict(val):
             self.features.manager.connect(feature, {'val': val})
         elif feature and not featuring_feature and is_dict(val):
-            self.load_conf(val)  # TODO: add validation by feature type
+            self.update_conf(val)  # TODO: add validation by feature type
         else:
             raise ValueError
 

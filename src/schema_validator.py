@@ -55,7 +55,7 @@ class UnitSchema(IToDict, BaseModel, ABC):
     def create_unit(cls, kind: Kind, name: str, conf: dict) -> Unit:
         # TODO: Connect to features
         unit = Unit(name=name, kind=kind)
-        unit.load_conf(conf)
+        unit.update_conf(conf)
         return unit
 
 
@@ -102,7 +102,7 @@ class FeatureSchema(BaseModel):
             raise ConflictingKeysException(direct_definitions)
 
         data = keyfilter(allowed_keys.__contains__, data)
-        data[ST.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get(ST.ELEMS, []))))
+        data[ST.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get_property(ST.ELEMS, []))))
         return data
 
     @model_validator(mode='before')

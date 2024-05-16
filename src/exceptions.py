@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+from typing import Callable
+import pydash as _
 
 
 class LangCodeException(Exception):
@@ -18,18 +20,27 @@ class InvalidYamlException(LangCodeException):
         return ''.join(self.args)
 
 
-class AmbiguousNameException(LangCodeException):
-    def __init__(self, name, kind, *args, **kwargs):
-        self.name = name
-        self.kind = kind
-        self.args = (f'There exist more than one {kind} {name} (Additional: {kwargs})', ) + args
+class IDynamicMessageException:
+    _make_msg: Callable[[...], str] = lambda *args, **kwargs: ''
+
+    def __init__(self, *args, **kwargs):
+        self.msg = self._make_msg(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
-class DoNotExistException(LangCodeException):
-    def __init__(self, name, kind=None, *args, **kwargs):
+class INameKindException(IDynamicMessageException):
+     def __init__(self, name, kind, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.name = name
         self.kind = kind
-        self.args = (f'{kind} {name} has not been found (Additional: {kwargs})', ) + args
+
+
+class AmbiguousNameException(LangCodeException, INameKindException):
+    _make_msg = lambda name, kind, *args, **kwargs: f'There exist more than one {kind} {name}' + (f' (Additional: {kwargs})' if kwargs else '')
+
+
+class DoNotExistException(LangCodeException, INameKindException):
+    _make_msg = lambda name, kind, *args, **kwargs: f'{kind} {name} has not been found' + (f' (Additional: {kwargs})' if kwargs else '')
 
 
 class AmbiguousSubFeaturesException(LangCodeException):
@@ -40,6 +51,14 @@ class AmbiguousSubFeaturesException(LangCodeException):
 
 class ConflictingKeysException(LangCodeException):
     pass
+
+
+class CannotCreatePropertyException(LangCodeException, IDynamicMessageException):
+    _make_msg = lambda prop_name: f'Property cannot be set named {prop_name}'
+
+
+class PropertyNotFound(LangCodeException, IDynamicMessageException):
+    _make_msg = lambda node, prop_name: f'{node:kind} {node:label} {node:name} has no property {prop_name}'
 
 
 @dataclass

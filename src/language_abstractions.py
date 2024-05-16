@@ -17,7 +17,7 @@ class Language(IName):  # TODO: think if should be neo4j node
         return self.name
 
     def get_units(self, kind: str = None) -> dict:
-        return self._units[kind] if kind and self._units.get(kind) else self._units
+x        return self._units[kind] if kind and self._units.get_property(kind) else self._units
 
     @property
     def units(self) -> dict:
@@ -25,11 +25,11 @@ class Language(IName):  # TODO: think if should be neo4j node
 
     @property
     def morphemes(self) -> dict[str, list[Unit]]:
-        return self._units.get(ST.MORPHEME, [])
+        return self._units.get_property(ST.MORPHEME, [])
 
     @property
     def graphemes(self) -> dict[str, list[Unit]]:
-        return self._units.get(ST.GRAPHEME, [])
+        return self._units.get_property(ST.GRAPHEME, [])
 
     def add_morpheme(self, name: str, config: dict) -> None:
         self.add_unit(name, config, ST.MORPHEME)
