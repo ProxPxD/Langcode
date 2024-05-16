@@ -28,7 +28,7 @@ class IKind(StructuredNode):
     kind = StringProperty()
 
 
-class IProperties:
+class IPropertied:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__custom_property_names: set = set()
@@ -63,7 +63,7 @@ class IProperties:
             self.__delattr__(name)
 
 
-class LangCodeNode(IName, IKind, StructuredNode, IProperties):
+class LangCodeNode(IName, IKind, StructuredNode, IPropertied):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
