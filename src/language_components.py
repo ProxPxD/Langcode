@@ -65,7 +65,7 @@ class LangCodeNode(IName, IKind, StructuredNode):
 
     @classmethod
     @exceptions_to_bool(true=AmbiguousNameException, false=DoesNotExist, if_none=True)
-    def is_langcode_node_existing(cls, **kwargs):  # The name to minimalize the chances for the name to be a property
+    def is_node_existing(cls, **kwargs):  # The name to minimalize the chances for the name to be a property
         return cls.get_from_all(raises=True, **kwargs)
 
     @adjust_str('.self')
