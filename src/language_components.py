@@ -84,9 +84,15 @@ class Feature(LangCodeNode, INeo4jHierarchied):
 
 class IFeatured(LangCodeNode):
     def get_feature(self, feature_name: str) -> Feature:
-        return Feature.get_one_next_up_for(name=feature_name, kind=self.kind, __connected_node=self)
+        raise NotImplementedError
+        # return Feature.get_one_next_up_for(name=feature_name, kind=self.kind, __connected_node=self)
 
-    # def set_feature(self):
+    def has_feature(self, feature_name: str):
+        raise NotImplementedError
+
+    def set_feature(self, feature_name: str, feature_val: YamlType) -> None:
+        raise NotImplementedError
+
 
 class Unit(LangCodeNode, IFeatured):
     features = RelationshipTo(
