@@ -1,69 +1,25 @@
 from __future__ import annotations
 
-import operator as op
-from typing import Iterable, Dict, Optional
+from typing import Dict, Optional
 
-import neomodel
 import pydash as _
 # noinspection PyUnresolvedReferences
 from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, NodeMeta, config, \
     Property  # For some reason, the neomodel requires to import it
 from pydash import chain as c
-from toolz import keyfilter, itemmap
+from toolz import itemmap
 
 from src import utils
 from src.constants import CT
-from src.exceptions import AmbiguousNameException, DoNotExistException, AmbiguousSubFeaturesException, CannotCreatePropertyException, PropertyNotFound
+from src.exceptions import AmbiguousNameException, DoNotExistException
 from src.lang_typing import YamlType, Config, BasicYamlType
+from src.neomodel_mixins import ICorePropertied, INeo4jFormatable, INeo4jHierarchied
 from src.utils import is_dict, adjust_str, exceptions_to
 
 config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
 
 
-class IName(StructuredNode):
-    name = StringProperty(required=True)
-
-
-class IKind(StructuredNode):
-    kind = StringProperty()
-
-
-class IPropertied:
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__custom_property_names: set = set()
-
-    @property
-    def custom_property_names(self) -> set:
-        return self.__custom_property_names.copy()
-
-    @property
-    def _core_property_names(self) -> Iterable[str]:
-        interface_to_name = c().get('__name__').tail().snake_case()
-        interfaces_to_names = c().map_(interface_to_name)
-        return interfaces_to_names((IName, IKind))
-
-    def get_property(self, name: str) -> YamlType:
-        if name not in self.custom_property_names:
-            raise PropertyNotFound(self, name)
-        return self.__getattribute__(name)
-
-    @exceptions_to()
-    def has_property(self, name: str) -> bool:
-        return self.get_property(name)
-
-    def set_property(self, name: str, val: YamlType = None) -> None:
-        if name not in self.custom_property_names and hasattr(self, name):
-            raise CannotCreatePropertyException(name)
-        self.__custom_property_names.add(name)
-        setattr(self, name, val)
-
-    def remove_property(self, name: str) -> None:
-        if self.has_property(name):
-            self.__delattr__(name)
-
-
-class LangCodeNode(IName, IKind, StructuredNode, IPropertied):
+class LangCodeNode(ICorePropertied, INeo4jFormatable, StructuredNode):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
@@ -73,15 +29,6 @@ class LangCodeNode(IName, IKind, StructuredNode, IPropertied):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.__custom_property_names: set = set()
-
-    def __format__(self, format_spec) -> str:
-        match format_spec:
-            case 'label' | 'l': return self.__class__.__name__
-            case 'kind': return str(self.kind)
-            case 'name': return str(self.name)
-            case 'properties' | 'props': return f'{{ name: {self.name}, kind: {self.kind} }}'
-            case 'node' | 'n': return f'(:{self:label} {self:properties})'
-            case _: raise ValueError(f'Format spec {format_spec} has not been defined')
 
     @classmethod
     def get_from_all(cls, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
@@ -105,7 +52,7 @@ class LangCodeNode(IName, IKind, StructuredNode, IPropertied):
 
     @adjust_str('.self')
     def __repr__(self):
-        return f'{self.__class__.__name__}({self.name=}, {self.kind=})'
+        return f'{self:label}({self.name=}, {self.kind=})'
 
 
 class Featuring(StructuredRel):
@@ -116,7 +63,7 @@ class IsSuperOf(StructuredRel):
     rel_name = 'IS_SUPER'
 
 
-class Feature(LangCodeNode):
+class Feature(LangCodeNode, INeo4jHierarchied):
     type = StringProperty(
         choices=utils.map_conf_list_to_dict(CT.FEATURE_TYPES)
     )
@@ -135,42 +82,18 @@ class Feature(LangCodeNode):
         return not self.children.manager.is_connected()
 
 
-class Unit(LangCodeNode):
+class IFeatured(LangCodeNode):
+    def get_feature(self, feature_name: str) -> Feature:
+        return Feature.get_one_next_up_for(name=feature_name, kind=self.kind, __connected_node=self)
+
+    # def set_feature(self):
+
+class Unit(LangCodeNode, IFeatured):
     features = RelationshipTo(
         cls_name=Feature.__class__.__name__,
         relation_type=Featuring.rel_name,
         model=Featuring,
     )
-
-    def _get_paths_down_for(self, feature_name: str) -> YamlType:
-        feature: Feature = Feature.get_from_all(feature_name, self.kind)
-        feature_hierarchy_part = f'{feature:node}-[:{IsSuperOf.rel_name}*]-(:{feature:label})'
-        paths: list[NeomodelPath] = neomodel.db.cypher_query(f'MATCH p = {feature_hierarchy_part}<-[:{Featuring.rel_name}]-{self:node} return p')
-        return paths
-
-    def _get_all_nth(self, feature_name: str, n: int) -> Iterable[YamlType]:
-        n -= int(n < 0)
-        paths = self._get_paths_down_for(feature_name)
-        features = c(paths).drop_right().nth(n).value()
-        return features
-
-    def get_all_leafs(self, feature_name: str) -> Iterable[YamlType]:
-        return self._get_all_nth(feature_name, -1)
-
-    def get_all_next(self, feature_name: str) -> Iterable[YamlType]:
-        return self._get_all_nth(feature_name, 1)
-
-    def get_next(self, feature_name: str) -> YamlType:
-        match len(all_nexts := list(self.get_all_next(feature_name))):
-            case 0: return None
-            case 1: return all_nexts[0]
-            case _: return all_nexts
-
-    def get_one_next(self, feature_name: str) -> YamlType:
-        match next_node := self.get_next(feature_name):
-            case None: raise DoNotExistException(feature_name, self.kind)
-            case list(): raise AmbiguousSubFeaturesException(feature_name, self.kind)
-            case _: return next_node
 
     def is_(self, feature_name: str) -> bool:
         paths = self._get_paths_down_for(feature_name)
@@ -181,7 +104,7 @@ class Unit(LangCodeNode):
         self.update_conf(conf)
 
     def clean_conf(self) -> None:
-        c(self.__class__.__all_properties__).keys().without(self._core_property_names).for_each(self.__delattr__)  # TODO: make sure that for_each executes the statement
+        c(self.__class__.__all_properties__).keys().without(self.core_property_names).for_each(self.__delattr__)  # TODO: make sure that for_each executes the statement
 
     def update_conf(self, conf: Config) -> None:
         itemmap(_.spread(self.set_conf_entry), conf or {})

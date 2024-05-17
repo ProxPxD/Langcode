@@ -378,3 +378,8 @@ def exceptions_to(*,
             return if_none
         return wrapper
     return decorator
+
+
+@curry
+def map_to_dict(iterable: Iterable[T], func: Callable[[T], K]) -> dict[T, K]:
+    return {elem: func(elem) for elem in iterable}
