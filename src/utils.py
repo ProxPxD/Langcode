@@ -4,7 +4,7 @@ import re
 from copy import copy, deepcopy
 from operator import *
 from types import NoneType
-from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence
+from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence, Union
 
 import pydash as _
 from pydash import flow, chain as c
@@ -12,6 +12,8 @@ from toolz.curried import *
 from toolz.curried.operator import *
 
 from src.lang_typing import BasicYamlType, YamlType
+
+from decoratzor import decorator
 
 fjoin = compose = pipeline = compose_left
 revarg = curry(lambda *args, **kwargs: lambda f: f(*args, **kwargs))
@@ -27,7 +29,7 @@ G = TypeVar('G')
 
 vec_seq = Sequence[T] | T
 
-is_ = curry(flip(isinstance))  # overrrides operator
+is_ = curry(flip(isinstance))  # overrides operator
 is_not = curry(_.negate(is_))
 is_empty = is_(Empty)
 is_dict = is_(dict)
@@ -218,6 +220,8 @@ to_tuple = get_to_sequence(tuple)
 is_all_instance_of = is_many(all)  # think of renaming to is_all
 is_any_instance_of = is_many(any)
 is_all_instance_of_none = is_all_instance_of(NoneType)
+is_any_instance_of_none = is_any_instance_of(NoneType)
+is_nothing_instance_of_none = _.negate(is_any_instance_of_none)
 
 
 @curry
@@ -319,17 +323,18 @@ is_matching = curry(lambda reduc, regexes, elems: c().apply(join_regexes_to_juxt
 # join_regexes_to_juxt = c().apply(compile_regexes_to_funcs).apply(_.spread(_.juxtapose))
 # is_matching = curry(lambda reduc, regexes: flow(join_regexes_to_juxt(regexes), reduc))
 
-'Works for bools, but not necesssary completly for other types'
+
 def exceptions_to(*,
         true: vec_seq = tuple(),
         false: vec_seq = tuple(),
         other: bool | None = Empty(),
         exceptions_to_false: bool = None,
         flow_to_bool: bool = None,
-        if_none: bool | None = Empty(),
-        if_true: bool = True,
-        if_false: bool = False,
+        if_none: Any = Empty(),
+        if_true: Any = True,
+        if_false: Any = False,
     ):
+    """Works for bools, but not necessary completely for other types"""
 
     switch_if_empty = lambda val, else_: else_ if is_empty(val) else val
 
@@ -337,7 +342,7 @@ def exceptions_to(*,
         raise ValueError(f'"{exceptions_to_false.__name__}" and "{flow_to_bool.__name__}" cannot be set together')
     elif exceptions_to_false is not None:
         false = Exception
-        if_none = None
+        if_none = Empty()
         other = switch_if_empty(other, False)
     elif flow_to_bool is not None:
         false = Exception
@@ -350,10 +355,10 @@ def exceptions_to(*,
     elif true and false:
         if_none = switch_if_empty(if_none, None)
         other = switch_if_empty(other, None)
-    elif false:
+    elif not true and false:
         if_none = switch_if_empty(if_none, True)
         other = switch_if_empty(other, None)
-    elif true:
+    elif true and not false:
         if_none = switch_if_empty(if_none, False)
         other = switch_if_empty(other, False)
     else:
@@ -373,7 +378,7 @@ def exceptions_to(*,
                 if other is None:
                     raise
                 return other
-            if if_none is None:
+            if if_none is Empty:
                 return result
             return if_none
         return wrapper
@@ -383,3 +388,14 @@ def exceptions_to(*,
 @curry
 def map_to_dict(iterable: Iterable[T], func: Callable[[T], K]) -> dict[T, K]:
     return {elem: func(elem) for elem in iterable}
+
+
+def build_nested_dict(data: dict) -> dict:
+    def to_dict(values: Iterable) -> dict:
+        return {new_key: to_dict(data.get(new_key, [])) for new_key in values}
+    parents = (key for key in data if all(key not in values for values in data.values()))
+    return to_dict(parents)
+
+
+def get_nested_dict_leafs(data: dict) -> list:
+    return _.flatten_deep([get_nested_dict_leafs(subdict) if subdict else [key] for key, subdict in data.items()])

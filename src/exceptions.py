@@ -20,7 +20,7 @@ class InvalidYamlException(LangCodeException):
         return ''.join(self.args)
 
 
-class IDynamicMessageException:
+class IDynamicMessageException(Exception):
     _make_msg: Callable[[...], str] = lambda *args, **kwargs: ''
 
     def __init__(self, *args, **kwargs):
@@ -59,6 +59,7 @@ class CannotCreatePropertyException(LangCodeException, IDynamicMessageException)
 
 class PropertyNotFound(LangCodeException, IDynamicMessageException):
     _make_msg = lambda node, prop_name: f'{node:kind} {node:label} {node:name} has no property {prop_name}'
+
 
 
 @dataclass
