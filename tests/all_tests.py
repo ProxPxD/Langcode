@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Iterable
 
 from abstractTest import AbstractTest
+from unittest.case import SkipTest
 
 all_tests = []
 
@@ -28,10 +29,12 @@ def run_tests(to_runs: Iterable):
         test = test_class()
         unittest.main(module=test, exit=False)
 
-        failure += test.failure
-        errors += test.errors
-        total += test.total
-        skipped += test.skipped
+        if test_class is not SkipTest:
+            failure += test.failure
+            errors += test.errors
+            total += test.total
+        else:
+            skipped += 1  #test.skipped
 
     print()
     print('#' * (2 * AbstractTest.half_sep_length))

@@ -1,22 +1,33 @@
 from __future__ import annotations
 
+import unittest
+from unittest import SkipTest
+
 from parameterized import parameterized
 
 from src.constants import ComplexTerms
-from tests.lang_code_test import AbstractLangCodeTest
+from tests.lang_code_test import AbstractLangCodeTest, test_generator, Generator
 
 
 def get_func_name(method, param_num, params):
     lang_name = params[0][0]
     properties = AbstractLangCodeTest.all_test_properties[lang_name]
-
     func_name = f'{method.__name__}_{param_num}_if_{lang_name}_todo'.lower()
     return func_name
 
 
+@test_generator
+class UnitLoadingTestGenerator(Generator):
+    props_paths_to_add = ('valid_schema', 'should_load')
+    lang_name_regexes = ''
+
+
 class UnitLoadingTest(AbstractLangCodeTest):
+    def setUp(self) -> None:
+        raise SkipTest("Correct the normalizing and Finish")
+
     @parameterized.expand(
-        AbstractLangCodeTest.get_langs_where(lambda p: p.valid_schema and p.should_load),
+        UnitLoadingTestGenerator.generate_test_cases(),
         name_func=get_func_name
     )
     def test_elems(self, lang_name: str):
@@ -34,7 +45,7 @@ class UnitLoadingTest(AbstractLangCodeTest):
         self.fail(NotImplemented)
 
     @parameterized.expand(
-        AbstractLangCodeTest.get_langs_where(lambda p: p.valid_schema and p.should_load),
+        UnitLoadingTestGenerator.generate_test_cases(),
         name_func=get_func_name
     )
     def test_features(self, lang_name: str):

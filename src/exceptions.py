@@ -1,19 +1,65 @@
 from dataclasses import dataclass
+from typing import Callable
+import pydash as _
 
-from src.constants import SimpleTerms
 
-
-class InvalidPathException(Exception):
+class LangCodeException(Exception):
     pass
 
 
-class InvalidYamlException(Exception):
+class InvalidPathException(LangCodeException):
+    pass
+
+
+class InvalidYamlException(LangCodeException):
     def __init__(self, *args: str):
         self.args = args or tuple()
 
     @property
     def reason(self) -> str:
         return ''.join(self.args)
+
+
+class IDynamicMessageException(Exception):
+    _make_msg: Callable[[...], str] = lambda *args, **kwargs: ''
+
+    def __init__(self, *args, **kwargs):
+        self.msg = self._make_msg(*args, **kwargs)
+        super().__init__(*args, **kwargs)
+
+
+class INameKindException(IDynamicMessageException):
+     def __init__(self, name, kind, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
+        self.kind = kind
+
+
+class AmbiguousNameException(LangCodeException, INameKindException):
+    _make_msg = lambda name, kind, *args, **kwargs: f'There exist more than one {kind} {name}' + (f' (Additional: {kwargs})' if kwargs else '')
+
+
+class DoNotExistException(LangCodeException, INameKindException):
+    _make_msg = lambda name, kind, *args, **kwargs: f'{kind} {name} has not been found' + (f' (Additional: {kwargs})' if kwargs else '')
+
+
+class AmbiguousSubFeaturesException(LangCodeException):
+    def __init__(self, feature, kind, *args):
+        self.kind = kind
+        self.args = (feature,) + args
+
+
+class ConflictingKeysException(LangCodeException):
+    pass
+
+
+class CannotCreatePropertyException(LangCodeException, IDynamicMessageException):
+    _make_msg = lambda prop_name: f'Property cannot be set named {prop_name}'
+
+
+class PropertyNotFound(LangCodeException, IDynamicMessageException):
+    _make_msg = lambda node, prop_name: f'{node:kind} {node:label} {node:name} has no property {prop_name}'
+
 
 
 @dataclass

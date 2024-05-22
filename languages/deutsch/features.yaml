@@ -1,0 +1,20 @@
+
+binds:
+  grapheme:  # implicit "req: grapheme"
+    binds:
+      vowel:
+      consonant: # ??
+  morpheme:
+    binds:
+      geschlecht:  # implicit "elems: [...]"
+        - männlich
+        - weiblich
+        - neutral
+      fall:
+        - nominativ
+        - genitiv
+        - akkusativ
+        - dativ
+      numerus:
+        - singular
+        - plural

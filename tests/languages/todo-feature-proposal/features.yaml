@@ -1,0 +1,29 @@
+graphemes:
+  type: joint
+  elems:
+    script:
+      elems:
+        - latin
+        - cyrillic
+    phon:
+      type: disjoint
+      elems:
+        vowel:
+          type: joint
+          elems:
+            height:  # disjoint by default?
+              - high
+              - mid
+              - low
+            backness:
+              - front
+              - central
+              - back
+            roundness:
+              - round
+              - unround
+            manner:
+              - oral
+              - nasal
+        consonant:
+morphemes:  # TODO: how to note the features that are build on lower-level units (as the scripts)?

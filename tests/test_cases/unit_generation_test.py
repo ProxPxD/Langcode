@@ -1,17 +1,22 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from parameterized import parameterized
 
-from src.dot_dict import DotDict
-from tests.lang_code_test import AbstractLangCodeTest, yaml_types
+from tests.lang_code_test import AbstractLangCodeTest, yaml_types, test_generator, Generator
 
 
 def get_func_name(method, param_num, params):
-    lang_name, unit_kind, unit_name, expected = params[0]
-    general = AbstractLangCodeTest.all_test_properties[lang_name]
-    # TODO: think of specifying how the features are generated.
-    # TODO: do they use aliases, ands ors, what forms, etc
-    func_name = f'{method.__name__}_if_in_{lang_name}_{unit_kind}_generated_{unit_name}_correctly'
+    try:
+        lang_name, unit_kind, unit_name, expected = params[0]
+    except ValueError:
+        func_name = f'{method.__name__}_unit_generation_{params[0]}'
+    else:
+        general = AbstractLangCodeTest.all_test_properties[lang_name]
+        # TODO: think of specifying how the features are generated.
+        # TODO: do they use aliases, ands ors, what forms, etc
+        func_name = f'{method.__name__}_if_in_{lang_name}_{unit_kind}_generated_{unit_name}_correctly'
     return func_name
 
 
@@ -19,23 +24,28 @@ def generate_test_cases():
     lang_names = AbstractLangCodeTest.get_langs_where(lambda d: d.rules.features)
     for lang_name in lang_names:
         try:
-            raw_data = AbstractLangCodeTest.data_loader.load(lang_name)
-            data = AbstractLangCodeTest.data_normalizer.normalize(raw_data)
-            dotdict = DotDict(data)
+            raw_data = AbstractLangCodeTest.data_loader.load(Path(lang_name) / '')
+            dotdict = {}
         except:
             continue
 
         unit_names = 'morphemes', 'graphemes'
-        all_units = {unit_name: dotdict[unit_name].elems or DotDict() for unit_name in unit_names}
+        all_units = {unit_name: dotdict[unit_name].elems or {} for unit_name in unit_names}
         for kind, units in all_units.items():
             expected_units = {key: val for key, val in units.expected.items() if key != 'skip'}
             for name, expected in expected_units.items():
                 yield lang_name, kind, name, expected.get()
 
 
+@test_generator
+class UnitGenerationTestGenerator(Generator):
+    props_paths_to_add = ('rules.add', )
+    lang_name_regexes = ''
+
+
 class UnitGenerationTest(AbstractLangCodeTest):
     @parameterized.expand(
-        list(generate_test_cases()),
+        UnitGenerationTestGenerator.generate_test_cases(),
         name_func=get_func_name,
         skip_on_empty=True,
     )
