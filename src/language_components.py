@@ -108,6 +108,7 @@ class IPropertiedNode:
         return hasattr(self, key)
 
 
+# TODO: work on kind
 class Unit(LangCodeNode, IPropertiedNode):
     features = RelationshipTo(
         cls_name=Feature.__class__.__name__,
