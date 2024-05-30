@@ -44,38 +44,15 @@ class UnitFeaturesSchema(IToDict, BaseModel):
 
 
 class UnitSchema(IToDict, BaseModel, ABC):
+    elems: Optional[ElemsConf] = None
+    features: Optional[UnitFeaturesSchema | FeatureConf] = None
+
+    @field_validator('elems')
     @classmethod
-    def map_unit_conf_to_units(cls, elems: ElemsConf, kind: Kind) -> Iterable[Unit]:
+    def val_elems(cls, elems) -> Iterable[Unit]:
         normalized = utils.map_conf_list_to_dict(elems)
-        unit_elems = list(starmap(cls.create_unit(kind), normalized.items()))  # TODO: think if initial structure of morpheme config is not required such as checking if features exist
-        return unit_elems
-
-    @classmethod
-    @curry
-    def create_unit(cls, kind: Kind, name: str, conf: dict) -> Unit:
-        # TODO: Connect to features
-        unit = Unit(name=name, kind=kind)
-        unit.update_conf(conf)
-        return unit
-
-
-class MorphemesSchema(UnitSchema):
-    elems: Optional[ElemsConf] = None
-    features: Optional[UnitFeaturesSchema | FeatureConf] = None
-
-    @field_validator('elems')
-    @classmethod
-    def val_elems(cls, elems) -> Iterable[Unit]:
-        return cls.map_unit_conf_to_units(elems, ST.MORPHEME)
-
-
-class GraphemesSchema(UnitSchema):
-    elems: Optional[ElemsConf] = None
-    features: Optional[UnitFeaturesSchema | FeatureConf] = None
-
-    @field_validator('elems')
-    def val_elems(cls, elems) -> Iterable[Unit]:
-        return cls.map_unit_conf_to_units(elems, ST.GRAPHEME)
+        units = [Unit(name=name, conf=conf) for name, conf in normalized.items()] # TODO: think if initial structure of morpheme config is not required such as checking if features exist
+        return units
 
 
 class RulesSchema(BaseModel):
@@ -108,7 +85,7 @@ class FeatureSchema(BaseModel):
     @model_validator(mode='before')
     @classmethod
     def normalize_schema(cls, values):
-        values = utils.map_conf_list_to_dict(values)# if is_list(values) or values is None else values
+        values = utils.map_conf_list_to_dict(values)  # if is_list(values) or values is None else values
         return cls.normalize_feature_schema(values)
 
     @field_validator('elems')
@@ -165,8 +142,8 @@ class MainFeaturesSchema(BaseModel):
 class LanguageSchema(BaseModel):  # TODO: think if morphemes shouldn't be required
     general: Optional[Any] = None
     features: Optional[MainFeaturesSchema] = None
-    morphemes: Optional[MorphemesSchema] = None
-    graphemes: Optional[GraphemesSchema] = None
+    morphemes: Optional[UnitSchema] = None
+    graphemes: Optional[UnitSchema] = None
     rules: Optional[RulesSchema] = None
 
     class Config:

@@ -98,9 +98,21 @@ class Kind(LangCodeNode):
     kinded = relationships.create_rel(RelationshipFrom, 'Kinded', HasKind)
 
 
-# Lang-spec
+class IIdentifier(LangCodeNode):
+    def __init__(self, name: str, *args, **kwargs):
+        super().__init__(name=name, *args, **kwargs)
 
-class LangSpecificNode(LangCodeNode):
+
+class IConfigurable(LangCodeNode):
+    def __init__(self, conf: Config, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.set_conf(conf)
+
+    def set_conf(self, conf: Config) -> None:
+        raise NotImplementedError
+
+
+class LangSpecificNode(LangCodeNode, IIdentifier, IConfigurable):
     lang = relationships.create_rel(RelationshipTo, 'Language', Belongs)
 
     def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
@@ -154,7 +166,7 @@ class Feature(LangSpecificNode, Kinded, INeo4jHierarchied, IPropertiedNode):
 class Unit(LangSpecificNode, Kinded, IPropertiedNode):
     features = relationships.create_rel(RelationshipTo, Feature, Features)
 
-    def set_new_conf(self, conf: Config) -> None:
+    def set_conf(self, conf: Config) -> None:
         self.clean_conf()
         self.update_conf(conf)
 
@@ -239,7 +251,7 @@ class Language(LangCodeNode):
 
     def add_unit(self, kind: str, unit: Unit | str, conf: dict = None) -> None:
         unit = self.get_unit(kind, unit)  # TODO: get_or_create?
-        unit.set_new_conf(conf)
+        unit.set_conf(conf)
 
     def get_unit(self, kind: str, unit: str) -> Unit:
         unit = self.get_one_by_rels_props(from_node=Unit, name=unit, rels=((HasKind, LangWiseCommonNode, kind),))
