@@ -25,10 +25,6 @@ class INameProperty(StructuredNode):
     name = StringProperty(required=True)
 
 
-# class IKindProperty(StructuredNode):
-#     kind = StringProperty()
-
-
 class CoreProperties(ICorePropertied, INameProperty):
     __core_properties_classes_or_names = [INameProperty]
 
@@ -262,8 +258,3 @@ class Language(LangCodeNode):
         # TODO: Get Or Create?
         feature = self.get_one_own_by_rels_props(from_node=Feature, name=feature, rels=((HasKind, LangWiseCommonNode, kind),))
         return feature
-
-
-
-
-
