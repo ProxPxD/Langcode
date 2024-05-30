@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import re
-from copy import copy, deepcopy
+from copy import copy
 from operator import *
 from types import NoneType
-from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence, Union
+from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence
 
 import pydash as _
 from pydash import flow, chain as c
@@ -12,8 +12,6 @@ from toolz.curried import *
 from toolz.curried.operator import *
 
 from src.lang_typing import BasicYamlType, YamlType
-
-from decoratzor import decorator
 
 fjoin = compose = pipeline = compose_left
 revarg = curry(lambda *args, **kwargs: lambda f: f(*args, **kwargs))
@@ -30,7 +28,7 @@ G = TypeVar('G')
 vec_seq = Sequence[T] | T
 
 is_ = curry(flip(isinstance))  # overrides operator
-is_not = curry(_.negate(is_))
+is_not = curry(lambda _type, obj: not is_(_type, obj))
 is_empty = is_(Empty)
 is_dict = is_(dict)
 is_list = is_(list)
@@ -91,15 +89,14 @@ class if_:
             raise to_raise
 
     def then_apply(self, true: Callable[[T], K], false: Callable[[T], G] = _IfNone(), *, default: Any = _IfNone()) -> T | K | G:
-        if flow(all, map(is_not(if_._IfNone))(false, default)):
-            raise ValueError('false and default cannot be set together')
-
-        false = self._proper_false(if_(default).is_not(if_._IfNone).then(false))
-        transform = to_unary_func(self.then_(true, false))
-        return transform(self._arg)
+        return self.then_(if_(true, _.negate(self._cond)), self)
 
     def then_apply_(self, true: Callable[[T], K], false: Callable[[T], G] = _IfNone(), *, default: Any = _IfNone()) -> T | K | G:
-        raise NotImplementedError
+        if all(map(is_not(if_._IfNone), (false, default))):
+            raise ValueError('false and default cannot be set together')
+
+        false = to_unary_func(self._proper_false(if_(default).is_not(if_._IfNone).then_(false)))
+        return self.then_(true, false)(self._arg)
 
     def else_apply(self, false: Callable[[T], G]):
         return self.then_apply(self._arg, false)
@@ -210,6 +207,7 @@ def map_arg(*funcs_or_num_funcs, **pos_funcs):
 
 
 def get_to_sequence(method, _type: T = None, is_type=None) -> Callable[[Any], T]:
+    # TODO: rethink
     if _type and is_type:
         raise ValueError
     is_type = if_(is_type).elif_(_type).then(is_(_type)).else_(is_(method))
@@ -218,7 +216,8 @@ def get_to_sequence(method, _type: T = None, is_type=None) -> Callable[[Any], T]
         match to_map:
             case _ if is_str(to_map): return method((to_map,))
             case _ if is_type(to_map): return to_map
-            case _: return method(to_map)
+            case _ if is_(Sequence, to_map): return method(to_map)
+            case _: return method((to_map, ))
     return _map
 
 
@@ -373,7 +372,7 @@ def exceptions_to(*,
     else:
         raise ValueError
 
-    true, false = c().map_(to_tuple)((true, false))
+    true, false = _.map_((true, false), to_tuple)
 
     def decorator(f):
         def wrapper(*args, **kwargs):

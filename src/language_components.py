@@ -29,7 +29,7 @@ class CoreProperties(ICorePropertied, INameProperty):
     __core_properties_classes_or_names = [INameProperty]
 
 
-class LangCodeNode(INeo4jFormatable, IRelationQuerable, StructuredNode):
+class LangCodeNode(IRelationQuerable):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
@@ -105,7 +105,7 @@ class IConfigurable(LangCodeNode):
         raise NotImplementedError
 
 
-class LangSpecificNode(LangCodeNode, IIdentifier, IConfigurable):
+class LangSpecificNode(IIdentifier, IConfigurable, LangCodeNode):
     lang = relationships.create_rel(RelationshipTo, 'Language', Belongs)
 
     def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
@@ -130,7 +130,7 @@ class IPropertiedNode:
         return hasattr(self, key)
 
 
-class Feature(LangSpecificNode, Kinded, INeo4jHierarchied, IPropertiedNode):
+class Feature(IPropertiedNode, Kinded, INeo4jHierarchied):
     type = StringProperty(
         choices=utils.map_conf_list_to_dict(CT.FEATURE_TYPES)
     )
@@ -156,7 +156,7 @@ class Feature(LangSpecificNode, Kinded, INeo4jHierarchied, IPropertiedNode):
 
 
 # TODO: work on kind
-class Unit(LangSpecificNode, Kinded, IPropertiedNode):
+class Unit(Kinded, IPropertiedNode):
     features = relationships.create_rel(RelationshipTo, Feature, Features)
 
     def set_conf(self, conf: Config) -> None:

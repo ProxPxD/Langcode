@@ -1,10 +1,10 @@
-from typing import Callable, Type
+from typing import Type
 
+import pydash as _
 from neomodel import StructuredRel, RelationshipDefinition, StructuredNode, RelationshipTo, Relationship, RelationshipFrom, ZeroOrMore
-
-from src.utils import is_
-
 from pydash import chain as c
+
+from src.utils import if_
 
 
 class IClassNameAsRelName:
@@ -35,7 +35,7 @@ class HasKind(IClassNameAsRelName, StructuredRel):
 
 def create_rel(definition: Type[RelationshipTo | RelationshipFrom | Relationship], cls: Type[StructuredNode] | str, rel: Type[StructuredRel], cardinality=ZeroOrMore) -> RelationshipDefinition:
     return definition(
-        cls_name=cls.__name__ if is_(Type) else cls,
+        cls_name=if_(cls).is_(Type).then_apply_(_.property_('__name__')),
         relation_type=rel.get_rel_name(),
         model=rel,
         cardinality=cardinality,

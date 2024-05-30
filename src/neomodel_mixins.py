@@ -13,7 +13,6 @@ from toolz import keyfilter
 from src import utils
 from src.exceptions import PropertyNotFound, CannotCreatePropertyException, DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException, AmbiguousNodeException
 from src.lang_typing import YamlType
-from src.language_components import LangCodeNode
 from src.utils import exceptions_to, is_not, if_, to_list, pad_left_until
 
 
@@ -392,7 +391,7 @@ class IRelationQuerable(INeo4jFormatable):
             relation: QueryRel = None,
             to_node: QueryNode = None,
             to_node_props: QueryDict = None,
-    ) -> Sequence[LangCodeNode]:
+    ) -> Sequence[StructuredNode]:
         from_node_name = 'from_node'
         expression = cls.__format_relation_expression(
             cls.__format_node_part(from_node, from_node_props, from_node_name),
