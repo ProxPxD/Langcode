@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence, Dict, Iterable, Generator, Iterator, Type
+from typing import Optional, Sequence, Iterator, Type
 
 import pydash as _
 # noinspection PyUnresolvedReferences
@@ -16,10 +16,7 @@ from src.exceptions import AmbiguousNodeException, DoNotExistException, LangCode
 from src.lang_typing import YamlType, Config, ComplexYamlType
 from src.neomodel_mixins import ICorePropertied, INeo4jFormatable, INeo4jHierarchied, FeaturesNotHierarchied, IRelationQuerable, FullQueryRel
 from src.relationships import Features, Belongs, IsSuperOf, HasKind
-from src.utils import adjust_str, exceptions_to, is_str, is_, is_yaml_type, is_nothing_instance_of_none
-
-
-
+from src.utils import adjust_str, exceptions_to, is_, is_yaml_type, is_nothing_instance_of_none
 
 config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
 

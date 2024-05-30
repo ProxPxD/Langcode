@@ -3,27 +3,21 @@ from __future__ import annotations
 import operator as op
 from abc import ABC
 from functools import reduce
-from itertools import starmap
 from typing import Optional, List, AnyStr, Iterable, Dict, Tuple, Any
 
 from pydantic import BaseModel, field_validator, model_validator
-from toolz import curry, keyfilter
+from toolz import keyfilter
 
 import src.utils as utils
 from src.constants import ST
 from src.exceptions import ConflictingKeysException
-from src.lang_typing import Config, Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf
+from src.lang_typing import Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf
 from src.language_components import Unit, Feature, Language
 from src.utils import is_, is_list
 
 
 # TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag
 # see: https://github.com/ProxPxD/Langcode/issues/7
-
-
-@curry
-def config_to_unit(kind: str, name: str, config: Config):
-    return Unit(name=name, kind=kind, features=config)
 
 
 class IToDict(BaseModel):
