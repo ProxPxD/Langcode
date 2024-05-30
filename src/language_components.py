@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Dict, Iterable, Generator, Iterator, Type
 
 import pydash as _
 # noinspection PyUnresolvedReferences
@@ -8,14 +8,18 @@ from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredR
     RelationshipFrom  # For some reason, the neomodel requires to import it
 from pydash import chain as c
 from toolz import itemmap
+from typing_extensions import deprecated
 
-from src import utils
+from src import utils, relationships
 from src.constants import CT, ST
-from src.exceptions import AmbiguousNameException, DoNotExistException, LangCodeException
+from src.exceptions import AmbiguousNodeException, DoNotExistException, LangCodeException
 from src.lang_typing import YamlType, Config, ComplexYamlType
-from src.neomodel_mixins import ICorePropertied, INeo4jFormatable, INeo4jHierarchied, FeaturesNotHierarchied
-from src.relationships import Features, Belongs, IsSuperOf
+from src.neomodel_mixins import ICorePropertied, INeo4jFormatable, INeo4jHierarchied, FeaturesNotHierarchied, IRelationQuerable, FullQueryRel
+from src.relationships import Features, Belongs, IsSuperOf, HasKind
 from src.utils import adjust_str, exceptions_to, is_str, is_, is_yaml_type, is_nothing_instance_of_none
+
+
+
 
 config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
 
@@ -32,23 +36,19 @@ class CoreProperties(ICorePropertied, INameProperty):
     __core_properties_classes_or_names = [INameProperty]
 
 
-class LangCodeNode(INeo4jFormatable, StructuredNode):
+class LangCodeNode(INeo4jFormatable, IRelationQuerable, StructuredNode):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
     # def main_label(cls) -> str:
     #     return cls.__class__.__name__
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.__custom_property_names: set = set()
-
     @classmethod
-    def get_from_all(cls, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
+    def _get_one_by_props_rough(cls, *, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
         try:
             return cls.nodes.get(**kwargs)
         except MultipleNodesReturned:
-            exception = AmbiguousNameException(**kwargs)
+            exception = AmbiguousNodeException(**kwargs)
         except DoesNotExist:
             exception = DoNotExistException(**kwargs)
         except Exception as e:
@@ -59,42 +59,59 @@ class LangCodeNode(INeo4jFormatable, StructuredNode):
         return None
 
     @classmethod
-    def get_from_all_if_not_already(cls, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
-        potential = next(iter(kwargs.values())) if len(kwargs) == 1 else kwargs.get('name')
-        if potential and is_(Feature, potential):
+    def get_one_by_props(cls, id_name: str | LangCodeNode = None, *, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
+        potential = id_name if not kwargs else kwargs.get('name')
+        if potential and is_(LangCodeNode, potential):
             return potential
-        return cls.get_from_all(raises, **kwargs)
+        kwargs.setdefault('name', potential)
+        return cls._get_one_by_props_rough(raises=raises, **kwargs)
 
     @classmethod
-    @exceptions_to(true=AmbiguousNameException, false=DoesNotExist, if_none=True)
+    @exceptions_to(true=AmbiguousNodeException, false=DoesNotExist, if_none=True)
     def is_node_existing(cls, **kwargs):  # The name to minimalize the chances for the name to be a property
-        return cls.get_from_all(raises=True, **kwargs)
+        return cls._get_one_by_props_rough(raises=True, **kwargs)
+
+    @deprecated('Use get_one_by_rels_props or get_all_by_rels_props instead')
+    def get_relateds(self, *rel_or_rel_props: Type[StructuredRel] | tuple[Type[StructuredRel], dict]) -> Sequence[LangCodeNode]:
+        to_dicted_tuple = c().apply_if(lambda rel: (rel, {}), is_(StructuredRel))
+        rel_props: Iterator[tuple[StructuredRel, dict]] = map(to_dicted_tuple, rel_or_rel_props)
+        all_nodes = []
+        for rel, props in rel_props:
+            if isinstance(node := props.get('name'), StructuredNode):
+                props['name'] = node.name
+            nodes, _ = self.cypher(f"MATCH (:{self:label} {self.all_properties} )-[:{rel.get_rel_name()}]-(n {props} ) RETURN (n)")
+            all_nodes.extend(nodes) 
+        return all_nodes
 
     @adjust_str('self.')
     def __repr__(self):
         return f'{self:label}({self.name=}, {self.kind=})'
 
+# Lang-wise
 
-class Feature(LangCodeNode, INeo4jHierarchied):
-    type = StringProperty(
-        choices=utils.map_conf_list_to_dict(CT.FEATURE_TYPES)
-    )
-    children = RelationshipTo(
-        cls_name='Feature',  # TODO: check if "Feature.__class__.__name__" can work
-        relation_type=IsSuperOf.rel_name,
-        model=IsSuperOf,
-    )
 
-    @adjust_str('self.')
-    def __repr__(self):
-        repr: str = super().__repr__()
-        return repr[:-1] + f', {self.type=})'
+class LangWiseCommonNode(LangCodeNode):
+    pass
 
-    def is_leaf(self) -> bool:
-        return not self.children.manager.is_connected()
 
-    def add_subfeature(self, child: Features) -> None:
-        self.children.manager.connect(child)
+class Kind(LangCodeNode):
+    kinded = relationships.create_rel(RelationshipFrom, 'Kinded', HasKind)
+
+
+# Lang-spec
+
+class LangSpecificNode(LangCodeNode):
+    lang = relationships.create_rel(RelationshipTo, 'Language', Belongs)
+
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
+        return [(Belongs, Language, self.lang), *super()._adjust_own_rels(rels)]
+
+
+class Kinded(LangSpecificNode):
+    kind = relationships.create_rel(RelationshipTo, Kind, HasKind)
+
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
+        return [(HasKind, LangWiseCommonNode, self.kind), *super()._adjust_own_rels(rels)]
 
 
 class IPropertiedNode:
@@ -108,13 +125,34 @@ class IPropertiedNode:
         return hasattr(self, key)
 
 
-# TODO: work on kind
-class Unit(LangCodeNode, IPropertiedNode):
-    features = RelationshipTo(
-        cls_name=Feature.__class__.__name__,
-        relation_type=Features.rel_name,
-        model=Features,
+class Feature(LangSpecificNode, Kinded, INeo4jHierarchied, IPropertiedNode):
+    type = StringProperty(
+        choices=utils.map_conf_list_to_dict(CT.FEATURE_TYPES)
     )
+    children = relationships.create_rel(RelationshipTo, 'Feature', IsSuperOf)
+
+    @adjust_str('self.')
+    def __repr__(self):
+        repr: str = super().__repr__()
+        return repr[:-1] + f', {self.type=})'
+
+    def is_leaf(self) -> bool:
+        return not self.children.manager.is_connected()
+
+    def add_subfeature(self, child: Features | str) -> None:
+        child = self.get_one_own_by_rels_props(from_node_props=child)  # TODO: automate label in own methods
+        self.children.manager.connect(child)
+
+    def set_conf(self, conf: dict) -> None:
+        raise NotImplementedError
+
+    def add_conf_entry(self, key: str, val: YamlType) -> None:
+        raise NotImplementedError
+
+
+# TODO: work on kind
+class Unit(LangSpecificNode, Kinded, IPropertiedNode):
+    features = relationships.create_rel(RelationshipTo, Feature, Features)
 
     def set_new_conf(self, conf: Config) -> None:
         self.clean_conf()
@@ -128,7 +166,7 @@ class Unit(LangCodeNode, IPropertiedNode):
 
     def set_conf_entry(self, key: str, val: YamlType) -> None:
         try:
-            feature = Feature.get_from_all(name=key)
+            feature = self.get_one_own_by_rels_props(from_node=Feature, from_node_props=key)
             self.set_feature(feature, val)
         except DoNotExistException:
             self.set_property(key, val)
@@ -140,7 +178,7 @@ class Unit(LangCodeNode, IPropertiedNode):
         #  - non-existance
         #  - non-connnection
         #  PS: add retries as decorator
-        feature = Feature.get_from_all(name=feature) if is_str(feature) else feature
+        feature = self.get_one_own_by_rels_props(from_node_props=feature)
         match val:
             case descendant if is_(Feature, descendant):
                 self._set_feature_with_descendant(feature, descendant)
@@ -171,7 +209,7 @@ class Unit(LangCodeNode, IPropertiedNode):
         to_checks = list(to_map.keys())
         while to_checks:
             parent = to_checks.pop()
-            parent = Feature.get_from_all_if_not_already(name=parent)
+            parent = self.get_one_own_by_rels_props(from_node=Feature, from_node_props=parent)
             children = to_map[parent.name].keys()
             to_checks.extend(children)
             children = parent.get_descendants(children)
@@ -180,7 +218,7 @@ class Unit(LangCodeNode, IPropertiedNode):
         return utils.build_nested_dict(unhierarchied_dict)
 
     def get_feature(self, feature_name: str) -> Feature:
-        return Feature.get_in_direct_hierarchy(self, name=feature_name, n=0)
+        return Feature.get_one_nth_down_for(name=feature_name, n=0, __connected_node=self)
 
     @exceptions_to(flow_to_bool=True)
     def is_(self, feature_name: str) -> bool:
@@ -192,31 +230,31 @@ class Unit(LangCodeNode, IPropertiedNode):
         return c(values).map_(_.property_('name')).value()
 
 
-    #
-    # def get_feature_value(self, feature_name: str) -> YamlType:
-    #     try:
-    #         feature = Feature.get_one_next_down_for(name=feature_name, n=0, __connected_node=self)
-    #     except DoNotExistException:
-    #
-
-    # @exceptions_to(flow_to_bool=True)
-    # def has_feature(self, feature_name: str):
-    #     return self.get_feature(feature_name)
-    #
-
-class Morpheme(Unit):
-    pass
-
-
-class Grapheme(Unit):
-    pass
-
-
 class Language(LangCodeNode):
-    features = RelationshipFrom(
-        cls_name=LangCodeNode.__class__.__name__,
-        relation_type=Belongs.rel_name,
-        model=Belongs,
-    )
+    units = relationships.create_rel(RelationshipFrom, Unit, Belongs)
+    features = relationships.create_rel(RelationshipFrom, LangCodeNode, Belongs)
+
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
+        return [(Belongs, Language, self), *super()._adjust_own_rels(rels)]
+
+    def add_unit(self, kind: str, unit: Unit | str, conf: dict = None) -> None:
+        unit = self.get_unit(kind, unit)  # TODO: get_or_create?
+        unit.set_new_conf(conf)
+
+    def get_unit(self, kind: str, unit: str) -> Unit:
+        unit = self.get_one_by_rels_props(from_node=Unit, name=unit, rels=((HasKind, LangWiseCommonNode, kind),))
+        return unit
+
+    def add_feature(self, kind: str, feature: Feature | str, **conf) -> None:
+        feature = self.get_feature(kind, feature)
+        feature.set_conf(conf)
+
+    def get_feature(self, kind: str, feature: Features | str) -> Feature:
+        # TODO: Get Or Create?
+        feature = self.get_one_own_by_rels_props(from_node=Feature, name=feature, rels=((HasKind, LangWiseCommonNode, kind),))
+        return feature
+
+
+
 
 

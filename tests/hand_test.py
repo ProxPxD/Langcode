@@ -9,7 +9,9 @@ from pydash import spread
 from toolz.curried.operator import *
 
 print(
-    _.nth(list(range(5)), -2)
+    'nth',
+    _.nth(list(range(5)), -2),
+    _.nth([1, 2, 3], 5)
 )
 
 

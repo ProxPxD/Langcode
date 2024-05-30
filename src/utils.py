@@ -64,6 +64,12 @@ class if_:
         self._cond = cond if cond is not None else lambda x: x is None
         self.apply = self.then_apply
 
+    def __call__(self, *args):
+        match len(args):
+            case 0: return self._meets()
+            case 1: raise NotImplementedError('Should perform cond on arg')
+            case _: raise ValueError
+
     def _meets(self):
         return self._cond(self._arg)
 
@@ -91,6 +97,9 @@ class if_:
         false = self._proper_false(if_(default).is_not(if_._IfNone).then(false))
         transform = to_unary_func(self.then_(true, false))
         return transform(self._arg)
+
+    def then_apply_(self, true: Callable[[T], K], false: Callable[[T], G] = _IfNone(), *, default: Any = _IfNone()) -> T | K | G:
+        raise NotImplementedError
 
     def else_apply(self, false: Callable[[T], G]):
         return self.then_apply(self._arg, false)
@@ -399,3 +408,7 @@ def build_nested_dict(data: dict) -> dict:
 
 def get_nested_dict_leafs(data: dict) -> list:
     return _.flatten_deep([get_nested_dict_leafs(subdict) if subdict else [key] for key, subdict in data.items()])
+
+
+pad_left_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_left_until(n, to_pad_with, to_pad))
+pad_right_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_right_until(n, to_pad_with, to_pad))

@@ -28,19 +28,12 @@ class IDynamicMessageException(Exception):
         super().__init__(*args, **kwargs)
 
 
-class INameKindException(IDynamicMessageException):
-     def __init__(self, name, kind, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.name = name
-        self.kind = kind
+class AmbiguousNodeException(LangCodeException):
+    _make_msg = lambda *args, **kwargs: f'There exist more than one node ({args = }, {kwargs = })'
 
 
-class AmbiguousNameException(LangCodeException, INameKindException):
-    _make_msg = lambda name, kind, *args, **kwargs: f'There exist more than one {kind} {name}' + (f' (Additional: {kwargs})' if kwargs else '')
-
-
-class DoNotExistException(LangCodeException, INameKindException):
-    _make_msg = lambda name, kind, *args, **kwargs: f'{kind} {name} has not been found' + (f' (Additional: {kwargs})' if kwargs else '')
+class DoNotExistException(LangCodeException):
+    _make_msg = lambda *args, **kwargs: f'Node has not been found ({args = }, {kwargs = })'
 
 
 class AmbiguousSubFeaturesException(LangCodeException):

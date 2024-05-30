@@ -2,18 +2,19 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Sequence, Iterable, Optional
+from typing import Sequence, Optional, Type, Tuple
 
 import neomodel
 import pydash as _
-from neomodel import StructuredNode, StringProperty, NeomodelPath
-from pydash import chain as c
+from neomodel import StructuredNode, NeomodelPath, StructuredRel, Database
+from pydash import chain as c, curry
 from toolz import keyfilter
 
 from src import utils
-from src.exceptions import PropertyNotFound, CannotCreatePropertyException, DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException
+from src.exceptions import PropertyNotFound, CannotCreatePropertyException, DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException, AmbiguousNodeException
 from src.lang_typing import YamlType
-from src.utils import exceptions_to, is_not, is_str
+from src.language_components import LangCodeNode
+from src.utils import exceptions_to, is_not, if_, to_list, pad_left_until
 
 
 class FeaturesNotHierarchied(IDynamicMessageException):
@@ -237,10 +238,19 @@ class INeo4jHierarchied(INeo4jFormatable):
 
     @classmethod
     def get_one_nth_for(cls, orientation: str, n: int, **kwargs) -> INeo4jHierarchied:
-        match nth_nodes := cls.get_all_nth_for(orientation, n=n, **kwargs):
-            case _ if len(nth_nodes) == 1: return nth_nodes[0]
-            case []: raise DoNotExistException(cls.__name__, kwargs.get('kind', ''))
+        nth_nodes = cls.get_all_nth_for(orientation, n=n, **kwargs)
+        match len(nth_nodes):
+            case 1: return nth_nodes[0]
+            case 0: raise DoNotExistException(cls.__name__, kwargs.get('kind', ''))
             case _: raise AmbiguousSubFeaturesException(cls.__name__, kwargs.get('kind', ''))
+
+    @classmethod
+    def get_one_nth_up_for(cls, n: int, **kwargs) -> INeo4jHierarchied:
+        return cls.get_one_nth_for(Orientation.UP, n=n, **kwargs)
+
+    @classmethod
+    def get_one_nth_down_for(cls, n: int, **kwargs) -> INeo4jHierarchied:
+        return cls.get_one_nth_for(Orientation.DOWN, n=n, **kwargs)
 
     @classmethod
     def get_one_next_for(cls, orientation: str, **kwargs) -> INeo4jHierarchied:
@@ -325,3 +335,155 @@ class INeo4jHierarchied(INeo4jFormatable):
 
     def has_descendant(self, **kwargs) -> bool:
         return self.is_ancestor(**kwargs)
+
+
+# IRelationQuerable
+
+QueryNode = str | StructuredNode | Type[StructuredNode]
+QueryRel = Type[StructuredRel] | str
+QueryDict = dict | str
+FullQueryRel = QueryRel | QueryNode | QueryDict | Tuple[QueryRel, QueryNode] | Tuple[QueryRel, QueryDict] | Tuple[QueryNode, QueryDict] | Tuple[QueryRel, QueryNode, QueryDict]
+
+
+class IRelationQuerable(INeo4jFormatable):
+    # TODO: adjust node to mean label or at least allow many labels
+    __main_property_name: str = 'name'
+
+    @classmethod
+    def __format_relation_part(cls, relation: Type[StructuredRel] | str) -> str:
+        match relation:
+            case None: formatted = ''
+            case str(): formatted = f':{relation}'
+            case _ if hasattr(relation, 'get_rel_name'): formatted = f':{relation.get_rel_name()}'
+            case Type(): formatted = f':{c(relation.__name__).snake_case().upper_case().value()}'
+            case _: formatted = str(relation)
+        return f'[{formatted}]'
+
+    @classmethod
+    def __format_node_label(cls, node: StructuredNode | Type[StructuredNode] | str) -> str:
+        match node:
+            case None: return ''
+            case str(): formatted = node
+            case StructuredNode(): formatted = node.__class__.__name__
+            case Type(): formatted = node.__name__
+            case _: formatted = str(node)
+        return f':{formatted}'
+
+    @classmethod
+    def __adjust_props(cls, props: dict | str, **kwargs) -> dict:
+        props = if_(props).is_(str).then_apply(lambda p: {cls.__main_property_name: str(p)})
+        props.update(kwargs)
+        return props
+
+    @classmethod
+    def __format_node_part(cls, node: StructuredNode | Type[StructuredNode] | str, props: str | dict, name: str = '') -> str:
+        node_label = cls.__format_node_label(node)
+        props = cls.__adjust_props(props)
+        return f'({name}{node_label} {props})'
+
+    @classmethod
+    def __format_relation_expression(cls, from_node_part: str, relation_part: str, to_node: str) -> str:
+        return f'{from_node_part}-{relation_part}-{to_node}'
+
+    @classmethod
+    def get_all_by_rel_prop(cls,
+            from_node: QueryNode = None,
+            from_node_props: QueryDict = None,
+            relation: QueryRel = None,
+            to_node: QueryNode = None,
+            to_node_props: QueryDict = None,
+    ) -> Sequence[LangCodeNode]:
+        from_node_name = 'from_node'
+        expression = cls.__format_relation_expression(
+            cls.__format_node_part(from_node, from_node_props, from_node_name),
+            cls.__format_relation_part(relation),
+            cls.__format_node_part(to_node, to_node_props)
+        )
+        return Database().cypher_query(f'MATCH {expression} RETURN {from_node_name}')
+
+    @classmethod
+    def _adjust_inner_rel(cls, rel: FullQueryRel) -> FullQueryRel:
+        insert_none_at_nth = curry(lambda n, arr: arr.insert(n, None))
+        get_insert_none_if_types = curry(lambda n, types: c().apply_if(
+            insert_none_at_nth(n),
+            c().nth(n).is_instance_of(types))
+        )
+        adjust_inner_args = _.flow(
+            to_list,
+            get_insert_none_if_types(0, (StructuredNode, dict)),
+            get_insert_none_if_types(1, dict),
+            pad_left_until(3, None)
+        )
+        return adjust_inner_args(rel)
+
+    @classmethod
+    def _adjust_rels(cls, rels: Sequence[FullQueryRel], _adjust_inner_rel=None) -> Sequence[FullQueryRel]:
+        adjust_args = _.flow(
+            c().apply_if(lambda r: (r, ), _.negate(c().nth(0).is_instance_of(Sequence))),
+            c().map_(_adjust_inner_rel or cls._adjust_inner_rel),
+        )
+        return adjust_args(rels)
+
+    @classmethod
+    def _get_all_by_rels_props(cls, *,
+            rels: Sequence[FullQueryRel] = None,
+            from_node: QueryNode = '',
+            from_node_props: dict = None,
+            _adjust_rels=None,
+            **more_from_node_props
+        ):
+        """
+        forms:
+            - (Rel, ToNode, ToNodeProps)
+            - (Rel, ToNode)
+            - (Rel, ToNodeProps)
+            - (ToNode, ToNodeProps)
+            - Rel
+            - ToNode
+            - ToNodeProps
+        """
+        _adjust_rels = _adjust_rels or cls._adjust_rels
+        from_node_name = 'from_node'
+        from_node_props = cls._adjust_props(from_node_props, **more_from_node_props)
+        from_node_part = cls.__format_node_part(from_node, from_node_props, from_node_name)
+
+        expr_parts = [
+            cls.__format_relation_expression(
+                from_node_part,
+                cls.__format_relation_part(rel),
+                cls.__format_node_part(to_node, to_node_props)
+            ) for rel, to_node, to_node_props in _adjust_rels(rels)
+        ]
+
+        query = f'MATCH {", ".join(expr_parts)} RETURN {from_node_name}'
+        return Database().cypher_query(query)
+
+    @classmethod
+    def get_one_by_rels_props(cls, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, _adjust_rels=None, **more_from_node_props):
+        nodes = cls.__get_all_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=_adjust_rels, **more_from_node_props)
+        match len(nodes):
+            case 1: return nodes[0]
+            case 0: raise DoNotExistException()  # TODO: think of rewriting the exceptions
+            case _: raise AmbiguousNodeException()
+
+    def _adjust_own_inner_rel(self, rel: FullQueryRel) -> FullQueryRel:
+        return self._adjust_rel(rel)
+
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
+        return self._adjust_rels(rels, _adjust_inner_rel=self._adjust_own_inner_rel)
+
+    def get_all_own_by_rels_props(self, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, **more_from_node_props):
+        """
+        forms:
+            - (Rel, ToNode, ToNodeProps)
+            - (Rel, ToNode)
+            - (Rel, ToNodeProps)
+            - (ToNode, ToNodeProps)
+            - Rel
+            - ToNode
+            - ToNodeProps
+        """
+        return self.__get_all_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=self._adjust_own_rels, **more_from_node_props)
+
+    def get_one_own_by_rels_props(self, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, **more_from_node_props):
+        return self.get_one_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=self._adjust_own_rels, **more_from_node_props)
