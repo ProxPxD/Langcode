@@ -1,0 +1,9 @@
+cond:
+  when: 'a$'
+  then: 'e'
+
+expecteds:
+  - for: mama
+    expected: mame
+  - for: mam
+    expected:

@@ -29,6 +29,8 @@ class SimpleTerms:
     DISJOINT = 'disjoint'
     VAL = 'val'
     AS_LIST = 'as_list'
+    WHEN = 'when'
+    THEN = 'then'
 
 
 @dataclass(frozen=True)

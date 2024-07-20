@@ -20,6 +20,10 @@ class InvalidYamlException(LangCodeException):
         return ''.join(self.args)
 
 
+class NoConditionAppliesException(LangCodeException):
+    pass
+
+
 class IDynamicMessageException(Exception):
     _make_msg: Callable[[...], str] = lambda *args, **kwargs: ''
 

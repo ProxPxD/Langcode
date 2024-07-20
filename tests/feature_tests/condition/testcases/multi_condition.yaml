@@ -1,0 +1,14 @@
+cond:
+  - when: 'a$'
+    then: 'e'
+  - when: 'i$'
+    then: 'ii'
+  - then: ''
+
+expecteds:
+  - for: 'papa'
+    expected: 'pape'
+  - for: 'papi'
+    expected: 'papii'
+  - for: 'pap'
+    expected: 'pap'
