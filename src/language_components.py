@@ -39,6 +39,8 @@ class LangCodeNode(IRelationQuerable):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def init(self) -> None:
+        raise NotImplementedError
 
     @classmethod
     def _get_one_by_props_rough(cls, *, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
@@ -103,7 +105,12 @@ class IIdentifier(LangCodeNode):
 class IConfigurable(LangCodeNode):
     def __init__(self, conf: Config = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_conf(conf)
+        self._conf = conf
+
+    def init(self) -> None:
+        if self._conf is not None:
+            self.set_conf(self._conf)
+            self._conf = None
 
     def set_conf(self, conf: Config) -> None:
         self.clean_conf()
