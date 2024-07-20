@@ -20,5 +20,5 @@ class LangFactory(ILoader, IPath):
 
     def load(self, language: str = None, **kwargs) -> Language:
         raw_data = self._lang_data_loader.load(language, **kwargs)
-        lang = LanguageSchema(**raw_data).to_lang()
+        lang = LanguageSchema(**raw_data).to_lang(language)
         return lang

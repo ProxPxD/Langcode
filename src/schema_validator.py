@@ -3,17 +3,21 @@ from __future__ import annotations
 import operator as op
 from abc import ABC
 from functools import reduce
+from itertools import starmap
 from typing import Optional, List, AnyStr, Iterable, Dict, Tuple, Any
 
 from pydantic import BaseModel, field_validator, model_validator
 from toolz import keyfilter
+from itertools import starmap
 
 import src.utils as utils
 from src.constants import ST
 from src.exceptions import ConflictingKeysException
-from src.lang_typing import Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf
+from src.lang_typing import Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf, YamlType
 from src.language_components import Unit, Feature, Language
 from src.utils import is_, is_list
+import pydash as _
+from pydash import chain as c
 
 
 # TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag
@@ -45,7 +49,7 @@ class UnitSchema(IToDict, BaseModel, ABC):
     @classmethod
     def val_elems(cls, elems) -> Iterable[Unit]:
         normalized = utils.map_conf_list_to_dict(elems)
-        units = [Unit(name=name, conf=conf) for name, conf in normalized.items()] # TODO: think if initial structure of morpheme config is not required such as checking if features exist
+        units = [Unit(name=name, conf=conf) for name, conf in normalized.items()]  # TODO: think if initial structure of morpheme config is not required such as checking if features exist
         return units
 
 
@@ -73,7 +77,7 @@ class FeatureSchema(BaseModel):
             raise ConflictingKeysException(direct_definitions)
 
         data = keyfilter(allowed_keys.__contains__, data)
-        data[ST.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get_property(ST.ELEMS, []))))
+        data[ST.ELEMS] = reduce(op.or_, map(utils.map_conf_list_to_dict, (direct_definitions, data.get(ST.ELEMS, []))))
         return data
 
     @model_validator(mode='before')
@@ -85,8 +89,13 @@ class FeatureSchema(BaseModel):
     @field_validator('elems')
     @classmethod
     def create_features(cls, elems) -> List[Tuple[Feature, FeatureSchema]]:
-        features = [(Feature(name=name, kind=None), conf if is_(FeatureSchema, conf) else FeatureSchema(elems=conf)) for name, conf in elems.items()]
+        features = c(elems.items()).map_(_.spread(cls.create_feature)).value()
         return features
+
+    @classmethod
+    def create_feature(cls, name: str, conf: YamlType) -> Feature:
+        match conf:
+            case _: return Feature(name, conf)
 
     @model_validator(mode='after')
     @classmethod
@@ -143,6 +152,6 @@ class LanguageSchema(BaseModel):  # TODO: think if morphemes shouldn't be requir
     class Config:
         extra = 'ignore'
 
-    @classmethod
-    def to_lang(cls) -> Language:
+    def to_lang(self, name: str) -> Language:
+        lang = Language(name=name)
         raise NotImplementedError

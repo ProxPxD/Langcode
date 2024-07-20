@@ -3,12 +3,12 @@ from __future__ import annotations
 import functools
 import inspect
 from dataclasses import dataclass
-from itertools import tee
 from pathlib import Path
 from typing import Callable, Iterable, Sequence
 
 import pydash as _
 import yaml
+from parameterized import parameterized
 from pydash import chain as c
 from toolz import valfilter
 from toolz.curried import *
@@ -134,10 +134,9 @@ class Generator:
         return cls.should_test_name(lang_name) and cls.should_test_props(AbstractLangCodeTest.all_test_properties[lang_name])
 
     @classmethod
-    def generate_test_cases_for_lang(cls, lang_name) -> list[tuple]:
-        return [
-             (lang_name, ) + cls.get_props(lang_name) + to_tuple(cls.get_lang_parameters(lang_name)),
-        ]
+    def generate_test_cases_parameters_for_lang(cls, lang_name) -> list[tuple]:
+        params = (lang_name, ) + cls.get_props(lang_name) + to_tuple(cls.get_lang_parameters(lang_name))
+        return [params]
 
     @classmethod
     def generate_test_langs(cls) -> Iterable[str]:
@@ -145,7 +144,7 @@ class Generator:
 
     @classmethod
     def generate_test_cases(cls) -> Iterable[tuple]:
-        return _.flat_map(cls.generate_test_langs(), cls.generate_test_cases_for_lang)
+        return _.flat_map(cls.generate_test_langs(), cls.generate_test_cases_parameters_for_lang)
 
     @classmethod
     def _get_or_set(cls, name: str, factory, *args, **kwargs):
@@ -164,6 +163,29 @@ class Generator:
         props = cls.test.all_test_properties[lang_name]
         paths = to_tuple(paths or cls.props_paths_to_add)
         return tuple(_.properties(*paths)(props))
+
+    @classmethod
+    def create_props_for_test_case(cls, params):
+        return {}
+
+    @classmethod
+    def parametrize(cls,
+            input,
+            name_func: Callable[..., str] = None,
+            **expand_kwargs
+        ):
+        frame = inspect.currentframe().f_back.f_locals
+
+        def wrapper(f, *args, **kwargs):
+            parameterized.expand(input, namespace=frame, name_func=name_func, **expand_kwargs)(f)
+
+            all_params = parameterized.input_as_callable(input)()
+            digits = len(str(len(all_params) - 1))
+            for num, params in enumerate(all_params):
+                name = name_func(f, f'{num:0>{digits}}', params)
+                setattr(frame[name], 'props', cls.create_props_for_test_case(params.args))
+
+        return wrapper
 
 
 # func creator

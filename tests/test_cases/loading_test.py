@@ -7,6 +7,8 @@ from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 from src.exceptions import InvalidYamlException, InvalidPathException, ConflictingKeysException
 from tests.lang_code_test import Paths, AbstractLangCodeTest, Generator, test_generator
+import pydash as _
+from pydash import chain
 
 
 # @generator
@@ -36,14 +38,26 @@ class LoadingTestGenerator(Generator):
     props_paths_to_add = ('valid_schema', 'should_load')
     lang_name_regexes = ''
 
+    @classmethod
+    def create_props_for_test_case(cls, params):
+        lang = params[0]
+        props = cls.test.all_test_properties[lang]
+        return {
+            'features': bool(props.get('features', False))
+        }
+
 
 class LoadingTest(AbstractLangCodeTest):
     """
         description: The test checks if the configurations load or fail accordingly to the configuration correctness
     """
-    @parameterized.expand(
+    # @parameterized.expand(
+    #     LoadingTestGenerator.generate_test_cases(),
+    #     name_func=get_func_name
+    # )
+    @LoadingTestGenerator.parametrize(
         LoadingTestGenerator.generate_test_cases(),
-        name_func=get_func_name
+        name_func=get_func_name,
     )
     def test(self, lang_name: str, valid_schema, should_load, message=None):
         # TODO: consider spliting into many functions

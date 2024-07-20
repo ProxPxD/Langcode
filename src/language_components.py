@@ -18,7 +18,7 @@ from src.neomodel_mixins import ICorePropertied, INeo4jFormatable, INeo4jHierarc
 from src.relationships import Features, Belongs, IsSuperOf, HasKind
 from src.utils import adjust_str, exceptions_to, is_, is_yaml_type, is_nothing_instance_of_none
 
-config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
+config.DATABASE_URL = 'bolt://neo4j:password@localhost:7687'
 
 
 class INameProperty(StructuredNode):
@@ -26,7 +26,7 @@ class INameProperty(StructuredNode):
 
 
 class CoreProperties(ICorePropertied, INameProperty):
-    __core_properties_classes_or_names = [INameProperty]
+    _core_properties_classes_or_names = [INameProperty]
 
 
 class LangCodeNode(IRelationQuerable):
@@ -35,6 +35,10 @@ class LangCodeNode(IRelationQuerable):
     # @property
     # def main_label(cls) -> str:
     #     return cls.__class__.__name__
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
 
     @classmethod
     def _get_one_by_props_rough(cls, *, raises: bool = True, **kwargs) -> Optional[LangCodeNode]:
@@ -97,26 +101,36 @@ class IIdentifier(LangCodeNode):
 
 
 class IConfigurable(LangCodeNode):
-    def __init__(self, conf: Config, *args, **kwargs):
+    def __init__(self, conf: Config = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.set_conf(conf)
 
     def set_conf(self, conf: Config) -> None:
+        self.clean_conf()
+        self.update_conf(conf)
+
+    def clean_conf(self) -> None:
+        c(self.__class__.__all_properties__).keys().without(self.core_property_names).for_each(self.__delattr__)  # TODO: make sure that for_each executes the statement
+
+    def update_conf(self, conf: Config) -> None:
+        c(conf or {}).apply(dict.items).map_(_.spread(self.set_conf_entry)).value()
+
+    def set_conf_entry(self, key: str, val: YamlType) -> None:
         raise NotImplementedError
 
 
 class LangSpecificNode(IIdentifier, IConfigurable, LangCodeNode):
     lang = relationships.create_rel(RelationshipTo, 'Language', Belongs)
 
-    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
-        return [(Belongs, Language, self.lang), *super()._adjust_own_rels(rels)]
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> list[FullQueryRel]:
+        return self._adjust_own_rels_if_saved(rels, lambda rels: [(Belongs, Language, self.lang.single()), *rels])
 
 
 class Kinded(LangSpecificNode):
     kind = relationships.create_rel(RelationshipTo, Kind, HasKind)
 
-    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
-        return [(HasKind, LangWiseCommonNode, self.kind), *super()._adjust_own_rels(rels)]
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> list[FullQueryRel]:
+        return self._adjust_own_rels_if_saved(rels, lambda rels: [(HasKind, LangWiseCommonNode, self.kind.single()), *rels])
 
 
 class IPropertiedNode:
@@ -148,26 +162,13 @@ class Feature(IPropertiedNode, Kinded, INeo4jHierarchied):
         child = self.get_one_own_by_rels_props(from_node_props=child)  # TODO: automate label in own methods
         self.children.manager.connect(child)
 
-    def set_conf(self, conf: dict) -> None:
-        raise NotImplementedError
-
-    def add_conf_entry(self, key: str, val: YamlType) -> None:
+    def set_conf_entry(self, key: str, val: YamlType) -> None:
         raise NotImplementedError
 
 
 # TODO: work on kind
 class Unit(Kinded, IPropertiedNode):
     features = relationships.create_rel(RelationshipTo, Feature, Features)
-
-    def set_conf(self, conf: Config) -> None:
-        self.clean_conf()
-        self.update_conf(conf)
-
-    def clean_conf(self) -> None:
-        c(self.__class__.__all_properties__).keys().without(self.core_property_names).for_each(self.__delattr__)  # TODO: make sure that for_each executes the statement
-
-    def update_conf(self, conf: Config) -> None:
-        itemmap(_.spread(self.set_conf_entry), conf or {})
 
     def set_conf_entry(self, key: str, val: YamlType) -> None:
         try:

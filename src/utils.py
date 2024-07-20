@@ -409,5 +409,5 @@ def get_nested_dict_leafs(data: dict) -> list:
     return _.flatten_deep([get_nested_dict_leafs(subdict) if subdict else [key] for key, subdict in data.items()])
 
 
-pad_left_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_left_until(n, to_pad_with, to_pad))
-pad_right_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_right_until(n, to_pad_with, to_pad))
+pad_left_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_left_until(n, to_pad_with, (to_pad_with, ) + to_tuple(to_pad)))
+pad_right_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_right_until(n, to_pad_with, to_tuple(to_pad) + (to_pad_with, )))

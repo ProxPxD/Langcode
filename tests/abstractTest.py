@@ -38,7 +38,14 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         if not self.get_method_name().startswith('test_'):
             return
         super().setUp()
-        print('- ', self.get_method_name(), end=' ... ')
+        print('- ', self.get_method_name())
+        self.print_test_props()
+
+    def print_test_props(self) -> None:
+        method = getattr(self, self._testMethodName)
+        props = getattr(method, 'props', {})
+        for name, val in props.items():
+            print(f'\t\t - {name}' + f': {val}')
 
     def tearDown(self) -> None:
         if not self.get_method_name().startswith('test_'):
@@ -64,7 +71,7 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         status = Status.PASS if passed else Status.ERROR if is_error else Status.FAIL if is_failure else Status.SKIP if is_skipped else \
         'WRONG UNIT TEST OUTCOME CHECKING! Investigate (possible incompatible with a python newer than 3.10)'
         status = self.colorize(status)
-        print(f'{" "*padding}{status}')
+        print(f'\t\tstatus: {" "*padding}{status}')
 
     def get_test_result(self):
         if hasattr(self._outcome, 'errors'):

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
-from typing import Sequence, Optional, Type, Tuple
+from typing import Sequence, Optional, Type, Tuple, Callable
 
 import neomodel
 import pydash as _
@@ -12,8 +12,8 @@ from toolz import keyfilter
 
 from src import utils
 from src.exceptions import PropertyNotFound, CannotCreatePropertyException, DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException, AmbiguousNodeException
-from src.lang_typing import YamlType
-from src.utils import exceptions_to, is_not, if_, to_list, pad_left_until
+from src.lang_typing import YamlType, OneOrMore
+from src.utils import exceptions_to, is_not, if_, to_list, pad_left_until, to_tuple
 
 
 class FeaturesNotHierarchied(IDynamicMessageException):
@@ -21,11 +21,11 @@ class FeaturesNotHierarchied(IDynamicMessageException):
 
 
 class ICorePropertied(StructuredNode):
-    __core_properties_classes_or_names = []
+    _core_properties_classes_or_names = []
 
     @property
     def core_property_names(self) -> set[str]:  # TODO: (neo4j) Consider other implementation for generalization
-        names_or_classes = self.__core_properties_classes_or_names or set()
+        names_or_classes = self._core_properties_classes_or_names or set()
         interface_to_name = c().get('__name__').tail().trim_end('Property').snake_case()
         interfaces_to_names = c().map_(interface_to_name).apply(set)
         return set(c(names_or_classes).apply_if(interfaces_to_names, is_not(str)).value())
@@ -46,18 +46,18 @@ class ICorePropertied(StructuredNode):
 class ICustomPropertied(ICorePropertied):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.__custom_property_names: set = set()
+        self._custom_property_names: set = set()
 
     @property
     def custom_property_names(self) -> set[str]:
-        return self.__custom_property_names.copy()
+        return self._custom_property_names.copy()
 
     @property
     def custom_properties(self) -> dict[str, YamlType]:
         return utils.map_to_dict(self.custom_property_names, self.get_property)
 
     def get_property(self, name: str) -> YamlType:
-        if name not in self.__custom_property_names:
+        if name not in self._custom_property_names:
             raise PropertyNotFound(self, name)
         return self.__getattribute__(name)
 
@@ -68,7 +68,7 @@ class ICustomPropertied(ICorePropertied):
     def set_property(self, name: str, val: YamlType = None) -> None:
         if name not in self.custom_property_names and hasattr(self, name):
             raise CannotCreatePropertyException(name)
-        self.__custom_property_names.add(name)
+        self._custom_property_names.add(name)
         setattr(self, name, val)
 
     def remove_property(self, name: str) -> None:
@@ -130,20 +130,20 @@ class INeo4jHierarchied(INeo4jFormatable):
         rel_name = __rel_name or cls._get_hierarchied_rel_name()
         label = cls.format_to_neo4j_style('label', **properties)
         node_repr = cls.format_to_neo4j_style('node', **properties)
-        right, left = cls.__get_right_and_left_parts(orientation)
-        start, end = cls.__get_start_and_end_parts(__start, __end, __n)
-        connection_part = cls.__get_connection_part(__connected_node, __connecting_rel)
+        right, left = cls._get_right_and_left_parts(orientation)
+        start, end = cls._get_start_and_end_parts(__start, __end, __n)
+        connection_part = cls._get_connection_part(__connected_node, __connecting_rel)
 
         return f'{connection_part}{node_repr}{left}-[:{rel_name}*{start}..{end}]-{right}(:{label})'
 
     @classmethod
-    def __get_right_and_left_parts(cls, orientation: str) -> tuple[str, str]:
+    def _get_right_and_left_parts(cls, orientation: str) -> tuple[str, str]:
         right = '>' if orientation == Orientation.DOWN else ''
         left  = '<' if orientation == Orientation.UP   else ''
         return right, left
 
     @classmethod
-    def __get_start_and_end_parts(cls, start: int, end: int, n: int) -> tuple[str, str]:
+    def _get_start_and_end_parts(cls, start: int, end: int, n: int) -> tuple[str, str]:
         match (n, start, end):
             case (None, int(), int()): pass
             case (None, None, None): (start, end) = ('0', '')
@@ -154,7 +154,7 @@ class INeo4jHierarchied(INeo4jFormatable):
         return str(start), str(end)
 
     @classmethod
-    def __get_connection_part(cls, connected_node: INeo4jFormatable, connecting_rel) -> str:
+    def _get_connection_part(cls, connected_node: INeo4jFormatable, connecting_rel) -> str:
         match (connected_node, connecting_rel):
             case (None, None): return ''
             case (None, _): raise ValueError('Cannot define "__connecting_rel" without "__connected_node"')
@@ -339,94 +339,100 @@ class INeo4jHierarchied(INeo4jFormatable):
 # IRelationQuerable
 
 QueryNode = str | StructuredNode | Type[StructuredNode]
+SimplifiedQueryNode = str | StructuredNode | Type
 QueryRel = Type[StructuredRel] | str
 QueryDict = dict | str
-FullQueryRel = QueryRel | QueryNode | QueryDict | Tuple[QueryRel, QueryNode] | Tuple[QueryRel, QueryDict] | Tuple[QueryNode, QueryDict] | Tuple[QueryRel, QueryNode, QueryDict]
+FullQueryRel = QueryRel | OneOrMore[QueryNode] | QueryDict | Tuple[QueryRel, OneOrMore[QueryNode]] | Tuple[QueryRel, QueryDict] | Tuple[OneOrMore[QueryNode], QueryDict] | Tuple[QueryRel, OneOrMore[QueryNode], QueryDict]
 
 
 class IRelationQuerable(INeo4jFormatable):
     # TODO: adjust node to mean label or at least allow many labels
-    __main_property_name: str = 'name'
+    _main_property_name: str = 'name'
+
+    def is_saved(self):
+        return self.element_id is not None
 
     @classmethod
-    def __format_relation_part(cls, relation: Type[StructuredRel] | str) -> str:
+    def _format_relation_part(cls, relation: Type[StructuredRel] | str) -> str:
         match relation:
             case None: formatted = ''
             case str(): formatted = f':{relation}'
             case _ if hasattr(relation, 'get_rel_name'): formatted = f':{relation.get_rel_name()}'
-            case Type(): formatted = f':{c(relation.__name__).snake_case().upper_case().value()}'
+            case type(): formatted = f':{c(relation.__name__).snake_case().upper_case().value()}'
             case _: formatted = str(relation)
         return f'[{formatted}]'
 
     @classmethod
-    def __format_node_label(cls, node: StructuredNode | Type[StructuredNode] | str) -> str:
-        match node:
+    def _format_node_label_s(cls, label_s: OneOrMore[QueryNode]) -> str:
+        return c(to_tuple(label_s)).map(cls._format_node_label).join('').value()
+
+    @classmethod
+    def _format_node_label(cls, label: QueryNode) -> str:
+        match label:
             case None: return ''
-            case str(): formatted = node
-            case StructuredNode(): formatted = node.__class__.__name__
-            case Type(): formatted = node.__name__
-            case _: formatted = str(node)
+            case str(): formatted = label
+            case StructuredNode(): formatted = label.__class__.__name__
+            case type(): formatted = label.__name__
+            case _: formatted = str(label)
         return f':{formatted}'
 
     @classmethod
-    def __adjust_props(cls, props: dict | str, **kwargs) -> dict:
-        props = if_(props).is_(str).then_apply(lambda p: {cls.__main_property_name: str(p)})
+    def _adjust_props(cls, props: dict | str, **kwargs) -> dict:
+        props = if_(props).is_(str).then_apply_(lambda p: {cls._main_property_name: str(p)})
         props.update(kwargs)
         return props
 
     @classmethod
-    def __format_node_part(cls, node: StructuredNode | Type[StructuredNode] | str, props: str | dict, name: str = '') -> str:
-        node_label = cls.__format_node_label(node)
-        props = cls.__adjust_props(props)
+    def _format_node_part(cls, label_s: OneOrMore[QueryNode], props: str | dict, name: str = '') -> str:
+        node_label = cls._format_node_label_s(label_s)
+        props = cls._adjust_props(props)
         return f'({name}{node_label} {props})'
 
     @classmethod
-    def __format_relation_expression(cls, from_node_part: str, relation_part: str, to_node: str) -> str:
+    def _format_relation_expression(cls, from_node_part: str, relation_part: str, to_node: str) -> str:
         return f'{from_node_part}-{relation_part}-{to_node}'
 
     @classmethod
     def get_all_by_rel_prop(cls,
-            from_node: QueryNode = None,
+            from_node: OneOrMore[QueryNode] = None,
             from_node_props: QueryDict = None,
             relation: QueryRel = None,
-            to_node: QueryNode = None,
+            to_node: OneOrMore[QueryNode] = None,
             to_node_props: QueryDict = None,
     ) -> Sequence[StructuredNode]:
         from_node_name = 'from_node'
-        expression = cls.__format_relation_expression(
-            cls.__format_node_part(from_node, from_node_props, from_node_name),
-            cls.__format_relation_part(relation),
-            cls.__format_node_part(to_node, to_node_props)
+        expression = cls._format_relation_expression(
+            cls._format_node_part(from_node, from_node_props, from_node_name),
+            cls._format_relation_part(relation),
+            cls._format_node_part(to_node, to_node_props)
         )
         return Database().cypher_query(f'MATCH {expression} RETURN {from_node_name}')
 
     @classmethod
-    def _adjust_inner_rel(cls, rel: FullQueryRel) -> FullQueryRel:
-        insert_none_at_nth = curry(lambda n, arr: arr.insert(n, None))
+    def _adjust_inner_rel(cls, full_query_rel: FullQueryRel) -> FullQueryRel:
+        insert_none_at_nth = curry(lambda n, arr: arr[:n] + [None] + arr[n:])
         get_insert_none_if_types = curry(lambda n, types: c().apply_if(
             insert_none_at_nth(n),
-            c().nth(n).is_instance_of(types))
-        )
-        adjust_inner_args = _.flow(
-            to_list,
-            get_insert_none_if_types(0, (StructuredNode, dict)),
-            get_insert_none_if_types(1, dict),
-            pad_left_until(3, None)
-        )
-        return adjust_inner_args(rel)
+            c().nth(n).is_instance_of(types)
+        ))
+
+        full_query_rel = to_list(full_query_rel)
+        full_query_rel = get_insert_none_if_types(0, SimplifiedQueryNode | list | dict)(full_query_rel)  # TODO: make sure that replacing "OneOrMore" with "QueryNode | list" bahave as expected
+        full_query_rel = get_insert_none_if_types(1, dict)(full_query_rel)
+        full_query_rel = pad_left_until(3, None)(full_query_rel)
+        return full_query_rel
 
     @classmethod
-    def _adjust_rels(cls, rels: Sequence[FullQueryRel], _adjust_inner_rel=None) -> Sequence[FullQueryRel]:
-        adjust_args = _.flow(
-            c().apply_if(lambda r: (r, ), _.negate(c().nth(0).is_instance_of(Sequence))),
-            c().map_(_adjust_inner_rel or cls._adjust_inner_rel),
-        )
-        return adjust_args(rels)
+    def _adjust_rels(cls, rels: Sequence[FullQueryRel], _adjust_inner_rel=None) -> list[FullQueryRel]:
+        if rels and not c().nth(0).is_instance_of(Sequence)(rels):
+            rels = (rels, )
+        rels = _.map_(rels, _adjust_inner_rel or cls._adjust_inner_rel)
+        return rels
 
     @classmethod
     def _get_all_by_rels_props(cls, *,
             rels: Sequence[FullQueryRel] = None,
-            from_node: QueryNode = '',
+            from_node: OneOrMore[QueryNode] = '',
             from_node_props: dict = None,
             _adjust_rels=None,
             **more_from_node_props
@@ -444,32 +450,39 @@ class IRelationQuerable(INeo4jFormatable):
         _adjust_rels = _adjust_rels or cls._adjust_rels
         from_node_name = 'from_node'
         from_node_props = cls._adjust_props(from_node_props, **more_from_node_props)
-        from_node_part = cls.__format_node_part(from_node, from_node_props, from_node_name)
+        from_node_part = cls._format_node_part(from_node, from_node_props, from_node_name)
 
         expr_parts = [
-            cls.__format_relation_expression(
+            cls._format_relation_expression(
                 from_node_part,
-                cls.__format_relation_part(rel),
-                cls.__format_node_part(to_node, to_node_props)
+                cls._format_relation_part(rel),
+                cls._format_node_part(to_node, to_node_props)
             ) for rel, to_node, to_node_props in _adjust_rels(rels)
         ]
 
+        if not expr_parts:
+            return []
         query = f'MATCH {", ".join(expr_parts)} RETURN {from_node_name}'
         return Database().cypher_query(query)
 
     @classmethod
     def get_one_by_rels_props(cls, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, _adjust_rels=None, **more_from_node_props):
-        nodes = cls.__get_all_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=_adjust_rels, **more_from_node_props)
+        nodes = cls._get_all_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=_adjust_rels, **more_from_node_props)
         match len(nodes):
             case 1: return nodes[0]
             case 0: raise DoNotExistException()  # TODO: think of rewriting the exceptions
             case _: raise AmbiguousNodeException()
 
     def _adjust_own_inner_rel(self, rel: FullQueryRel) -> FullQueryRel:
-        return self._adjust_rel(rel)
+        return self._adjust_inner_rel(rel)
 
-    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> Sequence[FullQueryRel]:
+    def _adjust_own_rels(self, rels: Sequence[FullQueryRel]) -> list[FullQueryRel]:
         return self._adjust_rels(rels, _adjust_inner_rel=self._adjust_own_inner_rel)
+
+    def _adjust_own_rels_if_saved(self, rels: Sequence[FullQueryRel], adjust: Callable[[Sequence[FullQueryRel]], Sequence[FullQueryRel]]) -> list[FullQueryRel]:
+        if self.is_saved():
+            rels = adjust(rels)
+        return self._adjust_rels(rels)
 
     def get_all_own_by_rels_props(self, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, **more_from_node_props):
         """
@@ -482,7 +495,7 @@ class IRelationQuerable(INeo4jFormatable):
             - ToNode
             - ToNodeProps
         """
-        return self.__get_all_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=self._adjust_own_rels, **more_from_node_props)
+        return self._get_all_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=self._adjust_own_rels, **more_from_node_props)
 
     def get_one_own_by_rels_props(self, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, **more_from_node_props):
-        return self.get_one_by_rels_props(rels=rels, from_node=from_node, from_node_props=from_node_props, _adjust_rels=self._adjust_own_rels, **more_from_node_props)
+        return self.get_one_by_rels_props(rels=rels or [], from_node=from_node, from_node_props=from_node_props, _adjust_rels=self._adjust_own_rels, **more_from_node_props)

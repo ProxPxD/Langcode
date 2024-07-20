@@ -1,5 +1,6 @@
 import re
 
+from decorator import decorator
 from toolz.curried import *
 from operator import *
 import pydash as _
@@ -7,6 +8,20 @@ from pydash import chain as c
 from pydash import spread
 
 from toolz.curried.operator import *
+
+
+@decorator
+def tup(f, *args, **kwargs):
+    return (f(*args, **kwargs), )
+
+
+@tup
+def get_len(elems):
+    return len(elems)
+
+
+print(get_len('saddas'))
+
 
 print(
     'nth',
