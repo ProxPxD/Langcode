@@ -2,12 +2,12 @@ import importlib
 import inspect
 import re
 import unittest
+from itertools import chain
 from pathlib import Path
 from typing import Iterable
+from unittest.case import SkipTest
 
 from abstractTest import AbstractTest
-from unittest.case import SkipTest
-import pydash as _
 
 all_tests = []
 
@@ -34,10 +34,11 @@ def get_tests_from_dir(dir_name: str = None, name_pattern: str = None, *, branch
         module_path_parts = file.parts[-(branching_level+1):]
         module_path = '.'.join(module_path_parts).removesuffix('.py')
         module = importlib.import_module(module_path)
+        is_matching_pattern = re.compile(name_pattern).match
 
         for name, test_class in inspect.getmembers(module, inspect.isclass):
             if name.endswith('Test'):
-                if name_pattern is None or re.match(name_pattern, name):
+                if name_pattern is None or is_matching_pattern(name):
                     yield test_class
 
 
@@ -61,8 +62,9 @@ def run_tests(to_runs: Iterable):
 
 
 if __name__ == '__main__':
-    tests = _.flatten([
-        get_tests_from_dir('feature_tests', branching_level=2),
-        get_tests_from_dir('test_cases', branching_level=1),
-    ])
+    name_pattern = 'Condition'
+    tests = chain(
+        get_tests_from_dir('feature_tests', name_pattern, branching_level=2),
+        get_tests_from_dir('test_cases', name_pattern, branching_level=1),
+    )
     run_tests(tests)
