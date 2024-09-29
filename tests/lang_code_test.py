@@ -4,7 +4,7 @@ import functools
 import inspect
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Sequence
+from typing import Callable, Iterable, Sequence, Type
 
 import pydash as _
 import yaml
@@ -37,18 +37,18 @@ class Paths:
 
 class LangCodeTestGenerator(TestGenerator):
     @classmethod
-    def create_eme_or_more_and_is_skip(cls, conf: OrMore[dict | str], kind: str = None):
+    def from_conf_and_is_skip(cls, lang_code_class: Type, conf: OrMore[dict | str], *args, **kwargs):
         match conf:
-            case _ if is_((list, tuple), conf): eme_or_more = list(map(lambda conf: cls.create_eme(conf, kind), conf))
-            case _: eme_or_more = cls.create_eme(conf, kind)
-        return eme_or_more, cls.is_skip_eme(eme_or_more)
+            case _ if is_((list, tuple), conf): object_or_more = list(map(lambda conf: cls.from_conf(lang_code_class, conf, *args, **kwargs), conf))
+            case _: object_or_more = cls.from_conf(lang_code_class, conf, *args, **kwargs)
+        return object_or_more, cls.is_skip(object_or_more)
 
     @classmethod
-    def create_eme(cls, conf: dict | str, kind=None) -> Unit | str:
-        kind = kind or ST.MORPHEME
+    def from_conf(cls, lang_code_class: Type, conf: dict | str, kind=None) -> Unit | str:
         try:
-            eme = Unit.from_conf(conf)
-            eme.kind = kind
+            eme = lang_code_class.from_conf(conf)
+            if kind:
+                eme.kind = kind
         except NotImplementedError:
             eme = 'Not Implemented'
         except LangCodeException as e:
@@ -58,10 +58,10 @@ class LangCodeTestGenerator(TestGenerator):
         return eme
 
     @classmethod
-    def is_skip_eme(cls, eme: OrMore[Unit | str]) -> bool:
-        match eme:
-            case _ if is_(Sequence, eme): return eme and any(filter(cls.is_skip_eme, eme))
-            case _: return isinstance(eme, (str, Exception))
+    def is_skip(cls, creation: OrMore[Unit | str]) -> bool:
+        match creation:
+            case _ if is_(Sequence, creation): return creation and any(filter(cls.is_skip, creation))
+            case _: return isinstance(creation, (str, Exception))
 
 
 class AbstractLangCodeTest(AbstractTest):

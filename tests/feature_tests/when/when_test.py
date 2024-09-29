@@ -115,9 +115,9 @@ class WhenTestGenerator(LangCodeTestGenerator):
     def generate(cls) -> Iterable[tuple]:
         n_space = ' ' * len('description: ')
         for tc in cls.tcs:
-            preexistings, could_not_create_preexisting = cls.create_eme_or_more_and_is_skip(tc.preexisting.morphemes)
+            preexistings, could_not_create_preexisting = cls.from_conf_and_is_skip(Unit, tc.preexisting.morphemes)
             for case, expected in cls.gen_morph_dicts_and_states(tc):
-                morph, could_not_create_morph = cls.create_eme_or_more_and_is_skip(case.conf)
+                morph, could_not_create_morph = cls.from_conf_and_is_skip(Unit, case.conf)
                 skip = could_not_create_preexisting or could_not_create_morph
 
                 state = 'passing' if expected else 'failing'
