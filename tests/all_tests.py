@@ -12,34 +12,42 @@ from abstractTest import AbstractTest
 all_tests = []
 
 
-def get_files_at_nth_level(dir: Path, branching_level):
-    to_enter = list(dir.iterdir())
+def get_files_at_nth_level(path: Path | str, branching_level: int, name_regex: str):
+    path = Path(__file__).parent / path if isinstance(path, str) else path
+    to_enter = list(path.iterdir())
     while branching_level > 1:
         curr_to_enter = to_enter[:]
         to_enter = []
-        for dir in curr_to_enter:
-            to_enter.extend(dir.iterdir())
+        for directory in curr_to_enter:
+            to_enter.extend(directory.iterdir())
         branching_level -= 1
-    return to_enter
+
+    result = [file for file in to_enter if re.search(name_regex, file.name)]
+    return result
+
+
+def get_module_path_from_file(file: Path, branching_level: int = 0) -> str:
+    module_path_parts = file.parts[-(branching_level+1):]
+    module_path = '.'.join(module_path_parts).removesuffix('.py')
+    return module_path
+
+
+def load_module_from_path(path: str) -> Iterable[tuple[str, ...]]:
+    module = importlib.import_module(path)
+    return inspect.getmembers(module, inspect.isclass)
 
 
 def get_tests_from_dir(dir_name: str = None, name_pattern: str = None, *, branching_level=1):
     if not dir_name:
         return all_tests
 
-    test_dir_path = Path(__file__).parent / dir_name
-    test_files = get_files_at_nth_level(test_dir_path, branching_level)
-    test_files = [file for file in test_files if '__pycache__' not in file.name]
+    is_matching_pattern = re.compile(name_pattern).match if name_pattern else lambda x: True
+    test_files = get_files_at_nth_level(dir_name, branching_level, r'[^__pycache__]')
     for file in test_files:
-        module_path_parts = file.parts[-(branching_level+1):]
-        module_path = '.'.join(module_path_parts).removesuffix('.py')
-        module = importlib.import_module(module_path)
-        is_matching_pattern = re.compile(name_pattern).match
-
-        for name, test_class in inspect.getmembers(module, inspect.isclass):
-            if name.endswith('Test'):
-                if name_pattern is None or is_matching_pattern(name):
-                    yield test_class
+        module_path = get_module_path_from_file(file, branching_level)
+        for name, test_class in load_module_from_path(module_path):
+            if name.endswith('Test') and is_matching_pattern(name):
+                yield test_class
 
 
 def run_tests(to_runs: Iterable):
