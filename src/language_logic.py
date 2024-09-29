@@ -10,14 +10,14 @@ from src.lang_typing import YamlType
 
 class Condition:
     @classmethod
-    def create(cls, source: YamlType) -> MultiCond | Cond:
+    def from_conf(cls, source: YamlType) -> MultiCond | Cond:
         match source:
-            case dict(): return Cond.create(source)
-            case list(): return MultiCond.create(source)
+            case dict(): return Cond.from_conf(source)
+            case list(): return MultiCond.from_conf(source)
             case _: raise ValueError(f'Condition: source {source} not supported')
 
     def __init__(self, source):
-        self._cond = self.create(source)
+        self._cond = self.from_conf(source)
 
     def __call__(self, *args):
         return self._cond(*args)
@@ -25,8 +25,8 @@ class Condition:
 
 class MultiCond:
     @classmethod
-    def create(cls, source: list):
-        return cls(*list(map(Cond.create, source)))
+    def from_conf(cls, source: list):
+        return cls(*list(map(Cond.from_conf, source)))
 
     def __init__(self, *conds: Cond):
         self.conds: list[conds] = list(conds)
@@ -42,10 +42,10 @@ class MultiCond:
 
 class Cond:
     @classmethod
-    def create(cls, source: dict) -> Cond:
+    def from_conf(cls, source: dict) -> Cond:
         if ST.THEN in source:
             when_source, then_source = source.get('when'), source.get('then')
-            when, then = When.create(when_source), Then.create(then_source)
+            when, then = When.from_conf(when_source), Then.from_conf(then_source)
             return cls(when, then)
 
     def __init__(self, when: When = None, then: Then = None):
@@ -62,10 +62,10 @@ class Cond:
 
 class When:
     @classmethod
-    def create(cls, source: YamlType):
+    def from_conf(cls, source: YamlType):
         match source:
             case str(): return cls(re.compile(source).search)
-            case _: NotImplementedError()
+            case _: raise NotImplementedError
 
     def __init__(self, source: Callable[..., bool | Any] = None):
         self._when: Callable[..., bool] = source or (lambda *args: True)
@@ -76,7 +76,7 @@ class When:
 
 class Then:
     @classmethod
-    def create(cls, source: YamlType) -> Then:
+    def from_conf(cls, source: YamlType) -> Then:
         match source:
             case str(): return cls(source)
             case dict(): return Cond(source)

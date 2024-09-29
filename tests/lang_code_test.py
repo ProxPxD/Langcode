@@ -16,11 +16,13 @@ from typing_extensions import deprecated
 
 from src import utils
 from src.constants import ST
+from src.exceptions import LangCodeException
 from src.lang_factory import LangFactory
-from src.language_components import Language
+from src.lang_typing import OrMore
+from src.language_components import Language, Unit
 from src.loaders import LangDataLoader
-from src.utils import if_, to_tuple
-from tests.abstractTest import AbstractTest
+from src.utils import if_, to_tuple, is_
+from tests.abstractTest import AbstractTest, TestGenerator
 
 val = _.method('value')
 
@@ -31,6 +33,35 @@ yaml_types = dict | bool | str | int | None
 class Paths:
     LANGUAGES = Path(__file__).parent / 'languages'
     DEFAULTS = LANGUAGES / 'general_defaults.yaml'
+
+
+class LangCodeTestGenerator(TestGenerator):
+    @classmethod
+    def create_eme_or_more_and_is_skip(cls, conf: OrMore[dict | str], kind: str = None):
+        match conf:
+            case _ if is_((list, tuple), conf): eme_or_more = list(map(lambda conf: cls.create_eme(conf, kind), conf))
+            case _: eme_or_more = cls.create_eme(conf, kind)
+        return eme_or_more, cls.is_skip_eme(eme_or_more)
+
+    @classmethod
+    def create_eme(cls, conf: dict | str, kind=None) -> Unit | str:
+        kind = kind or ST.MORPHEME
+        try:
+            eme = Unit.from_conf(conf)
+            eme.kind = kind
+        except NotImplementedError:
+            eme = 'Not Implemented'
+        except LangCodeException as e:
+            eme = f'LangCodeException - Check test parameters or conf {conf}\n{e}'
+        except Exception as e:
+            eme = e
+        return eme
+
+    @classmethod
+    def is_skip_eme(cls, eme: OrMore[Unit | str]) -> bool:
+        match eme:
+            case _ if is_(Sequence, eme): return eme and any(filter(cls.is_skip_eme, eme))
+            case _: return isinstance(eme, (str, Exception))
 
 
 class AbstractLangCodeTest(AbstractTest):

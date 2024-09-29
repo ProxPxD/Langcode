@@ -12,7 +12,7 @@ from toolz import keyfilter
 
 from src import utils
 from src.exceptions import PropertyNotFound, CannotCreatePropertyException, DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException, AmbiguousNodeException
-from src.lang_typing import YamlType, OneOrMore
+from src.lang_typing import YamlType, OrMore
 from src.utils import exceptions_to, is_not, if_, to_list, pad_left_until, to_tuple
 
 
@@ -342,7 +342,7 @@ QueryNode = str | StructuredNode | Type[StructuredNode]
 SimplifiedQueryNode = str | StructuredNode | Type
 QueryRel = Type[StructuredRel] | str
 QueryDict = dict | str
-FullQueryRel = QueryRel | OneOrMore[QueryNode] | QueryDict | Tuple[QueryRel, OneOrMore[QueryNode]] | Tuple[QueryRel, QueryDict] | Tuple[OneOrMore[QueryNode], QueryDict] | Tuple[QueryRel, OneOrMore[QueryNode], QueryDict]
+FullQueryRel = QueryRel | OrMore[QueryNode] | QueryDict | Tuple[QueryRel, OrMore[QueryNode]] | Tuple[QueryRel, QueryDict] | Tuple[OrMore[QueryNode], QueryDict] | Tuple[QueryRel, OrMore[QueryNode], QueryDict]
 
 
 class IRelationQuerable(INeo4jFormatable):
@@ -363,7 +363,7 @@ class IRelationQuerable(INeo4jFormatable):
         return f'[{formatted}]'
 
     @classmethod
-    def _format_node_label_s(cls, label_s: OneOrMore[QueryNode]) -> str:
+    def _format_node_label_s(cls, label_s: OrMore[QueryNode]) -> str:
         return c(to_tuple(label_s)).map(cls._format_node_label).join('').value()
 
     @classmethod
@@ -383,7 +383,7 @@ class IRelationQuerable(INeo4jFormatable):
         return props
 
     @classmethod
-    def _format_node_part(cls, label_s: OneOrMore[QueryNode], props: str | dict, name: str = '') -> str:
+    def _format_node_part(cls, label_s: OrMore[QueryNode], props: str | dict, name: str = '') -> str:
         node_label = cls._format_node_label_s(label_s)
         props = cls._adjust_props(props)
         return f'({name}{node_label} {props})'
@@ -394,10 +394,10 @@ class IRelationQuerable(INeo4jFormatable):
 
     @classmethod
     def get_all_by_rel_prop(cls,
-            from_node: OneOrMore[QueryNode] = None,
+            from_node: OrMore[QueryNode] = None,
             from_node_props: QueryDict = None,
             relation: QueryRel = None,
-            to_node: OneOrMore[QueryNode] = None,
+            to_node: OrMore[QueryNode] = None,
             to_node_props: QueryDict = None,
     ) -> Sequence[StructuredNode]:
         from_node_name = 'from_node'
@@ -432,7 +432,7 @@ class IRelationQuerable(INeo4jFormatable):
     @classmethod
     def _get_all_by_rels_props(cls, *,
             rels: Sequence[FullQueryRel] = None,
-            from_node: OneOrMore[QueryNode] = '',
+            from_node: OrMore[QueryNode] = '',
             from_node_props: dict = None,
             _adjust_rels=None,
             **more_from_node_props

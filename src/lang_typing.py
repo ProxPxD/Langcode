@@ -14,4 +14,4 @@ ElemsConf = Dict[AnyStr, Any] | List[AnyStr | Any]
 FeatureConf = Dict[AnyStr, List[AnyStr] | None]
 
 T = TypeVar('T')
-OneOrMore = T | Sequence[T]
+OrMore = T | Sequence[T]

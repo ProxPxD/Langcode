@@ -33,20 +33,28 @@ def get_module_path_from_file(file: Path, branching_level: int = 0) -> str:
 
 
 def load_module_from_path(path: str) -> Iterable[tuple[str, ...]]:
-    module = importlib.import_module(path)
-    return inspect.getmembers(module, inspect.isclass)
+    try:
+        module = importlib.import_module(path)
+        return inspect.getmembers(module, inspect.isclass)
+    except Exception as e:
+        return [(path, e)]
 
 
 def get_tests_from_dir(dir_name: str = None, name_pattern: str = None, *, branching_level=1):
     if not dir_name:
         return all_tests
 
-    is_matching_pattern = re.compile(name_pattern).match if name_pattern else lambda x: True
+    is_matching_pattern = re.compile(name_pattern).search if name_pattern else lambda x: True
     test_files = get_files_at_nth_level(dir_name, branching_level, r'[^__pycache__]')
     for file in test_files:
         module_path = get_module_path_from_file(file, branching_level)
         for name, test_class in load_module_from_path(module_path):
-            if name.endswith('Test') and is_matching_pattern(name):
+            if module_path == name:  # TODO: won't work with two words CamelCase
+                is_matching_pattern = re.compile(name_pattern.lower()).search if name_pattern else lambda x: False
+                if is_matching_pattern(name):
+                    raise ValueError(f'Could not load {name}') from test_class
+
+            elif name.endswith('Test') and is_matching_pattern(name):
                 yield test_class
 
 
@@ -70,7 +78,7 @@ def run_tests(to_runs: Iterable):
 
 
 if __name__ == '__main__':
-    name_pattern = 'Condition'
+    name_pattern = 'When'
     tests = chain(
         get_tests_from_dir('feature_tests', name_pattern, branching_level=2),
         get_tests_from_dir('test_cases', name_pattern, branching_level=1),

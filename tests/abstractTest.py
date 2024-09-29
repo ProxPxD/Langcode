@@ -2,7 +2,8 @@ import abc
 import unittest
 from dataclasses import dataclass
 from typing import Iterable
-from colorama import Fore, Back, Style
+
+from colorama import Fore, Style
 
 
 @dataclass
@@ -11,6 +12,16 @@ class Status:
     FAIL = 'FAIL'
     SKIP = 'SKIP'
     ERROR = 'ERROR'
+
+
+class TestGenerator:
+    @classmethod
+    def generate(cls) -> Iterable[tuple]:
+        yield NotImplementedError
+
+    @classmethod
+    def list(cls) -> list[tuple]:
+        return list(cls.generate())
 
 
 class AbstractTest(unittest.TestCase, abc.ABC):
