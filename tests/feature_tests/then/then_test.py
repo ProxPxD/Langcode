@@ -57,7 +57,7 @@ class ThenTestGenerator(LangCodeTestGenerator):
             applyee={'bóg'},
             expected={'def': 'bók'},
         ),
-    ]
+    ]  # TODO Extend: morpheme unsetting,
 
     @classmethod
     def generate(cls) -> Iterable[tuple]:
