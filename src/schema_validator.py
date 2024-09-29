@@ -3,21 +3,19 @@ from __future__ import annotations
 import operator as op
 from abc import ABC
 from functools import reduce
-from itertools import starmap
 from typing import Optional, List, AnyStr, Iterable, Dict, Tuple, Any
 
+import pydash as _
 from pydantic import BaseModel, field_validator, model_validator
+from pydash import chain as c
 from toolz import keyfilter
-from itertools import starmap
 
 import src.utils as utils
 from src.constants import ST
 from src.exceptions import ConflictingKeysException
 from src.lang_typing import Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf, YamlType
 from src.language_components import Unit, Feature, Language
-from src.utils import is_, is_list
-import pydash as _
-from pydash import chain as c
+from src.utils import is_list
 
 
 # TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag

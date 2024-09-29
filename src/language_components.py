@@ -4,7 +4,7 @@ from typing import Optional, Sequence, Iterator, Type
 
 import pydash as _
 # noinspection PyUnresolvedReferences
-from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, NodeMeta, config, Property, \
+from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, config, \
     RelationshipFrom  # For some reason, the neomodel requires to import it
 from pydash import chain as c
 from toolz import itemmap

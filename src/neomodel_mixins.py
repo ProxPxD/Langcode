@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations, annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
@@ -6,7 +6,7 @@ from typing import Sequence, Optional, Type, Tuple, Callable
 
 import neomodel
 import pydash as _
-from neomodel import StructuredNode, NeomodelPath, StructuredRel, Database
+from neomodel import StructuredNode, NeomodelPath, StructuredRel, db
 from pydash import chain as c, curry
 from toolz import keyfilter
 
@@ -406,7 +406,7 @@ class IRelationQuerable(INeo4jFormatable):
             cls._format_relation_part(relation),
             cls._format_node_part(to_node, to_node_props)
         )
-        return Database().cypher_query(f'MATCH {expression} RETURN {from_node_name}')
+        return db().cypher_query(f'MATCH {expression} RETURN {from_node_name}')
 
     @classmethod
     def _adjust_inner_rel(cls, full_query_rel: FullQueryRel) -> FullQueryRel:
@@ -463,7 +463,7 @@ class IRelationQuerable(INeo4jFormatable):
         if not expr_parts:
             return []
         query = f'MATCH {", ".join(expr_parts)} RETURN {from_node_name}'
-        return Database().cypher_query(query)
+        return db().cypher_query(query)
 
     @classmethod
     def get_one_by_rels_props(cls, *, rels: Sequence[FullQueryRel] = None, from_node: QueryNode = '', from_node_props: dict = None, _adjust_rels=None, **more_from_node_props):
