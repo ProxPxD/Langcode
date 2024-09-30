@@ -81,6 +81,6 @@ if __name__ == '__main__':
     name_pattern = r'[WT]hen'
     tests = chain(
         get_tests_from_dir('feature_tests', name_pattern, branching_level=2),
-        # get_tests_from_dir('test_cases', name_pattern, branching_level=1),
+        get_tests_from_dir('config_tests', name_pattern, branching_level=1),
     )
     run_tests(tests)
