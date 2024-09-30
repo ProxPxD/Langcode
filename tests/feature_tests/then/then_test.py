@@ -68,7 +68,7 @@ class ThenTestGenerator(LangCodeTestGenerator):
             applyee, could_not_create_morph = cls.from_conf_and_is_skip(Unit, tc.applyee)
             skip = could_not_create_preexisting or could_not_create_morph
 
-            tc_name = f'{tc.name}'.lower()
+            tc_name = f'then_{tc.name}'.lower()
             tabbed_descr = re.sub(r'\n', fr'\n{n_space}', tc.descr)
 
             yield tc_name, tabbed_descr, tc.thenee, applyee, tc.expected, skip

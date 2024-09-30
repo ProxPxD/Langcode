@@ -6,12 +6,122 @@ from typing import Iterable
 from colorama import Fore, Style
 
 
-@dataclass
-class Status:
-    PASS = 'PASS'
-    FAIL = 'FAIL'
-    SKIP = 'SKIP'
-    ERROR = 'ERROR'
+# @dataclass
+# class Status:
+#     PASS = 'PASS'
+#     FAIL = 'FAIL'
+#     SKIP = 'SKIP'
+#     ERROR = 'ERROR'
+#
+
+@dataclass(frozen=False)
+class Stat:
+    label: str
+    status: str = ''
+    color: str | int = ''
+    n_tests: int = 0
+    last_counted = None
+
+    def lower(self) -> str:
+        return self.label.lower()
+
+    @property
+    def colored_status(self) -> str:
+        return f'{self.color}{self.status}{Style.RESET_ALL}'
+
+    def count(self, test) -> None:
+        if self.is_test(test):
+            self.inc(test)
+        else:
+            self.last_counted = None
+
+    def inc(self, test) -> None:
+        self.n_tests += 1
+        self.last_counted = test
+
+    def is_test(self, test) -> bool:
+        return any(test == it_test for it_test, text in getattr(test.get_test_result(), self.lower()))
+
+    def in_percentage(self, total: int) -> float:
+        return 100 * self.n_tests / total
+
+    @property
+    def first_letter(self) -> str:
+        return self.label[0]
+
+    def format(self, *, total: int = None, short: bool = False, percentage: bool = False) -> str:
+        numerical = f'{self.in_percentage(total):.1f}%' if percentage else str(self.n_tests)
+        formatted = f'{numerical}{self.first_letter}' if short else f'{self.label}: {numerical}'
+        return formatted
+
+
+@dataclass(frozen=False)
+class Statistics:
+    total = Stat('Total')
+    failures = Stat('Failures', 'FAIL', Fore.MAGENTA)
+    errors = Stat('Errors', 'ERROR', Fore.RED)
+    skipped = Stat('Skipped', 'SKIP', Fore.LIGHTYELLOW_EX)
+    _passed = None
+
+    @property
+    def failed(self) -> Stat:
+        return Stat('Failed', 'FAIL', Fore.LIGHTGREEN_EX, self.failures.n_tests + self.errors.n_tests)
+
+    @property
+    def total_run(self) -> Stat:
+        return Stat('Total Run', 'Total', '', self.total.n_tests - self.skipped.n_tests)
+
+    @property
+    def passed(self) -> Stat:
+        if not self._passed:
+            self._passed = Stat('Passed', 'PASS', Fore.LIGHTGREEN_EX, self.total_run.n_tests - self.failed.n_tests)
+        return self._passed
+
+    @property
+    def stats(self) -> tuple[Stat, ...]:
+        return self.passed, *self.checkable_stats
+
+    @property
+    def checkable_stats(self) -> tuple[Stat, ...]:
+        return self.failures, self.errors, self.skipped
+
+    @property
+    def printable_stats(self) -> tuple[Stat, ...]:
+        return self.failed, self.failures, self.errors, self.passed, self.skipped
+
+    def count(self, test):
+        self.total.n_tests += 1
+        for stat in self.checkable_stats:
+            stat.count(test)
+        if is_passed := not any(stat.last_counted for stat in self.checkable_stats):
+            self.passed.inc(test)
+
+    def get_last_status(self, *, colored: bool = False) -> str:
+        return next(
+            (stat.status if not colored else stat.colored_status for stat in self.stats if stat.last_counted),
+            'WRONG UNIT TEST OUTCOME CHECKING! Investigate (possible incompatible with a python newer than 3.10)'
+        )
+
+    def is_test_in_state(self, test, state):
+        return any(test == self for test, text in getattr(test.get_test_result, state.lower()))
+
+    def format(self, *, short: bool = False, percentage: bool = False) -> str:
+        if self.total.n_tests == 0:
+            return 'There are no tests'
+
+        formatteds = {stat.label: stat.format(total=self.total_run.n_tests, short=short, percentage=percentage) for stat in self.printable_stats}
+        failed = formatteds[self.failed.label]
+        failures = formatteds[self.failures.label]
+        errors = formatteds[self.errors.label]
+        passed = formatteds[self.passed.label]
+        skipped = formatteds[self.skipped.label]
+
+        first_part = f'{failed} ({failures}, {errors}), {passed}' if not short else f'({failures}, {errors}, {passed})'
+        total_part = ((', ' if not short else '/') + self.total_run.format(short=short)) if not percentage else ''
+        skipped_part = f'   ({skipped})' if self.skipped.n_tests else ''
+        statistics_str = f'{first_part}{total_part}{skipped_part}'
+
+        return statistics_str
 
 
 class TestGenerator:
@@ -29,10 +139,7 @@ class AbstractTest(unittest.TestCase, abc.ABC):
     currentResult = None
     status_distance = int(0.75 * 2*half_sep_length)
 
-    total = 0
-    failure = 0
-    errors = 0
-    skipped = 0
+    test_stats = Statistics()
 
     @classmethod
     def print_sep_with_text(cls, text: str, sep: str = '*') -> None:
@@ -62,26 +169,12 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         if not self.get_method_name().startswith('test_'):
             return
         super().tearDown()
-        result = self.get_test_result()
 
-        is_error = any(test == self for test, text in result.errors)
-        is_failure = any(test == self for test, text in result.failures)
-        is_skipped = any(test == self for test, text in result.skipped)
-        passed = not (is_error or is_failure or is_skipped)
-
-        self.__class__.total += 1
-        if is_error:
-            self.__class__.errors += 1
-        if is_failure:
-            self.__class__.failure += 1
-        if is_skipped:
-            self.__class__.skipped += 1
+        self.test_stats.count(self)
 
         test_printing_length = len(self.get_method_name()) + 5
         padding = self.status_distance - test_printing_length
-        status = Status.PASS if passed else Status.ERROR if is_error else Status.FAIL if is_failure else Status.SKIP if is_skipped else \
-        'WRONG UNIT TEST OUTCOME CHECKING! Investigate (possible incompatible with a python newer than 3.10)'
-        status = self.colorize(status)
+        status = self.test_stats.get_last_status(colored=True)
         print(f'\t\tstatus: {" "*padding}{status}')
 
     def get_test_result(self):
@@ -91,6 +184,9 @@ class AbstractTest(unittest.TestCase, abc.ABC):
             result = self._outcome.result
         return result
 
+    def is_test_state(self, state: str) -> bool:
+        return any(test == self for test, text in getattr(self._test_result, state.lower()))
+
     def _get_legacy_test_results(self):
         ''' Python 3.4 - 3.10  (These two methods have no side effects) '''
         result = self.defaultTestResult()
@@ -99,53 +195,20 @@ class AbstractTest(unittest.TestCase, abc.ABC):
             self._addSkip(result, test, reason)
         return result
 
-    def colorize(self, to_color: str):
-        match to_color:
-            case Status.PASS:  color = Fore.LIGHTGREEN_EX
-            case Status.FAIL:  color = Fore.MAGENTA
-            case Status.SKIP:  color = Fore.LIGHTYELLOW_EX
-            case Status.ERROR: color = Fore.RED
-            case _: color = ''
-        return f'{color}{to_color}{Style.RESET_ALL}'
-
     @classmethod
     def tearDownClass(cls) -> None:
         cls.print_statistics(percentage=False)
 
     @classmethod
     def print_statistics(cls, failure=None, errors=None, skipped=None, total=None, *, short=False, percentage=True):
-        if failure is None:
-            failure = cls.failure
-        if errors is None:
-            errors = cls.errors
-        if skipped is None:
-            skipped = cls.skipped
-        if total is None:
-            total = cls.total
-        failed = failure + errors
-        total_run = total - skipped
-        passed = total_run - failed
+        stats = Statistics()
+        stats.total.n_tests = total or cls.test_stats.total.n_tests
+        stats.failures.n_tests = failure or cls.test_stats.failures.n_tests
+        stats.errors.n_tests = errors or cls.test_stats.errors.n_tests
+        stats.skipped.n_tests = skipped or cls.test_stats.skipped.n_tests
 
-        if total == 0:
-            print('There are no tests')
-            return
-
-        if short:
-            ef_division = f'{failure}F, {errors}E' if errors else f'{failed}F'
-            statistics_str = f'({ef_division}, {passed}P)/{total_run}'
-            if skipped:
-                statistics_str += f',    {skipped}S'
-        else:
-            ef_division = f' (Failures: {failure}, Errors: {errors})' if errors else ''
-            statistics_str = f'Failed: {failed}{ef_division}, Passed: {passed}, Total: {total_run}'
-        if percentage:
-            ef_division = f' (Failures: {100 * failure / total_run:.1f}%, Errors: {100 * errors / total_run:.1f}%)' if errors else ''
-            statistics_str = f'Failed: {100 * failed / total_run:.1f}%{ef_division}, Passed: {100 * passed / total_run:.1f}%'
-
-        if skipped and (not short or percentage):
-            statistics_str += f'   (Skipped: {skipped})'
-
-        print(statistics_str)
+        print(statistics_str := stats.format(short=short, percentage=percentage))
+        return statistics_str
 
     def run(self, result: unittest.result.TestResult | None = ...) -> unittest.result.TestResult | None:
         self.currentResult = result

@@ -121,7 +121,7 @@ class WhenTestGenerator(LangCodeTestGenerator):
                 skip = could_not_create_preexisting or could_not_create_morph
 
                 state = 'passing' if expected else 'failing'
-                tc_name = f'{tc.name}_against_{state}_{case.descr}'.lower()
+                tc_name = f'when_{tc.name}_against_{state}_{case.descr}'.lower()
                 tabbed_descr = re.sub(r'\n', fr'\n{n_space}', tc.descr)
 
                 yield tc_name, tabbed_descr, tc.whenee, morph, expected, skip

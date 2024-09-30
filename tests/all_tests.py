@@ -63,22 +63,22 @@ def run_tests(to_runs: Iterable):
     for test_class in to_runs:
         test = test_class()
         unittest.main(module=test, exit=False)
-
+        # TODO: test other approach when more tests will be in various states
         if test_class is not SkipTest:
-            failure += test.failure
-            errors += test.errors
-            total += test.total
+            failure += test.test_stats.failures.n_tests
+            errors += test.test_stats.errors.n_tests
+            total += test.test_stats.total.n_tests
+            skipped += test.test_stats.skipped.n_tests
         else:
             skipped += 1  # test.skipped
-
     print()
     print('#' * (2 * AbstractTest.half_sep_length))
     print('Total test statistics:')
-    AbstractTest.print_statistics(failure, errors, skipped, total)
+    AbstractTest.print_statistics(failure, errors, skipped, total, short=False, percentage=False)
 
 
 if __name__ == '__main__':
-    name_pattern = '[WT]hen'
+    name_pattern = r'[WT]hen'
     tests = chain(
         get_tests_from_dir('feature_tests', name_pattern, branching_level=2),
         # get_tests_from_dir('test_cases', name_pattern, branching_level=1),

@@ -240,7 +240,7 @@ class Unit(Kinded, IPropertiedNode):
     def get_feature_values(self, feature_name: str) -> Sequence[YamlType]:
         feature = self.get_feature(feature_name)
         values = feature.get_all_next_down(__connected_node=self)
-        return c(values).map_(_.property_('name')).value()
+        return c(values).map_(_.zty_('name')).value()
 
 
 class Language(LangCodeNode):
