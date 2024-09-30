@@ -6,14 +6,6 @@ from typing import Iterable
 from colorama import Fore, Style
 
 
-# @dataclass
-# class Status:
-#     PASS = 'PASS'
-#     FAIL = 'FAIL'
-#     SKIP = 'SKIP'
-#     ERROR = 'ERROR'
-#
-
 @dataclass(frozen=False)
 class Stat:
     label: str
@@ -183,9 +175,6 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         else:  # Python 3.11+
             result = self._outcome.result
         return result
-
-    def is_test_state(self, state: str) -> bool:
-        return any(test == self for test, text in getattr(self._test_result, state.lower()))
 
     def _get_legacy_test_results(self):
         ''' Python 3.4 - 3.10  (These two methods have no side effects) '''
