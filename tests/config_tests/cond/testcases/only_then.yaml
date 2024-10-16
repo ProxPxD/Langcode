@@ -1,6 +1,0 @@
-cond:
-  then: result
-
-expecteds:
-  - for: whatever
-    expected: result
