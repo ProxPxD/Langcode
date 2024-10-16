@@ -309,9 +309,9 @@ class ComplexMorphemeND(AbstractMorpheme):
 class ConditionalMorphemeND(AbstractMorpheme):
     def __init__(self, cond: Callable[[MU], bool] | SimpleMorphemeND, positive: ComplexMorphemeND | SimpleMorphemeND, negative: ComplexMorphemeND | SimpleMorphemeND | str = None, **kwargs):
         super().__init__(**kwargs)
-        # TODO think: if condition should be callable or morpheme
+        # TODO think: if cond should be callable or morpheme
         # if morpheme, then should it be specified if used existing or not existing?
-        # if callable, then simply negate the condition?
+        # if callable, then simply negate the cond?
         # Can be both?
         self.cond: SimpleMorphemeND | Callable[[MU], bool] = cond
         self.positive: ComplexMorphemeND | SimpleMorphemeND = positive

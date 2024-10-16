@@ -60,7 +60,7 @@ class LangCodeTestGenerator(TestGenerator):
     @classmethod
     def is_skip(cls, creation: OrMore[Unit | str]) -> bool:
         match creation:
-            case _ if is_(Sequence, creation): return creation and any(filter(cls.is_skip, creation))
+            case _ if is_((list, tuple), creation): return creation and any(filter(cls.is_skip, creation))
             case _: return isinstance(creation, (str, Exception))
 
 

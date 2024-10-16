@@ -12,15 +12,20 @@ from tests.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 
 class WhenTestGenerator(LangCodeTestGenerator):
+    """
+    aims to ensure the right functionality of matching "when" key and its configuration's structure
+    """
+
     preexisting = namedtuple('preexisting', ['morphemes', 'graphemes'], defaults=[[], []])
     tc = namedtuple('tc', ['name', 'descr', 'whenee', 'passings', 'failings', 'preexisting'], defaults=[preexisting()])
     case = namedtuple('case', ['conf', 'descr'], defaults=[{}, None])
     tcs = [
         tc(
             name='same_grapheme',
-            descr='Plain text with no Regex symbols should pass for the exact same Morpheme and Grapheme,\n'
-                  'but not for those containing it',
-            whenee='eperanto',
+            descr='Syntax of plain text with no Regex symbols '
+                  'should pass for the exact same Morpheme and Grapheme, '
+                  'but not for those containing it, nor having it in the id',
+            whenee='esperanto',
             passings=[
                 case({'esperanto': 'esperanto'}, 'with_same_id_same_form'),
                 case({'esperantist': 'esperanto'}, 'with_different_id_same_form'),
@@ -33,7 +38,9 @@ class WhenTestGenerator(LangCodeTestGenerator):
         ),
         tc(
             name='grapheme_regex',
-            descr='Plain text with Regex symbols should pass for Morphemes and Graphemes whose forms match it',
+            descr='Syntax of plain text with Regex symbols '
+                  'should pass for Morphemes and Graphemes whose forms match it, '
+                  'but not those whose ids match it',
             whenee='i$',
             passings=[
                 case({'canti': 'canti'}, 'with_matching_id_matching_form'),
@@ -47,8 +54,12 @@ class WhenTestGenerator(LangCodeTestGenerator):
         ),
         tc(
             name='grapheme_feature_regex',
-            descr='Regex with alphabetical characters inside curly brackets should match against Graphemes and Morphemes,\n'
-                  'whose forms have there a featuring grapheme',
+            descr='Syntax of regex with alphabetical characters inside curly brackets "{}" '
+                  'should match against Graphemes and Morphemes, whose forms have there a featuring grapheme'
+                  'but not morphemes created with a morpheme of the same id',
+            preexisting=preexisting(
+                morphemes=[{'V': 'V^'}, 'sauce']
+            ),
             whenee='{V}$',
             passings=[
                 case({'grande': 'grande'}, 'with_matching_id_matching_form'),
@@ -58,18 +69,21 @@ class WhenTestGenerator(LangCodeTestGenerator):
                 case({'gran': 'gran'}, 'with_wrong_id_wrong_form'),
                 case({'grande': 'gran'}, 'with_matching_id_wrong_form'),
                 case({'grande': '{V}$'}, 'with_plain_regex'),  # TODO: Impossible to set, think of allowing it under custom options
+                case({'Vsauce': ['sauce', 'V']}, 'with_morpheme_of_same_id_feature')
             ],
         ),
-        tc(  # TODO: invent a way to construct on generation, but skip if it fails
+        tc(
             name='morpheme_regex',
-            descr='',
-            whenee='[] plural',
+            descr='Syntax of square brackets "[]" with a morpheme '
+                  'should match against Morpheme that are defined with such, '
+                  'but not a one that has such feature',
             preexisting=preexisting(
                 morphemes=['toe', {'plural': '$s'}]
             ),
+            whenee='[] plural',
             passings=[
-                    case({'to': 'toe', 'apply': 'plural'}, 'with_applied_syntax'),
-                    case({'def': ['toe', 'plural']}, 'with_concatenated_syntax'),
+                    case({'apply_syntax': {'to': 'toe', 'apply': 'plural'}}, 'with_applied_syntax'),
+                    case({'concat_syntax': {'def': ['toe', 'plural']}}, 'with_concatenated_syntax'),
             ],
             failings=[
                     case({'toes'}, 'non_featuring'),
@@ -78,35 +92,40 @@ class WhenTestGenerator(LangCodeTestGenerator):
             ],
         ),
         tc(
-            name='morpheme_features_default',
-            descr='',
-            whenee='[] {plural}',
+            name='morpheme_features_standard',
+            descr='Syntax of square brackets "[]" with a morpheme feature in curly brackets "{}" '
+                  'should match against Morphemes that feature it, '
+                  'but not those that do not feature nor define it at all',
             preexisting=preexisting(
-                morphemes=['toe', {'plural': '$s'}]
+                morphemes=['toe', {'plural': '$s'}, {'plural-setting': {'def': '$s'}}]  # TODO: define setting plural
             ),
+            whenee='[] {plural}',
             passings=[
                     case({'feet': {'plural': True}}, 'featuring', ),
             ],
             failings=[
                     case('feet', 'non_featuring',),
                     case({'foot': {'plural': False}}, 'anti_featuring'),
-                    case({'def': ['toe', 'plural']}, 'non_featuring_containing_morpheme'),
+                    case({'toes': {'def': ['toe', 'plural']}}, 'non_featuring_containing_morpheme_not_setting'),
             ],
         ),
         tc(  # TODO: There shouldn't be such grapheme feature, test elsewhere
             name='morpheme_features_implied',
-            descr='',
-            whenee='{plural}$',
+            descr='Syntax of square brackets "[]" with a Morpheme Feature in no curly brackets "{}" '
+                  'should be understood as if those brackets there were if there is no such Grapheme Feature defined '
+                  'match against Morphemes that feature it, '
+                  'but not those that do not feature nor define it at all',
             preexisting=preexisting(
                 morphemes=['toe', {'plural': '$s'}]
             ),
+            whenee='{plural}$',
             passings=[
                     case({'feet': {'plural': True}}, 'featuring', ),
             ],
             failings=[
                     case('feet', 'non_featuring',),
                     case({'foot': {'plural': False}}, 'anti_featuring'),
-                    case({'def': ['toe', 'plural']}, 'non_featuring_containing_morpheme'),
+                    case({'def': ['toe', 'plural']}, 'non_featuring_containing_morpheme_not_setting'),  #?
             ],
         ),
     ]  # TODO EXTEND: dict whens

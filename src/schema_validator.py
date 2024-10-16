@@ -104,7 +104,7 @@ class FeatureSchema(BaseModel):
         for feature, conf in features:
             if conf.elems:
                 children, children_conf = tuple(zip(*conf.elems))
-                default_feature_type = ST.DISJOINT if all(filter(lambda schema: not schema.elems, children_conf)) else ST.JOINT  # TODO: verify the condition in case if only some values have sub values as in Polish gender
+                default_feature_type = ST.DISJOINT if all(filter(lambda schema: not schema.elems, children_conf)) else ST.JOINT  # TODO: verify the cond in case if only some values have sub values as in Polish gender
                 feature.type = conf.type or default_feature_type
                 # TODO: base
                 # consume(side_effect(feature.children.connect, children))

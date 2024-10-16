@@ -12,6 +12,10 @@ from tests.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 
 class ThenTestGenerator(LangCodeTestGenerator):
+    """
+    aims to ensure the right functionality of applicative "then" key and its configuration's structure
+    """
+
     preexisting = namedtuple('preexisting', ['morphemes', 'graphemes'], defaults=[[], []])
     tc = namedtuple('tc', ['name', 'descr', 'thenee', 'applyee', 'expected', 'preexisting'], defaults=[preexisting()])
     tcs = [
@@ -19,7 +23,7 @@ class ThenTestGenerator(LangCodeTestGenerator):
             name='simple_grapheme_replace',
             descr='',
             thenee='a',
-            applyee={'whatever': 'whatever'},  # TODO: test in condition joining with when
+            applyee={'whatever': 'whatever'},  # TODO: test in cond joining with when
             expected={'form': 'a'},
         ),
         tc(

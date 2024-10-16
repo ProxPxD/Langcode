@@ -10,7 +10,7 @@ morphemes:
     gender:
       from: cyrillic
       to: gender
-      cond: # TODO: not needed if only one condition
+      cond: # TODO: not needed if only one cond
         - when: 'a$'
           then: F
         - when: '(o|e)$'  # TODO: elif (note that somewhere else an remove todo)
