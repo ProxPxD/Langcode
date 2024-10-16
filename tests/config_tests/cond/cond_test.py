@@ -84,7 +84,7 @@ class CondTestGenerator(LangCodeTestGenerator):
                 yield f'{case_name}_{tc.name}_{condee_name}', tc.descr, cond, condee, expected, skip
 
 
-class ConditionTest(AbstractLangCodeTest):
+class CondTest(AbstractLangCodeTest):
     @parameterized.expand(list(CondTestGenerator.generate()))
     def test(self, name: str, descr: str, cond: Cond, condee: Unit, expected: Unit, skip: Optional[str]):
         print(f'Info: {cond=}, {condee=}, {expected=}')
