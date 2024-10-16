@@ -119,7 +119,7 @@ class Statistics:
 class TestGenerator:
     @classmethod
     def generate(cls) -> Iterable[tuple]:
-        yield NotImplementedError
+        yield
 
     @classmethod
     def list(cls) -> list[tuple]:
