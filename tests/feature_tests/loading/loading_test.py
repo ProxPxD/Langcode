@@ -17,10 +17,10 @@ from pydash import chain
 #     # generate_test_case = lambda lang_name: Generator.generate_test_case(lang_name) + AbstractLangCodeTest.all_test_properties
 #
 #     @classmethod
-#     def test_2(cls, x):
+#     eme test_2(cls, x):
 #         return x
 #
-#     def test_3(self, x):
+#     eme test_3(self, x):
 #         return x
 
 def get_func_name(method, param_num, params):

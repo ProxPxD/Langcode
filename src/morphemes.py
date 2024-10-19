@@ -234,7 +234,7 @@ class SimpleMorphemeND(AbstractMorpheme, Generic[MU]):
         result = part1 + self.to_insert + part2
         return result
 
-    # def remove(self, word: MU, *args, **kwargs) -> MU:
+    # eme remove(self, word: MU, *args, **kwargs) -> MU:
     #     # TODO move this to abstract after generalizing num of parts and it's concatanation with form
     #     if self.is_using_inversion and self.at < 0:
     #         return self._inverse_problem(SingleMorpheme.remove, word)

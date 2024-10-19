@@ -130,7 +130,7 @@ class BasicMorphemeTest(AbstractTest):
         return test
 
     # @patch('src.morphemes.SingleMorpheme', spec=True)
-    # def test_basic_morphemes(self, name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, words: Collection[str], expecteds: Collection[str | Exception], expected_method_to_be_called, mock_single_morpheme: MagicMock = None):
+    # eme test_basic_morphemes(self, name: str, to_remove: str, to_insert: str, at: Coord, by: Step, side: Position, words: Collection[str], expecteds: Collection[str | Exception], expected_method_to_be_called, mock_single_morpheme: MagicMock = None):
         # mock_single_morpheme.at = at
         # mock_single_morpheme.to_insert = to_remove if to_insert is not None else ''
         # mock_single_morpheme.at = at if at is not None else 1

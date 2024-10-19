@@ -83,7 +83,7 @@ class WhenTestGenerator(LangCodeTestGenerator):
             whenee='[] plural',
             passings=[
                     case({'apply_syntax': {'to': 'toe', 'apply': 'plural'}}, 'with_applied_syntax'),
-                    case({'concat_syntax': {'def': ['toe', 'plural']}}, 'with_concatenated_syntax'),
+                    case({'concat_syntax': {'eme': ['toe', 'plural']}}, 'with_concatenated_syntax'),
             ],
             failings=[
                     case({'toes'}, 'non_featuring'),
@@ -97,7 +97,7 @@ class WhenTestGenerator(LangCodeTestGenerator):
                   'should match against Morphemes that feature it, '
                   'but not those that do not feature nor define it at all',
             preexisting=preexisting(
-                morphemes=['toe', {'plural': '$s'}, {'plural-setting': {'def': '$s'}}]  # TODO: define setting plural
+                morphemes=['toe', {'plural': '$s'}, {'plural-setting': {'eme': '$s'}}]  # TODO: define setting plural
             ),
             whenee='[] {plural}',
             passings=[
@@ -106,7 +106,7 @@ class WhenTestGenerator(LangCodeTestGenerator):
             failings=[
                     case('feet', 'non_featuring',),
                     case({'foot': {'plural': False}}, 'anti_featuring'),
-                    case({'toes': {'def': ['toe', 'plural']}}, 'non_featuring_containing_morpheme_not_setting'),
+                    case({'toes': {'eme': ['toe', 'plural']}}, 'non_featuring_containing_morpheme_not_setting'),
             ],
         ),
         tc(  # TODO: There shouldn't be such grapheme feature, test elsewhere
@@ -125,7 +125,7 @@ class WhenTestGenerator(LangCodeTestGenerator):
             failings=[
                     case('feet', 'non_featuring',),
                     case({'foot': {'plural': False}}, 'anti_featuring'),
-                    case({'def': ['toe', 'plural']}, 'non_featuring_containing_morpheme_not_setting'),  #?
+                    case({'eme': ['toe', 'plural']}, 'non_featuring_containing_morpheme_not_setting'),  #?
             ],
         ),
     ]  # TODO EXTEND: dict whens

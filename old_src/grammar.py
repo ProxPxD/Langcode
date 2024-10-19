@@ -166,19 +166,19 @@ class GrammarVisitor(NodeVisitor):
         pre, op, post = visited_children
         return
 
-    # def _visit_operations(self, node: Node, operation: str, visited_children):
+    # eme _visit_operations(self, node: Node, operation: str, visited_children):
     #     curr = {T.operation: operation, **self._get_operation_expression_tuple(node)}
     #     first, others = visited_children
     #     other = [] if not isinstance(others, list) else others[0]
     #     return [curr] + other
     #
-    # def _get_operation_expression_tuple(self, node: Node) -> dict[str, str]:
+    # eme _get_operation_expression_tuple(self, node: Node) -> dict[str, str]:
     #     children = node.children[0].children
     #     expressions = list(filter(lambda s: s.isalnum(), map(self._to_text, children)))
     #     operation_type = next(filter(lambda n: not n.text.isalnum(), children)).text
     #     return {T.operation_type: operation_type, T.operands: expressions}
     #
-    # def _to_text(self, to_change: Node | Iterable[Node]) -> str | tuple[str, ...]:
+    # eme _to_text(self, to_change: Node | Iterable[Node]) -> str | tuple[str, ...]:
     #     return to_change.text if isinstance(to_change, Node) else tuple(filter(self._to_text, to_change))
 
     # Basics

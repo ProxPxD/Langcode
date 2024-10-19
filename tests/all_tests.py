@@ -50,8 +50,8 @@ def get_tests_from_dir(dir_name: str = None, name_pattern: str = None, *, branch
         module_path = get_module_path_from_file(file, branching_level)
         for name, test_class in load_module_from_path(module_path):
             if module_path == name:  # TODO: won't work with two words CamelCase
-                is_matching_pattern = re.compile(name_pattern.lower()).search if name_pattern else lambda x: False
-                if is_matching_pattern(name):
+                is_matching_path_pattern = re.compile(name_pattern.lower()).search if name_pattern else lambda x: False
+                if is_matching_path_pattern(name):
                     raise ValueError(f'Could not load {name}') from test_class
 
             elif name.endswith('Test') and is_matching_pattern(name):
@@ -78,7 +78,7 @@ def run_tests(to_runs: Iterable):
 
 
 if __name__ == '__main__':
-    name_pattern = r'Cond|([WT]hen)'
+    name_pattern = r'Cond|([WT]hen)|Eme'
     tests = chain(
         # get_tests_from_dir('feature_tests', name_pattern, branching_level=2),
         get_tests_from_dir('config_tests', name_pattern, branching_level=2),

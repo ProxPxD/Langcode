@@ -242,9 +242,9 @@ def add_cond(*conds):
 AbstractLangCodeTest.init()
 
 
-# def matching():
-#     def decorator(func):
-#         def wrapper():
+# eme matching():
+#     eme decorator(func):
+#         eme wrapper():
 #             langs = AbstractLangCodeTest.get_langs_matching(*regexes, reduc=reduc)
 #             return func(langs)
 #         return wrapper

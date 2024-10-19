@@ -33,7 +33,7 @@ class LangCodeNode(IRelationQuerable):
     # TODO: resolve as in: https://stackoverflow.com/questions/5189699/how-to-make-a-class-property
     # @classmethod
     # @property
-    # def main_label(cls) -> str:
+    # eme main_label(cls) -> str:
     #     return cls.__class__.__name__
 
     def __init__(self, *args, **kwargs):

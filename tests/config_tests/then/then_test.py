@@ -44,14 +44,14 @@ class ThenTestGenerator(LangCodeTestGenerator):
             name='set_feature_to_morpheme',
             descr='',
             thenee={'gender': 'female'},
-            applyee={'transwoman': {'def': 'transwoman'}},
+            applyee={'transwoman': {'eme': 'transwoman'}},
             expected={'gender': 'female'},
         ),
         tc(
             name='replace_feature_to_morpheme',
             descr='',
             thenee={'gender': 'female'},
-            applyee={'transwoman': {'def': 'transwoman', 'gender': 'male'}},
+            applyee={'transwoman': {'eme': 'transwoman', 'gender': 'male'}},
             expected={'gender': 'female'},
         ),
         tc(
@@ -59,7 +59,7 @@ class ThenTestGenerator(LangCodeTestGenerator):
             descr='IS WRONGLY DEFINED, add preexisting features',
             thenee='{unvoiced}$',
             applyee={'bóg'},
-            expected={'def': 'bók'},
+            expected={'eme': 'bók'},
         ),
     ]  # TODO Extend: morpheme unsetting,
 
