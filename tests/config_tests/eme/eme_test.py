@@ -8,10 +8,6 @@ from src.language_components import Unit
 from tests.lang_code_test import LangCodeTestGenerator, AbstractLangCodeTest
 
 
-class Eme:
-    pass
-
-
 class EmeTestGenerator(LangCodeTestGenerator):
     """
     aims to ensure the right functionality of eme sub keys and its configuration's structure
@@ -21,9 +17,6 @@ class EmeTestGenerator(LangCodeTestGenerator):
       - to
       - <FEATURE>
     """
-    @classmethod
-    def eme(cls, name, **kwargs):
-        return {name: kwargs}
 
     preexisting = namedtuple('preexisting', ['morphemes', 'graphemes'], defaults=[[], []])
     tc = namedtuple('tc', ['name', 'descr', 'defi', 'expected', 'preexisting'], defaults=[preexisting()])
@@ -54,7 +47,31 @@ class EmeTestGenerator(LangCodeTestGenerator):
             expected={'eme': '$s'},
         ),
         tc(
+            name='multi_apply',
+            descr='A morpheme [lessness] defined as an application of many morphemes [less, ness]',
+            preexisting=preexisting(morphemes=[{'less': {'at': -1}}, {'ness': {'at': -1}}]),
+            defi={'lessness': {'apply': ['less', 'ness']}},
+            expected={'apply': ['less', 'ness']}, #?
+        ),
+        tc(
+            name='various_apply_types',
+            descr='A morpheme [lich] defined as an application of many unnamed of different types',  # THINK: reword?
+            defi={'lich': {
+                'apply': ['$lich', '^[A-Z] => [a-z]', {'then': {'pos': 'adjective'}}]
+            }},
+            expected={
+                'apply': ['$lich', '^[A-Z] => [a-z]', {'then': {'pos': 'adjective'}}]  #?
+            },
+        ),
+        tc(
             name='apply_to',
+            descr='A morpheme [friendship] defined as an application of one morpheme [shipness] to another [friend]',
+            preexisting=preexisting(morphemes=['friend', {'shipness': '$ship'}]),
+            defi={'friendship': {'apply': 'shipness', 'to': 'friend'}},
+            expected={'form': 'friendship'},
+        ),
+        tc(
+            name='multi_apply_to',
             descr='A morpheme [friendship] defined with as an application of one morpheme [shipness] to another [friend]',
             preexisting=preexisting(morphemes=['friend', {'shipness': '$ship'}]),
             defi={'friendship': {'apply': 'shipness', 'to': 'friend'}},
