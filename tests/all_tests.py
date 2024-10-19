@@ -74,7 +74,7 @@ def run_tests(to_runs: Iterable):
     print()
     print('#' * (2 * AbstractTest.half_sep_length))
     print('Total test statistics:')
-    AbstractTest.print_statistics(failure, errors, skipped, total, short=False, percentage=False)
+    AbstractTest.print_statistics(failure, errors, skipped, total, short=False, absolute=True, percentage=True)
 
 
 if __name__ == '__main__':

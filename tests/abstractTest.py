@@ -5,6 +5,8 @@ from typing import Iterable
 
 from colorama import Fore, Style
 
+import pydash as _
+
 
 @dataclass(frozen=False)
 class Stat:
@@ -41,9 +43,20 @@ class Stat:
     def first_letter(self) -> str:
         return self.label[0]
 
-    def format(self, *, total: int = None, short: bool = False, percentage: bool = False) -> str:
-        numerical = f'{self.in_percentage(total):.1f}%' if percentage else str(self.n_tests)
-        formatted = f'{numerical}{self.first_letter}' if short else f'{self.label}: {numerical}'
+    def _format_stats(self, *, total: int = 0, as_percentage: bool = False) -> str:
+        return f'{self.in_percentage(total):.1f}%' if as_percentage else str(self.n_tests)
+
+    def _format_numerical(self, numerical: str, *, short: bool = False) -> str:
+        return f'{numerical}{self.first_letter}' if short else f'{self.label}: {numerical}'
+
+    def format_absolute(self, *, short: bool = False, **kwargs) -> str:
+        numerical = str(self.n_tests)
+        formatted = self._format_numerical(numerical, short=short)
+        return formatted
+
+    def format_percentage(self, total: int = 0, *, short: bool = False, **kwargs):
+        numerical = f'{self.in_percentage(total):.1f}%'
+        formatted = self._format_numerical(numerical, short=short)
         return formatted
 
 
@@ -54,6 +67,9 @@ class Statistics:
     errors = Stat('Errors', 'ERROR', Fore.RED)
     skipped = Stat('Skipped', 'SKIP', Fore.LIGHTYELLOW_EX)
     _passed = None
+
+    short = False
+    percentage = False
 
     @property
     def failed(self) -> Stat:
@@ -97,23 +113,40 @@ class Statistics:
     def is_test_in_state(self, test, state):
         return any(test == self for test, text in getattr(test.get_test_result, state.lower()))
 
-    def format(self, *, short: bool = False, percentage: bool = False) -> str:
+    def _get_absolute_stats(self) -> dict:
+        return {stat.label: stat.format_absolute(short=self.short) for stat in self.printable_stats}
+
+    def _get_percentage_stats(self) -> dict:
+        return {stat.label: stat.format_percentage(total=self.total_run.n_tests, short=self.short) for stat in self.printable_stats}
+
+    def _get_formatteds(self) -> dict:
+        return self._get_percentage_stats() if self.percentage else self._get_absolute_stats()
+
+    def format(self, short: bool = False, percentage: bool = False, **kwargs) -> str:
         if self.total.n_tests == 0:
             return 'There are no tests'
+        self.short = short
+        self.percentage = percentage
 
-        formatteds = {stat.label: stat.format(total=self.total_run.n_tests, short=short, percentage=percentage) for stat in self.printable_stats}
-        failed = formatteds[self.failed.label]
-        failures = formatteds[self.failures.label]
-        errors = formatteds[self.errors.label]
-        passed = formatteds[self.passed.label]
-        skipped = formatteds[self.skipped.label]
+        gen_part = self._create_general_part(**kwargs)
+        skipped_part = self._create_skipped_part(**kwargs)
+        total_part = self._create_total_part(**kwargs)
 
-        first_part = f'{failed} ({failures}, {errors}), {passed}' if not short else f'({failures}, {errors}, {passed})'
-        total_part = ((', ' if not short else '/') + self.total_run.format(short=short)) if not percentage else ''
-        skipped_part = f'   ({skipped})' if self.skipped.n_tests else ''
-        statistics_str = f'{first_part}{total_part}{skipped_part}'
-
+        statistics_str = f'{gen_part}{total_part}{skipped_part}'
         return statistics_str
+
+    def _create_general_part(self, **kwargs) -> str:
+        failed, failures, errors, passed = _.at(self._get_formatteds(**kwargs), 'Failed', 'Failures', 'Errors', 'Passed')
+        return f'{failed} ({failures}, {errors}), {passed}' if not self.short else f'({failures}, {errors}, {passed})'
+
+    def _create_total_part(self, **kwargs) -> str:
+        prefix_part = ', ' if not self.short else '/'
+        total_part = self.total_run.format_percentage(total=self.total_run.n_tests, short=self.short) if self.percentage else self.total.format_absolute(**kwargs, short=self.short)
+        return prefix_part + total_part
+
+    def _create_skipped_part(self, **kwargs) -> str:
+        skipped = self._get_formatteds(**kwargs)['Skipped']
+        return f'   ({skipped})' if self.skipped.n_tests else ''
 
 
 class TestGenerator:
@@ -189,15 +222,24 @@ class AbstractTest(unittest.TestCase, abc.ABC):
         cls.print_statistics(percentage=False)
 
     @classmethod
-    def print_statistics(cls, failure=None, errors=None, skipped=None, total=None, *, short=False, percentage=True):
+    def print_statistics(cls, failure=None, errors=None, skipped=None, total=None, *, short=False, absolute=None, percentage=None):
         stats = Statistics()
         stats.total.n_tests = total or cls.test_stats.total.n_tests
         stats.failures.n_tests = failure or cls.test_stats.failures.n_tests
         stats.errors.n_tests = errors or cls.test_stats.errors.n_tests
         stats.skipped.n_tests = skipped or cls.test_stats.skipped.n_tests
 
-        print(statistics_str := stats.format(short=short, percentage=percentage))
-        return statistics_str
+        match absolute, percentage:
+            case None, None: absolute, percentage = True, False
+            case None, _: absolute = not percentage
+            case _, None: percentage = not absolute
+            case bool(), bool(): pass
+            case _: raise ValueError(f'Found non-boolean values: {absolute, percentage = }')
+
+        absolute_str, percentage_str = '', ''
+        absolute and print(absolute_str := stats.format(short=short, percentage=False))
+        percentage and print(percentage_str := stats.format(short=short, percentage=True))
+        return absolute_str, percentage_str
 
     def run(self, result: unittest.result.TestResult | None = ...) -> unittest.result.TestResult | None:
         self.currentResult = result
