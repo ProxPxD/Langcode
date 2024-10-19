@@ -36,6 +36,12 @@ is_int = is_(int)
 is_str = is_(str)
 is_sequence = is_(Sequence)
 
+is_not_empty = is_not(Empty)
+is_not_dict = is_not(int)
+is_not_dict = is_not(str)
+is_not_dict = is_not(list)
+is_not_dict = is_not(dict)
+
 is_many = curry(lambda reduc, type_, elems: reduc(map(is_(type_), elems)))
 is_all = is_many(all)
 is_any = is_many(any)
@@ -230,6 +236,12 @@ is_any_instance_of = is_many(any)
 is_all_instance_of_none = is_all_instance_of(NoneType)
 is_any_instance_of_none = is_any_instance_of(NoneType)
 is_nothing_instance_of_none = _.negate(is_any_instance_of_none)
+is_all_instance_of_str = is_all_instance_of(str)
+is_any_instance_of_str = is_any_instance_of(str)
+is_all_instance_of_list = is_all_instance_of(list)
+is_any_instance_of_list = is_any_instance_of(list)
+is_all_instance_of_dict = is_all_instance_of(dict)
+is_any_instance_of_dict = is_any_instance_of(dict)
 
 
 @curry

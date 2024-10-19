@@ -158,6 +158,10 @@ class TestGenerator:
     def list(cls) -> list[tuple]:
         return list(cls.generate())
 
+    @classmethod
+    def gather_tags(cls, tc) -> list:
+        return []
+
 
 class AbstractTest(unittest.TestCase, abc.ABC):
     half_sep_length = 50

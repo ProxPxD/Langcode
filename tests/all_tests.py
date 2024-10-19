@@ -2,6 +2,8 @@ import importlib
 import inspect
 import re
 import unittest
+import pytest
+
 from itertools import chain
 from pathlib import Path
 from typing import Iterable
@@ -77,10 +79,14 @@ def run_tests(to_runs: Iterable):
     AbstractTest.print_statistics(failure, errors, skipped, total, short=False, absolute=True, percentage=True)
 
 
-if __name__ == '__main__':
-    name_pattern = r'Cond|([WT]hen)|Eme'
+if False: #__name__ == '__main__':
+    name_pattern = 'Eme' or r'Cond|([WT]hen)|Eme'
     tests = chain(
         # get_tests_from_dir('feature_tests', name_pattern, branching_level=2),
         get_tests_from_dir('config_tests', name_pattern, branching_level=2),
     )
     run_tests(tests)
+
+
+if __name__ == '__main__':
+    pytest.main(['config_tests'])
