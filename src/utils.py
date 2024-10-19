@@ -37,9 +37,9 @@ is_str = is_(str)
 is_sequence = is_(Sequence)
 
 is_not_empty = is_not(Empty)
-is_not_dict = is_not(int)
-is_not_dict = is_not(str)
-is_not_dict = is_not(list)
+is_not_int = is_not(int)
+is_not_str = is_not(str)
+is_not_list = is_not(list)
 is_not_dict = is_not(dict)
 
 is_many = curry(lambda reduc, type_, elems: reduc(map(is_(type_), elems)))
