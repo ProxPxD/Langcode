@@ -20,7 +20,7 @@ class TCG:
         return cls.tcs
 
     @classmethod
-    def map(cls, tc) -> tuple | Iterable[tuple]:
+    def map(cls, tc) -> tuple:
         return tc
 
     @classmethod

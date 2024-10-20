@@ -89,4 +89,4 @@ if False: #__name__ == '__main__':
 
 
 if __name__ == '__main__':
-    pytest.main(['--markers', 'config_tests/then'])
+    pytest.main(['config_tests'])
