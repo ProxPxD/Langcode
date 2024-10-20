@@ -90,7 +90,18 @@ class EmeTestGenerator(LangCodeTestGenerator):
         tc(
             name='implicit_features',
             descr='Morpheme defined as another morpheme that sets features',
-            tags=('implicit-features', ),
+            tags=('implicit-features', 'apply-feature'),
+            preexisting=preexisting(morphemes=[
+                {'grammar': {'pos': 'noun'}},
+                {'V': {'apply': {'pos': 'verb'}}}
+            ]),
+            defi={'to-grammar': {'to': 'grammar', 'apply': 'V'}},
+            expected={'form': 'grammar', 'pos': 'verb'},
+        ),
+        tc(
+            name='implicit_features_with_then',
+            descr='Morpheme defined as another morpheme that sets features',
+            tags=('implicit-features', 'apply-feature', 'apply-then'),
             preexisting=preexisting(morphemes=[
                 {'Welt': {'pos': 'noun'}},
                 {'lich': {
@@ -100,7 +111,6 @@ class EmeTestGenerator(LangCodeTestGenerator):
             defi={'weltlich': {'to': 'Welt', 'apply': 'lich'}},
             expected={'form': 'weltlich', 'pos': 'adjective'},
         ),
-
     ]
 
     @classmethod
