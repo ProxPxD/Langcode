@@ -66,7 +66,7 @@ class TCG:
     @classmethod
     def parametrize(cls, param_names=None, name_from: str | int | Sequence[str|int] = None, ids=None, **kwargs):
         if ids is None:
-            name_from = (name_from, ) if isinstance(name_from, (str | int)) else name_from or ('name', 'short')
+            name_from = (name_from, ) if isinstance(name_from, (str | int)) else name_from or ('name', 'short', 'descr')
             ids = lambda tc: c().at(*name_from).filter(bool).concat(tc).head()(tc)
         param_names = param_names or cls.param_names()
         params = cls.list()

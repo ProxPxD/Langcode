@@ -55,6 +55,21 @@ class EmeTestGenerator(LangCodeTestGenerator):
             expected={'apply': ['less', 'ness']}, #?
         ),
         tc(
+            name='apply_to',
+            descr='A morpheme [friendship] defined as an application of one morpheme [shipness] to another [friend]',
+            preexisting=preexisting(morphemes=['friend', {'shipness': '$ship'}]),
+            defi={'friendship': {'apply': 'shipness', 'to': 'friend'}},
+            expected={'form': 'friendship'},
+        ),
+        tc(
+            name='apply_then_to',
+            tags=('apply', 'then'),
+            descr='A morpheme [friendship] defined with as an application of one morpheme [shipness] to another [friend] using an additional then',
+            preexisting=preexisting(morphemes=['friend', {'shipness': '$ship'}]),
+            defi={'friendship': {'apply': {'then': 'shipness'}, 'to': 'friend'}},
+            expected={'form': 'friendship'},
+        ),
+        tc(
             name='apply_various_types',
             descr='A morpheme [lich] defined as an application of many unnamed of different types',  # THINK: reword?
             defi={'lich': {
@@ -65,17 +80,11 @@ class EmeTestGenerator(LangCodeTestGenerator):
             },
         ),
         tc(
-            name='apply_to',
-            descr='A morpheme [friendship] defined as an application of one morpheme [shipness] to another [friend]',
-            preexisting=preexisting(morphemes=['friend', {'shipness': '$ship'}]),
-            defi={'friendship': {'apply': 'shipness', 'to': 'friend'}},
-            expected={'form': 'friendship'},
-        ),
-        tc(
-            name='apply_multi_to',
-            descr='A morpheme [friendship] defined with as an application of one morpheme [shipness] to another [friend]',
-            preexisting=preexisting(morphemes=['friend', {'shipness': '$ship'}]),
-            defi={'friendship': {'apply': 'shipness', 'to': 'friend'}},
+            name='apply_cond',
+            tags=('apply', 'cond', 'when', 'then'),
+            descr='A morpheme [friendship] defined with as an application of a morpheme based on condition to another [friend]',
+            preexisting=preexisting(morphemes=['indefinite', {}]),
+            defi={},  # TODO: Test needs rework to have applyees and thus multiple expecteds
             expected={'form': 'friendship'},
         ),
         tc(
@@ -113,6 +122,8 @@ class EmeTestGenerator(LangCodeTestGenerator):
 
     @classmethod
     def gather_tags(cls, tc) -> list:
+        if not tc.defi:
+            return []
         tags = []
         name, definition = list(tc.defi.items())[0]
         tags.extend(cls.gather_defi_tags(definition))
@@ -164,7 +175,7 @@ class EmeTestGenerator(LangCodeTestGenerator):
             tags = list(tc.tags or [])
             tags.extend(cls.gather_tags(tc))
             name = tc.name or '_'.join(tags)
-            yield f'{name}', tc.descr, tags, preexistings, tc.defi, tc.expected, could_create_preexisting
+            yield f'{name}', tc.descr, tags, preexistings, tc.defi, tc.expected, False
 
 
 class EmeTest(AbstractLangCodeTest):  # TODO: rethink testing approach
