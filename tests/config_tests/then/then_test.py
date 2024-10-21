@@ -12,7 +12,7 @@ from tests.lang_code_test_utils import Preex, LangCodeTCG
 
 class ThenTCG(LangCodeTCG):
     """
-    aims to ensure the right functionality of applicative "then" key and its configuration's structure
+    aims to ensure the right functionality of key "then" key and its configuration's structure
     """
 
     @dataclass(frozen=False)
@@ -99,23 +99,3 @@ def test(tc):
             assert actual.get_feature(key) == val  # TODO: or get_property? can be whatever? Should test separate them?
     except Exception as e:
         pytest.fail(e)
-
-
-# class ThenTest(AbstractLangCodeTest):
-#     @parameterized.expand(ThenTestGenerator.list())  # TODO form of testee
-#     def test(self, name: str, short: str, thenee: YamlType, applyee: Unit, expected: dict, skip: Optional[str]):
-#         print(f'Info: {thenee=}, {applyee=}, {expected=}')
-#         if skip:
-#             self.skipTest(skip)
-#         print(f'shortiption: {short}')
-#
-#         try:
-#             then = Then.from_conf(thenee)
-#             actual: Unit = then(applyee)
-#             for key, val in expected.items():
-#                 self.assertTrue(actual.has_feature(key))  # TODO: verify method name
-#                 self.assertEqual(actual.get_feature(key), val)  # TODO: or get_property? can be whatever? Should test separate them?
-#         except Exception as e:
-#             self.fail(e)
-
-

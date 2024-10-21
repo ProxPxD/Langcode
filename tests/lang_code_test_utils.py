@@ -13,7 +13,7 @@ from toolz.curried import *
 from src.exceptions import LangCodeException
 from src.lang_typing import OrMore
 from src.language_components import Unit
-from src.utils import is_, is_not_dict, is_str
+from src.utils import is_, is_not_dict, is_str, to_tuple, is_not
 from tests.test_case_generator import TCG
 
 
@@ -26,8 +26,9 @@ class Preex:  # Preexisting
 
 
 def from_conf_and_is_skip(lang_code_class: Type, conf: OrMore[dict | str], *args, **kwargs):
+    func_arged = lambda conf: from_conf_and_is_skip(lang_code_class, conf, *args, **kwargs)
     match conf:
-        case _ if is_((list, tuple), conf): object_or_more = list(map(lambda conf: from_conf(lang_code_class, conf, *args, **kwargs), conf))
+        case _ if is_((list, tuple), conf): object_or_more = _.map_(conf, func_arged)
         case _: object_or_more = from_conf(lang_code_class, conf, *args, **kwargs)
     return object_or_more, is_skip(object_or_more)
 
@@ -66,8 +67,7 @@ def init_tc_fields(tc, lang_code_class: Type, fields: str | Sequence[str], *args
         raise ValueError('init_tc_fields expects an arg arity divisible by 3 (tc, class, fields...)')
 
     for tc, lang_code_class, fields in _.chunk(args, 3):
-        fields = (fields, ) if isinstance(fields, str) else fields
-        for field in fields:
+        for field in to_tuple(fields):
             inited, skip = from_conf_and_is_skip(Unit, getattr(tc, field))
             if skip:
                 return inited

@@ -24,7 +24,7 @@ class TCG:
         return tc
 
     @classmethod
-    def to_simpler_tcs(cls, tc) -> Iterable | list:
+    def map_to_many(cls, tc) -> Iterable | list:
         return [tc]
 
     @classmethod
@@ -54,7 +54,8 @@ class TCG:
     @classmethod
     def generate(cls) -> list[ParameterSet]:
         return (c(cls.generate_tcs())
-                .map(cls.to_simpler_tcs)
+                .map(cls.map_to_many)
+                .map(list)
                 .flatten()
                 .map(cls._as_paramset)
                 .value())
