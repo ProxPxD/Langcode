@@ -423,3 +423,11 @@ def get_nested_dict_leafs(data: dict) -> list:
 
 pad_left_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_left_until(n, to_pad_with, (to_pad_with, ) + to_tuple(to_pad)))
 pad_right_until = curry(lambda n, to_pad_with, to_pad: to_pad if len(to_pad) >= n else pad_right_until(n, to_pad_with, to_tuple(to_pad) + (to_pad_with, )))
+
+
+def apply(*map_funcs):
+    def decorator(f):
+        def wrapper(*args, **kwarg):
+            return flow(*map_funcs)(f(*args, **kwarg))
+        return wrapper
+    return decorator

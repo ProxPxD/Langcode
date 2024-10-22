@@ -84,6 +84,8 @@ class ThenTCG(LangCodeTCG):
         yield 'then'
         yield from cls.gather_def_tags(tc.thenee)
         yield from cls.gather_feature_tags(tc.thenee)
+        if tc.skip:
+            yield 'xfail'
 
 
 @ThenTCG.parametrize('tc')

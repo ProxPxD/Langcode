@@ -1,12 +1,12 @@
 
-from typing import Iterable, Sequence, Callable
+from typing import Iterable, Sequence
 
-import pydash
 import pytest
 from _pytest.mark import MarkDecorator, ParameterSet
 from pydash import chain as c
+from toolz import unique
 
-from src.utils import fjoin, is_not
+from src.utils import is_not, apply
 
 
 class TCG:
@@ -28,6 +28,10 @@ class TCG:
         return [tc]
 
     @classmethod
+    def gather_tag_before_mapping_to_many(cls, tc) -> Iterable[str] | Sequence[str]:
+        return []
+
+    @classmethod
     def gather_tags(cls, tc) -> Iterable[str] | Sequence[str]:
         return []
 
@@ -44,25 +48,20 @@ class TCG:
         return [getattr(pytest.mark, tag) for tag in tags]
 
     @classmethod
-    def _as_paramset(cls, tc) -> ParameterSet:
-        tags = cls.gather_tags(tc)
-        marks = cls._generate_marks(tags)
+    def _as_paramset(cls, tc, tags: list = None) -> ParameterSet:
+        marks = cls._generate_marks(tags or [])
         tc = cls.map(tc)
         values = (tc, ) if hasattr(tc, '_asdict') or is_not(tuple, tc) else tc
         return pytest.param(*values, marks=marks)
 
     @classmethod
+    @apply(list)
     def generate(cls) -> list[ParameterSet]:
-        return (c(cls.generate_tcs())
-                .map(cls.map_to_many)
-                .map(list)
-                .flatten()
-                .map(cls._as_paramset)
-                .value())
-
-    @classmethod
-    def list(cls) -> list[tuple]:
-        return list(cls.generate())
+        for big_tc in cls.generate_tcs():
+            big_tags = list(cls.gather_tag_before_mapping_to_many(big_tc))
+            for lil_tc in cls.map_to_many(big_tc):
+                lil_tags = list(cls.gather_tags(lil_tc))
+                yield cls._as_paramset(lil_tc, unique(big_tags + lil_tags))
 
     @classmethod
     def parametrize(cls, param_names=None, name_from: str | int | Sequence[str|int] = None, ids=None, **kwargs):
@@ -70,5 +69,5 @@ class TCG:
             name_from = (name_from, ) if isinstance(name_from, (str | int)) else name_from or ('name', 'short', 'descr')
             ids = lambda tc: c().at(*name_from).filter(bool).concat(tc).head()(tc)
         param_names = param_names or cls.param_names()
-        params = cls.list()
+        params = cls.generate()
         return pytest.mark.parametrize(param_names, params, ids=ids, **kwargs)

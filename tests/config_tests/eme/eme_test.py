@@ -128,7 +128,8 @@ class EmeTestGenerator(LangCodeTestGenerator):
         name, definition = list(tc.defi.items())[0]
         tags.extend(cls.gather_defi_tags(definition))
         tags.extend(cls.gather_feature_tags(definition))
-
+        if tc.skip:
+            yield 'xfail'
         return tags
 
     @classmethod

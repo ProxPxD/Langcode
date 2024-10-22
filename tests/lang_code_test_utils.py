@@ -10,10 +10,11 @@ from more_itertools import flatten
 from pydash import chain as c
 from toolz.curried import *
 
+from src import utils
 from src.exceptions import LangCodeException
 from src.lang_typing import OrMore
 from src.language_components import Unit
-from src.utils import is_, is_not_dict, is_str, to_tuple, is_not
+from src.utils import is_, is_not_dict, to_tuple
 from tests.test_case_generator import TCG
 
 
@@ -84,6 +85,7 @@ class LangCodeTCG(TCG):
             case str() if not definition.isalpha(): yield 'regex'
 
     @classmethod
+    @utils.apply(unique, list)
     def gather_feature_tags(cls, defi) -> Iterable[str]:
         # TODO: idea separate a feature extractor and compare some outside to decide if a feature has to change or be used, etc.
         if is_not_dict(defi):
