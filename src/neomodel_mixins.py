@@ -3,10 +3,12 @@ from __future__ import annotations, annotations
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Sequence, Optional, Type, Tuple, Callable
+from types import NoneType
+from typing import Sequence, Optional, Type, Tuple, Callable, Any
 
 import neomodel
 import pydash as _
+from more_itertools import distribute
 from neomodel import StructuredNode, NeomodelPath, StructuredRel, db
 from pydash import chain as c, curry
 from toolz import keyfilter
@@ -88,6 +90,14 @@ class ICustomPropertied(ICorePropertied):
 class INeo4jFormattable(StructuredNode):
     __abstract_node__ = True
 
+
+    # TODO: Suboptimal so separated. Move outside class?
+    @classmethod
+    def format_node(cls, labels: list, props: dict, var_name: str = '', *, parenthesis='()') -> str:
+        l, r = parenthesis
+        label_str = f":{':'.join(labels)}"
+        return f'{l}{var_name}{label_str} {props}{r}'
+
     def __format__(self, format_spec) -> str:
         label = self.__class__.__name__
         props = {**self.__properties__}
@@ -118,10 +128,7 @@ class Orientation:
 
 
 class INeo4jHierarchied(INeo4jFormattable):
-
-    @property
-    def labels(self):
-        return self.__class__.__name__
+    __abstract_node__ = True
 
     @classmethod
     @abstractmethod
@@ -351,22 +358,87 @@ class INeo4jHierarchied(INeo4jFormattable):
 
 # IRelationQuerable
 
-QueryNode = str | StructuredNode | Type[StructuredNode]
+QueryNode = str | INeo4jFormattable | Type[INeo4jFormattable]
 SimplifiedQueryNode = str | StructuredNode | Type
 QueryRel = Type[StructuredRel] | str
 QueryDict = dict | str
 FullQueryRel = QueryRel | OrMore[QueryNode] | QueryDict | Tuple[QueryRel, OrMore[QueryNode]] | Tuple[QueryRel, QueryDict] | Tuple[OrMore[QueryNode], QueryDict] | Tuple[QueryRel, OrMore[QueryNode], QueryDict]
 
+AdvQueryRel = QueryRel | tuple[QueryRel, dict]
+AdvQueryNode = QueryNode | tuple[QueryNode, dict]
+AdvQueryComp = QueryRel | QueryNode
+
 
 class IRelationQuerable(INeo4jFormattable):
+    """
+    Class that allows to query nodes in certain relation from the current one
+    """
+    __abstract_node__ = True
     # TODO: adjust node to mean label or at least allow many labels
     _main_property_name: str = 'name'
 
-    def is_saved(self):
-        return self.element_id is not None
+    @classmethod
+    def _normalize_query_component(cls, query_component: AdvQueryComp) -> tuple[list, dict]:
+        """
+        :param query_component: AdvQueryNode | AdvQueryRel
+        :return: (list of labels, properties)
+        """
+        match query_component:
+            case None: return [], {}
+            case dict(): return [], query_component
+            case str(): return c(query_component).split(':').filter().value(), {}
+            case INeo4jFormattable(): return query_component.labels(), {}
+            case Sequence() if isinstance(query_component[1], (dict, NoneType)):
+                labels, _ = cls._normalize_query_component(query_component[0])
+                _, props = cls._normalize_query_component(query_component[1])
+                return labels, props
+            case Sequence() if utils.is_all_instance_of_str(query_component): return query_component, {}
+            case _: raise ValueError(f'Cannot normalize query node: {query_component}')
+
+    # TODO: Move to utils?
+    @classmethod
+    def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode) -> str:
+        """
+        AdvQueryNode:
+            - StructuredNode
+            - str
+            - Type[StructuredNode]
+            - prop_dict
+            - (from_node, prop_dict)
+        AdvQueryRel:
+            - StructuredRel
+            - str
+            - Type[StructuredRel]
+            - prop_dict
+            - (rel, prop_dict)
+        :return:
+        """
+        if len(rel_to_nodes) % 2 != 0:
+            rel_to_nodes = [*rel_to_nodes, None]
+        from_node = cls._normalize_query_component(from_node)
+        rel_to_nodes = c(rel_to_nodes).map(cls._normalize_query_component).value()
+        query = INeo4jFormattable.format_node(from_node[0], from_node[1], 'n0')
+        for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
+            l = r = ''
+            if arrow := next(filter('<>'.__contains__, rel_labels), None):
+                rel_labels.remove(arrow)
+                match arrow:
+                    case '>': r = '>'
+                    case '<': l = '<'
+
+            node_str = INeo4jFormattable.format_node(node_labels, node_props, f'n{i}', parenthesis='()')
+            rel_str  = INeo4jFormattable.format_node(rel_labels,  rel_props,  f'r{i}', parenthesis='[]')
+            rel_str = rel_str.replace(':*', '*')  # Adjust for variable length
+            query += f'{l}-{rel_str}-{r}{node_str}'
+        return query
+
+    def query_by_rel(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
+        expression = cls.get_query_expression(from_node, *rel_to_nodes)
+        query = f'MATCH {expression} RETURN *'
+        return db.cypher_query(query)
 
     @classmethod
-    def _format_relation_part(cls, relation: Type[StructuredRel] | str) -> str:
+    def _format_relation_part(cls, relation: QueryRel) -> str:
         match relation:
             case None: formatted = ''
             case str(): formatted = f':{relation}'
@@ -493,7 +565,7 @@ class IRelationQuerable(INeo4jFormattable):
         return self._adjust_rels(rels, _adjust_inner_rel=self._adjust_own_inner_rel)
 
     def _adjust_own_rels_if_saved(self, rels: Sequence[FullQueryRel], adjust: Callable[[Sequence[FullQueryRel]], Sequence[FullQueryRel]]) -> list[FullQueryRel]:
-        if self.is_saved():
+        if self.was_saved:
             rels = adjust(rels)
         return self._adjust_rels(rels)
 
