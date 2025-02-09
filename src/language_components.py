@@ -17,7 +17,7 @@ from src.neomodel_mixins import ICorePropertied, INeo4jHierarchied, FeaturesNotH
 from src.relationships import Features, Belongs, IsSuperOf, HasKind
 from src.utils import adjust_str, exceptions_to, is_, is_yaml_type, is_nothing_instance_of_none
 
-db.config_db()
+db.configure()
 
 
 class INameProperty(StructuredNode):

@@ -8,7 +8,7 @@ from src import db
 from src.neomodel_mixins import INeo4jFormattable
 from tests.test_case_generator import TCG
 
-db.config_db()
+db.configure()
 
 
 class Animal(INeo4jFormattable):
