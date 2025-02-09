@@ -95,20 +95,20 @@ class INeo4jFormattable(StructuredNode):
         match format_spec:
             case 'id': return self.element_id
             case 'label' | 'l': return label
-            case 'labels' | 'ls': return c(self._all_labels).apply(to_list).map(c().ensure_starts_with(':')).join().value()
+            case 'labels' | 'ls': return f":{':'.join(self.labels())}"
             case 'properties' | 'props': return str(props)
             case 'node' | 'n': return f'(:{self:l} {self:props})'
             case 'full': return f'({self:ls} {self:props})'
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')
 
-    # def __str__(self):
-    #     return f'{self:node}'
-    #
-    # def __repr__(self):
-    #     try:
-    #         return f'{self:full}'
-    #     except AttributeError:
-    #         return str(self)
+    def __str__(self):
+        return f'{self:node}'
+
+    def __repr__(self):
+        try:
+            return f'{self:full}'
+        except AttributeError:
+            return str(self)
 
 
 @dataclass(frozen=True)
