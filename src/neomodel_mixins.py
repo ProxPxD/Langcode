@@ -87,13 +87,6 @@ class ICustomPropertied(ICorePropertied):
 
 class INeo4jFormattable(StructuredNode):
     __abstract_node__ = True
-    #@cached_property
-    @property
-    def _all_labels(self) -> list:
-        try:
-            return self.labels()
-        except AttributeError:
-            raise
 
     def __format__(self, format_spec) -> str:
         label = self.__class__.__name__
