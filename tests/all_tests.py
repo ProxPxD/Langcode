@@ -100,4 +100,5 @@ def clear_database():
 
 
 if __name__ == '__main__':
-    pytest.main(['neomodel_mixin_tests/neo4j_formattable.py'])
+    pytest.main(['neomodel_mixin_tests/neo4j_relation_querable.py'])
+    clear_database()

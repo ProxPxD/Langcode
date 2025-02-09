@@ -9,7 +9,7 @@ from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredR
 from pydash import chain as c
 from typing_extensions import deprecated
 
-from src import utils, relationships, db
+from src import utils, relationships, db_conf
 from src.constants import CT, ST
 from src.exceptions import AmbiguousNodeException, DoNotExistException, LangCodeException
 from src.lang_typing import YamlType, Config, ComplexYamlType

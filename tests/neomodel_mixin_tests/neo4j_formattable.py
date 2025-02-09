@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from neomodel import StringProperty, BooleanProperty
 
-from src import db
+from src import db_conf
 from src.neomodel_mixins import INeo4jFormattable
 from tests.test_case_generator import TCG
 
@@ -23,7 +23,7 @@ class Human(Animal):
 class Neo4jFormattableTCG(TCG):
     map = tuple
 
-    tc = namedtuple('tc', ['node', 'format', 'expected'])
+    tc = namedtuple('tc', ['node', 'spec', 'expected'])
     tcs = [
         tc(Animal(extincted=True), 'l', 'Animal'),
         tc(Animal(extincted=True), 'ls', ':Animal'),

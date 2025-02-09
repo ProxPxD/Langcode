@@ -31,7 +31,9 @@ class INeo4jFormattable(StructuredNode):
     def format_node(cls, labels: list, props: dict, var_name: str = '', *, parenthesis='()') -> str:
         l, r = parenthesis
         label_str = f":{':'.join(labels)}"
-        return f'{l}{var_name}{label_str} {props}{r}'
+        inner = ', '.join([f"{key}: '{val}'" for key, val in (props or {}).items()])
+        prop_str = f'{{{inner}}}' if inner else ''
+        return f'{l}{var_name}{label_str} {prop_str}{r}'
 
     def __format__(self, format_spec) -> str:
         label = self.__class__.__name__
@@ -41,7 +43,9 @@ class INeo4jFormattable(StructuredNode):
             case 'id': return self.element_id
             case 'label' | 'l': return label
             case 'labels' | 'ls': return f":{':'.join(self.labels())}"
-            case 'properties' | 'props': return str(props)
+            case 'properties' | 'props':
+                inner = ', '.join([f"{key}: '{val}'" for key, val in (props or {}).items()])
+                return f'{{{inner}}}' if inner else ''
             case 'node' | 'n': return f'(:{self:l} {self:props})'
             case 'full': return f'({self:ls} {self:props})'
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')
@@ -304,7 +308,7 @@ AdvQueryNode = QueryNode | tuple[QueryNode, dict]
 AdvQueryComp = QueryRel | QueryNode
 
 
-class IRelationQuerable:
+class IRelationQuerable:  # TODO: think of naming convention
     """
     Class that allows to query nodes in certain relation from the current one
     """
@@ -323,11 +327,11 @@ class IRelationQuerable:
             case dict(): return [], query_component
             case str(): return c(query_component).split(':').filter().value(), {}
             case INeo4jFormattable(): return query_component.labels(), {}
-            case Sequence() if isinstance(query_component[1], (dict, NoneType)):
+            case [_, dict() | None]:
                 labels, _ = cls._normalize_query_component(query_component[0])
                 _, props = cls._normalize_query_component(query_component[1])
                 return labels, props
-            case Sequence() if utils.is_all_instance_of_str(query_component): return query_component, {}
+            case [*labels] if utils.is_all_instance_of_str(labels): return query_component, {}
             case _: raise ValueError(f'Cannot normalize query node: {query_component}')
 
     # TODO: Move to utils?
@@ -356,6 +360,7 @@ class IRelationQuerable:
         for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
             l = r = ''
             if arrow := next(filter('<>'.__contains__, rel_labels), None):
+                rel_labels = rel_labels[::]
                 rel_labels.remove(arrow)
                 match arrow:
                     case '>': r = '>'
@@ -367,6 +372,7 @@ class IRelationQuerable:
             query += f'{l}-{rel_str}-{r}{node_str}'
         return query
 
+    @classmethod
     def query_by_rel(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
         expression = cls.get_query_expression(from_node, *rel_to_nodes)
         query = f'MATCH {expression} RETURN *'
