@@ -24,6 +24,7 @@ from src.loaders import LangDataLoader
 from src.utils import if_, to_tuple, is_
 from tests.abstractTest import AbstractTest, TestGenerator
 
+
 val = _.method('value')
 
 yaml_types = dict | bool | str | int | None

@@ -56,7 +56,7 @@ class TCG:
 
     @classmethod
     @apply(list)
-    def generate(cls) -> list[ParameterSet]:
+    def generate_params(cls) -> list[ParameterSet]:
         for big_tc in cls.generate_tcs():
             big_tags = list(cls.gather_tag_before_mapping_to_many(big_tc))
             for lil_tc in cls.map_to_many(big_tc):
@@ -69,5 +69,5 @@ class TCG:
             name_from = (name_from, ) if isinstance(name_from, (str | int)) else name_from or ('name', 'short', 'descr')
             ids = lambda tc: c().at(*name_from).filter(bool).concat(tc).head()(tc)
         param_names = param_names or cls.param_names()
-        params = cls.generate()
+        params = cls.generate_params()
         return pytest.mark.parametrize(param_names, params, ids=ids, **kwargs)

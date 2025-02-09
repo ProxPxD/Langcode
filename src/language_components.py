@@ -7,18 +7,17 @@ import pydash as _
 from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredRel, DoesNotExist, MultipleNodesReturned, NeomodelPath, config, \
     RelationshipFrom  # For some reason, the neomodel requires to import it
 from pydash import chain as c
-from toolz import itemmap
 from typing_extensions import deprecated
 
-from src import utils, relationships
+from src import utils, relationships, db
 from src.constants import CT, ST
 from src.exceptions import AmbiguousNodeException, DoNotExistException, LangCodeException
 from src.lang_typing import YamlType, Config, ComplexYamlType
-from src.neomodel_mixins import ICorePropertied, INeo4jFormatable, INeo4jHierarchied, FeaturesNotHierarchied, IRelationQuerable, FullQueryRel
+from src.neomodel_mixins import ICorePropertied, INeo4jHierarchied, FeaturesNotHierarchied, IRelationQuerable, FullQueryRel
 from src.relationships import Features, Belongs, IsSuperOf, HasKind
 from src.utils import adjust_str, exceptions_to, is_, is_yaml_type, is_nothing_instance_of_none
 
-config.DATABASE_URL = 'bolt://neo4j:password@localhost:7687'
+db.config_db()
 
 
 class INameProperty(StructuredNode):

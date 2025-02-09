@@ -2,6 +2,7 @@ from __future__ import annotations, annotations
 
 from abc import abstractmethod
 from dataclasses import dataclass
+from functools import cached_property
 from typing import Sequence, Optional, Type, Tuple, Callable
 
 import neomodel
@@ -84,27 +85,46 @@ class ICustomPropertied(ICorePropertied):
         return super().core_properties | self.custom_properties
 
 
-class INeo4jFormatable(ICorePropertied):
-    @classmethod
-    def format_to_neo4j_style(cls, format_spec: str, __label: str = None, **properties) -> str:  # TODO: consider many labels
-        label = cls.__name__ if __label is None else __label
-        match format_spec:
-            case 'label' | 'l': return label
-            case 'properties' | 'props': return str(properties)
-            case 'node' | 'n': return f'(:{label} {str(properties)})'
-            case _: raise ValueError(f'Format spec {format_spec} has not been defined')
+class INeo4jFormattable(StructuredNode):
+    __abstract_node__ = True
+    #@cached_property
+    @property
+    def _all_labels(self) -> list:
+        try:
+            return self.labels()
+        except AttributeError:
+            raise
 
     def __format__(self, format_spec) -> str:
-        return self.format_to_neo4j_style(format_spec=format_spec, **self.all_properties)
+        label = self.__class__.__name__
+        props = {**self.__properties__}
+        del props['element_id_property']
+        match format_spec:
+            case 'id': return self.element_id
+            case 'label' | 'l': return label
+            case 'labels' | 'ls': return c(self._all_labels).apply(to_list).map(c().ensure_starts_with(':')).join().value()
+            case 'properties' | 'props': return str(props)
+            case 'node' | 'n': return f'(:{self:l} {self:props})'
+            case 'full': return f'({self:ls} {self:props})'
+            case _: raise ValueError(f'Format spec {format_spec} has not been defined')
+
+    # def __str__(self):
+    #     return f'{self:node}'
+    #
+    # def __repr__(self):
+    #     try:
+    #         return f'{self:full}'
+    #     except AttributeError:
+    #         return str(self)
 
 
-@dataclass
+@dataclass(frozen=True)
 class Orientation:
     UP = 'up'
     DOWN = 'down'
 
 
-class INeo4jHierarchied(INeo4jFormatable):
+class INeo4jHierarchied(INeo4jFormattable):
 
     @property
     def labels(self):
@@ -122,7 +142,7 @@ class INeo4jHierarchied(INeo4jFormatable):
             __end: int = None,
             __n: int = None,
             __rel_name: str = None,
-            __connected_node: INeo4jFormatable = None,
+            __connected_node: INeo4jFormattable = None,
             __connecting_rel: str = None,
             **properties: YamlType
         ) -> str:
@@ -154,7 +174,7 @@ class INeo4jHierarchied(INeo4jFormatable):
         return str(start), str(end)
 
     @classmethod
-    def _get_connection_part(cls, connected_node: INeo4jFormatable, connecting_rel) -> str:
+    def _get_connection_part(cls, connected_node: INeo4jFormattable, connecting_rel) -> str:
         match (connected_node, connecting_rel):
             case (None, None): return ''
             case (None, _): raise ValueError('Cannot define "__connecting_rel" without "__connected_node"')
@@ -345,7 +365,7 @@ QueryDict = dict | str
 FullQueryRel = QueryRel | OrMore[QueryNode] | QueryDict | Tuple[QueryRel, OrMore[QueryNode]] | Tuple[QueryRel, QueryDict] | Tuple[OrMore[QueryNode], QueryDict] | Tuple[QueryRel, OrMore[QueryNode], QueryDict]
 
 
-class IRelationQuerable(INeo4jFormatable):
+class IRelationQuerable(INeo4jFormattable):
     # TODO: adjust node to mean label or at least allow many labels
     _main_property_name: str = 'name'
 

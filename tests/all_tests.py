@@ -11,6 +11,9 @@ from unittest.case import SkipTest
 
 from abstractTest import AbstractTest
 
+from neomodel import config, db
+
+
 all_tests = []
 
 
@@ -87,6 +90,14 @@ if False: #__name__ == '__main__':
     )
     run_tests(tests)
 
+# Configure DB
+
+config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
+
+
+def clear_database():
+    db.cypher_query("MATCH (n) DETACH DELETE n")
+
 
 if __name__ == '__main__':
-    pytest.main(['config_tests/feature'])
+    pytest.main(['neomodel_mixin_tests/neo4j_formattable.py'])
