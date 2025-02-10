@@ -31,11 +31,9 @@ class INeo4jFormattable(StructuredNode):
             case None: return 'null'
             case bool() | int() | float(): return str(prop).lower()
             case str(): return f"'{prop}'"
-            case list(): return str(_.map_(prop, cls._format_property))
+            case list(): return '[' + (', '.join(_.map_(prop, cls._format_property))) + ']'
             case dict() if not prop: return ''
-            case dict():
-                inner = ', '.join([f"{key}: {cls._format_property(val)}" for key, val in prop.items()])
-                return f'{{{inner}}}'
+            case dict(): return '{' + (', '.join([f"{key}: {cls._format_property(val)}" for key, val in prop.items()])) + '}'
 
     @classmethod
     def _format_labels(cls, labels: list[str]) -> str:
@@ -57,7 +55,7 @@ class INeo4jFormattable(StructuredNode):
             case 'id': return self.element_id
             case 'label' | 'l': return self.__class__.__name__
             case 'labels' | 'ls': return self._format_labels(self.labels())
-            case 'properties' | 'props': return self._format_property(self._props_without_id)
+            case 'properties' | 'props' | 'p': return self._format_property(self._props_without_id)
             case 'node' | 'n': return self._format_node([f'{self:l}'], self._props_without_id)
             case 'full': return self._format_node(self.labels(), self._props_without_id)
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')

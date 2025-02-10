@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import namedtuple
 
-from neomodel import StringProperty, BooleanProperty
+from neomodel import StringProperty, BooleanProperty, ArrayProperty
 
 from src.neomodel_mixins import INeo4jFormattable
 from tests.test_case_generator import TCG
@@ -17,6 +17,11 @@ class Human(Animal):
     pass
 
 
+class Person(INeo4jFormattable):
+    children = ArrayProperty(default=[])
+    numbers = ArrayProperty(default=[])
+
+
 class Neo4jFormattableTCG(TCG):
     map = tuple
 
@@ -28,6 +33,8 @@ class Neo4jFormattableTCG(TCG):
         tc(Animal(extincted=False), 'node', "(:Animal {extincted: false, name: null})"),
         tc(Human(), 'ls', ':Animal:Human'),
         tc(Human(), 'full', "(:Animal:Human {extincted: false, name: null})"),
+        tc(Person(children=['Aniela'], numbers=[21]), 'p',
+           "{children: ['Aniela'], numbers: [21]}"),
     ]
 
 
