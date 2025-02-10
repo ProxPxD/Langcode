@@ -67,6 +67,13 @@ class RelationQuerableTCG(TCG):
                 [([PERSON], dict(name=JD_NAME),)],
             ],
         ),
+         tc(
+            name='Unnamed Relation',
+            query_args=(PERSON, None, BOOK),
+            expected=[
+                [([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([IS_AUTHOR_OF], {})],
+            ],
+        ),
     ]
 
     @classmethod
