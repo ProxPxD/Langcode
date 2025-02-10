@@ -25,29 +25,36 @@ class FeaturesNotHierarchied(IDynamicMessageException):
 class INeo4jFormattable(StructuredNode):
     __abstract_node__ = True
 
-
-    # TODO: Suboptimal so separated. Move outside class?
     @classmethod
-    def format_node(cls, labels: list, props: dict, var_name: str = '', *, parenthesis='()') -> str:
-        l, r = parenthesis
-        label_str = f":{':'.join(labels)}"
-        inner = ', '.join([f"{key}: '{val}'" for key, val in (props or {}).items()])
-        prop_str = f'{{{inner}}}' if inner else ''
-        return f'{l}{var_name}{label_str} {prop_str}{r}'
+    def _format_properties(cls, props: dict) -> str:
+        if not props:
+            return ''
+        inner = ', '.join([f"{key}: '{val}'" for key, val in props.items()])
+        return f'{{{inner}}}'
 
-    def __format__(self, format_spec) -> str:
-        label = self.__class__.__name__
+    @classmethod
+    def _format_labels(cls, labels: list[str]) -> str:
+        return f":{':'.join(labels)}" if labels else ''
+
+    @classmethod
+    def _format_node(cls, labels: list, props: dict, var_name: str = '', *, parenthesis='()') -> str:
+        l, r = parenthesis
+        return f'{l}{var_name}{cls._format_labels(labels)} {cls._format_properties(props)}{r}'
+
+    @property
+    def _props_without_id(self) -> dict:
         props = {**self.__properties__}
         del props['element_id_property']
+        return props
+
+    def __format__(self, format_spec) -> str:
         match format_spec:
             case 'id': return self.element_id
-            case 'label' | 'l': return label
-            case 'labels' | 'ls': return f":{':'.join(self.labels())}"
-            case 'properties' | 'props':
-                inner = ', '.join([f"{key}: '{val}'" for key, val in (props or {}).items()])
-                return f'{{{inner}}}' if inner else ''
-            case 'node' | 'n': return f'(:{self:l} {self:props})'
-            case 'full': return f'({self:ls} {self:props})'
+            case 'label' | 'l': return self.__class__.__name__
+            case 'labels' | 'ls': return self._format_labels(self.labels())
+            case 'properties' | 'props': return self._format_properties(self._props_without_id)
+            case 'node' | 'n': return self._format_node([f'{self:l}'], self._props_without_id)
+            case 'full': return self._format_node(self.labels(), self._props_without_id)
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')
 
     def __str__(self):
@@ -356,7 +363,7 @@ class IRelationQuerable:  # TODO: think of naming convention
             rel_to_nodes = [*rel_to_nodes, None]
         from_node = cls._normalize_query_component(from_node)
         rel_to_nodes = c(rel_to_nodes).map(cls._normalize_query_component).value()
-        query = INeo4jFormattable.format_node(from_node[0], from_node[1], 'n0')
+        query = INeo4jFormattable._format_node(from_node[0], from_node[1], 'n0')
         for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
             l = r = ''
             if arrow := next(filter('<>'.__contains__, rel_labels), None):
@@ -366,8 +373,8 @@ class IRelationQuerable:  # TODO: think of naming convention
                     case '>': r = '>'
                     case '<': l = '<'
 
-            node_str = INeo4jFormattable.format_node(node_labels, node_props, f'n{i}', parenthesis='()')
-            rel_str  = INeo4jFormattable.format_node(rel_labels,  rel_props,  f'r{i}', parenthesis='[]')
+            node_str = INeo4jFormattable._format_node(node_labels, node_props, f'n{i}', parenthesis='()')
+            rel_str  = INeo4jFormattable._format_node(rel_labels, rel_props, f'r{i}', parenthesis='[]')
             rel_str = rel_str.replace(':*', '*')  # Adjust for variable length
             query += f'{l}-{rel_str}-{r}{node_str}'
         return query
