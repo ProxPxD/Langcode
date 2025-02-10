@@ -2,17 +2,15 @@ import importlib
 import inspect
 import re
 import unittest
-import pytest
-
-from itertools import chain
 from pathlib import Path
 from typing import Iterable
 from unittest.case import SkipTest
 
+import pytest
+from neomodel import db
+
 from abstractTest import AbstractTest
-
-from neomodel import config, db
-
+from src import db_conf
 
 all_tests = []
 
@@ -90,15 +88,12 @@ if False: #__name__ == '__main__':
     )
     run_tests(tests)
 
-# Configure DB
-
-config.DATABASE_URL = 'bolt://neo4j_username:neo4j_password@localhost:7687'
-
 
 def clear_database():
     db.cypher_query("MATCH (n) DETACH DELETE n")
 
 
 if __name__ == '__main__':
-    pytest.main(['neomodel_mixin_tests/neo4j_relation_querable.py'])
+    db_conf.configure()
+    pytest.main(['neomodel_mixin_tests/'])
     clear_database()

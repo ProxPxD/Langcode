@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 from collections import namedtuple
-from typing import Iterable
 
 from neo4j.graph import Node, Relationship
-from neomodel import StringProperty, BooleanProperty, db
+from neomodel import db
 
-from src import db_conf
-from src.neomodel_mixins import INeo4jFormattable, IRelationQuerable
+from src.neomodel_mixins import IRelationQuerable
 from tests.test_case_generator import TCG
 
-db_conf.configure()
 
 PERSON = 'Person'
 BOOK = 'Book'

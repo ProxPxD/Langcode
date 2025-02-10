@@ -26,11 +26,16 @@ class INeo4jFormattable(StructuredNode):
     __abstract_node__ = True
 
     @classmethod
-    def _format_properties(cls, props: dict) -> str:
-        if not props:
-            return ''
-        inner = ', '.join([f"{key}: '{val}'" for key, val in props.items()])
-        return f'{{{inner}}}'
+    def _format_property(cls, prop: YamlType) -> str:
+        match prop:
+            case None: return 'null'
+            case bool() | int() | float(): return str(prop).lower()
+            case str(): return f"'{prop}'"
+            case list(): return str(_.map_(prop, cls._format_property))
+            case dict() if not prop: return ''
+            case dict():
+                inner = ', '.join([f"{key}: {cls._format_property(val)}" for key, val in prop.items()])
+                return f'{{{inner}}}'
 
     @classmethod
     def _format_labels(cls, labels: list[str]) -> str:
@@ -39,7 +44,7 @@ class INeo4jFormattable(StructuredNode):
     @classmethod
     def _format_node(cls, labels: list, props: dict, var_name: str = '', *, parenthesis='()') -> str:
         l, r = parenthesis
-        return f'{l}{var_name}{cls._format_labels(labels)} {cls._format_properties(props)}{r}'
+        return f'{l}{var_name}{cls._format_labels(labels)} {cls._format_property(props)}{r}'
 
     @property
     def _props_without_id(self) -> dict:
@@ -52,7 +57,7 @@ class INeo4jFormattable(StructuredNode):
             case 'id': return self.element_id
             case 'label' | 'l': return self.__class__.__name__
             case 'labels' | 'ls': return self._format_labels(self.labels())
-            case 'properties' | 'props': return self._format_properties(self._props_without_id)
+            case 'properties' | 'props': return self._format_property(self._props_without_id)
             case 'node' | 'n': return self._format_node([f'{self:l}'], self._props_without_id)
             case 'full': return self._format_node(self.labels(), self._props_without_id)
             case _: raise ValueError(f'Format spec {format_spec} has not been defined')
@@ -356,7 +361,13 @@ class IRelationQuerable:  # TODO: think of naming convention
             - str
             - Type[StructuredRel]
             - prop_dict
-            - (rel, prop_dict)
+            - (rel_to_nodes).map(cls._normalize_query_component).value()
+        query = INeo4jFormattable._format_node(from_node_labels, from_node_props, 'n0')
+        for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
+            l = r = ''
+            if arrow := next(filter('<>'.__contains__, rel_labels), None):
+                rel_labels = rel_labels[::]
+                rel_labels.rem, prop_dict)
         :return:
         """
         if len(rel_to_nodes) % 2 != 0:

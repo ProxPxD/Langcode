@@ -4,11 +4,8 @@ from collections import namedtuple
 
 from neomodel import StringProperty, BooleanProperty
 
-from src import db_conf
 from src.neomodel_mixins import INeo4jFormattable
 from tests.test_case_generator import TCG
-
-db.configure()
 
 
 class Animal(INeo4jFormattable):
@@ -27,10 +24,10 @@ class Neo4jFormattableTCG(TCG):
     tcs = [
         tc(Animal(extincted=True), 'l', 'Animal'),
         tc(Animal(extincted=True), 'ls', ':Animal'),
-        tc(Animal(extincted=True, name='Bob'), 'props', str(dict(extincted=True, name='Bob'))),
-        tc(Animal(extincted=True), 'node', "(:Animal {'extincted': True, 'name': None})"),
+        tc(Animal(extincted=True, name='Bob'), 'props', "{extincted: true, name: 'Bob'}"),
+        tc(Animal(extincted=False), 'node', "(:Animal {extincted: false, name: null})"),
         tc(Human(), 'ls', ':Animal:Human'),
-        tc(Human(), 'full', "(:Animal:Human {'extincted': False, 'name': None})"),
+        tc(Human(), 'full', "(:Animal:Human {extincted: false, name: null})"),
     ]
 
 
