@@ -33,8 +33,7 @@ class Neo4jFormattableTCG(TCG):
         tc(Animal(extincted=False), 'node', "(:Animal {extincted: false, name: null})"),
         tc(Human(), 'ls', ':Animal:Human'),
         tc(Human(), 'full', "(:Animal:Human {extincted: false, name: null})"),
-        tc(Person(children=['Aniela'], numbers=[21]), 'p',
-           "{children: ['Aniela'], numbers: [21]}"),
+        tc(Person(children=['Aniela'], numbers=[21, 3.14]), 'p', "{children: ['Aniela'], numbers: [21, 3.14]}"),
     ]
 
 
