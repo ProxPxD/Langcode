@@ -359,13 +359,7 @@ class IRelationQuerable:  # TODO: think of naming convention
             - str
             - Type[StructuredRel]
             - prop_dict
-            - (rel_to_nodes).map(cls._normalize_query_component).value()
-        query = INeo4jFormattable._format_node(from_node_labels, from_node_props, 'n0')
-        for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
-            l = r = ''
-            if arrow := next(filter('<>'.__contains__, rel_labels), None):
-                rel_labels = rel_labels[::]
-                rel_labels.rem, prop_dict)
+            - (rel, prop_dict)
         :return:
         """
         if len(rel_to_nodes) % 2 != 0:
