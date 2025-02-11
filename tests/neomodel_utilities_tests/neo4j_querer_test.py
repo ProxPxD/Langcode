@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import logging
 from collections import namedtuple
-from typing import Callable
+from itertools import zip_longest
+from typing import Callable, Sequence, Tuple
 
+import pytest
 from neo4j.graph import Node, Relationship
 from neomodel import db
 
@@ -84,9 +86,17 @@ class RelationQuerableTCG(TCG):
             ],
         ),
         tc(
-            name='todo',
+            name='Last Node',
             method=Neo4jQuerer.query_nth_node_s,
             query_args=(-1, PERSON, IS_AUTHOR_OF, BOOK),
+            expected=[
+                [([BOOK], dict(name=WL_NAME))],
+            ],
+        ),
+        tc(
+            name='Last Graphel',
+            method=Neo4jQuerer.query_nth_s,
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), n=-1, kind='e'),
             expected=[
                 [([BOOK], dict(name=WL_NAME))],
             ],
@@ -106,20 +116,40 @@ def get_labels(graphel: Node | Relationship) -> list[str]:
         return [graphel.type]
 
 
+def normalize_query_args(query_args: Sequence | dict) -> Tuple[Sequence, dict]:
+    if isinstance(query_args, Sequence):
+        return query_args, {}
+    else:
+        args = query_args['args']
+        kwargs = query_args
+        del kwargs['args']
+        return args, kwargs
+
+
 @RelationQuerableTCG.parametrize(['name', 'method', 'query_args', 'expected'])
-def test(name, method: Callable, query_args: tuple, expected):
-    table, names = method(*query_args)
-    logging.debug(f'Actual: {table}')
-    assert len(table) == len(expected)
-    for a_row, e_row in zip(table, expected):
-        assert len(a_row) == len(e_row)
-        for a_graphel, e_graphel in zip(a_row, e_row):
+def test(name, method: Callable, query_args: tuple | dict, expected):
+    args, kwargs = normalize_query_args(query_args)
+    table, names = method(*args, **kwargs)
+    logging.debug(f'Actual:')
+    for i, row in enumerate(table):
+        logging.debug(f'row_{i}:')
+        for j, elem in enumerate(row):
+            logging.debug(f'   - elem_{j}: {elem}')
+
+    def is_row_same(a_row, e_row):
+        for a_graphel, e_graphel in zip_longest(a_row, e_row):
             if hasattr(a_graphel, 'element_id'):
                 e_labels, e_props = e_graphel
-                assert set(get_labels(a_graphel)) == set(e_labels)
-                assert dict(a_graphel.items()) == e_props
-            else:
-                for a_sub_graphel, e_sub_graphel in zip(a_graphel, e_graphel):
-                    e_labels, e_props = e_sub_graphel
-                    assert set(get_labels(a_sub_graphel)) == set(e_labels)
-                    assert dict(a_sub_graphel.items()) == e_props
+                if set(get_labels(a_graphel)) != set(e_labels) or dict(a_graphel.items()) != e_props:
+                    return False
+            elif not is_row_same(a_graphel, e_graphel):
+                return False
+        return True
+
+    assert len(table) == len(expected)
+    for e_row in expected:
+        for a_row in table:
+            if is_row_same(a_row, e_row):
+                break
+        else:
+            pytest.fail(f'Did not found a mathing row for {e_row}')

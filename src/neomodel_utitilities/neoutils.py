@@ -1,3 +1,4 @@
+import logging
 from typing import Type, Tuple, Sequence
 
 from more_itertools import distribute
@@ -131,17 +132,17 @@ class Neo4jQuerer:
         :param n: nth graphel to return
         :return:
         """
-        orig_n = n
+        orig_n = _.to_list(n)
         max_size = len(rel_to_nodes) // 2
         if kind not in 'ner':
             raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
         underflow = lambda v: max_size + v + 1
-        n = _.map_(_.to_list(n), c().apply_if(underflow, _.is_negative))
+        n = _.map_(orig_n, c().apply_if(underflow, _.is_negative))
         if kind in 'rn':
             kinds = kind * len(n)
         else:  # e
-            kinds = _.map_(n, lambda v: 'nr'[v%2])
-            n = _.map_(n, lambda v: v//2)
+            kinds = ['nr'[(v+1)%2] for v, orig_v in zip(n, orig_n)]#_.map_(n, lambda v: 'nr'[v%2][::])
+            n = _.map_(n, lambda v: (v+1)//2)
         for v in n:
             if not (0 <= v <= max_size):
                 raise ValueError(f'Variable n={orig_n} out of bound (-{max_size}, {max_size})')
