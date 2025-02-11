@@ -5,7 +5,7 @@ from collections import namedtuple
 from neo4j.graph import Node, Relationship
 from neomodel import db
 
-from src.neomodel_utitilities.neomodel_mixins import IRelationQuerable
+from src.neomodel_utitilities.neomixins import IRelationQuerable
 from tests.test_case_generator import TCG
 
 

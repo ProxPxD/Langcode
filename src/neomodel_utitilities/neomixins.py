@@ -15,7 +15,7 @@ from toolz import keyfilter
 from src import utils
 from src.exceptions import DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException
 from src.lang_typing import YamlType, OrMore
-from src.neomodel_utitilities.utils import Neo4jFormatter
+from src.neomodel_utitilities.neoutils import Neo4jFormatter
 from src.utils import exceptions_to
 
 
@@ -333,7 +333,7 @@ class IRelationQuerable:  # TODO: think of naming convention
             rel_to_nodes = [*rel_to_nodes, None]
         from_node = cls._normalize_query_component(from_node)
         rel_to_nodes = c(rel_to_nodes).map(cls._normalize_query_component).value()
-        query = INeo4jFormattable._format_node(from_node[0], from_node[1], 'n0')
+        query = Neo4jFormatter.format_to_node(from_node[0], from_node[1], 'n0')
         for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
             l = r = ''
             if arrow := next(filter('<>'.__contains__, rel_labels), None):
@@ -343,8 +343,8 @@ class IRelationQuerable:  # TODO: think of naming convention
                     case '>': r = '>'
                     case '<': l = '<'
 
-            node_str = INeo4jFormattable._format_node(node_labels, node_props, f'n{i}', parenthesis='()')
-            rel_str  = INeo4jFormattable._format_node(rel_labels, rel_props, f'r{i}', parenthesis='[]')
+            node_str = Neo4jFormatter.format_to_node(node_labels, node_props, f'n{i}', parenthesis='()')
+            rel_str  = Neo4jFormatter.format_to_node(rel_labels, rel_props, f'r{i}', parenthesis='[]')
             rel_str = rel_str.replace(':*', '*')  # Adjust for variable length
             query += f'{l}-{rel_str}-{r}{node_str}'
         return query
