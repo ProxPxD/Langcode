@@ -1,4 +1,4 @@
-from typing import Type, Tuple
+from typing import Type, Tuple, Sequence
 
 from more_itertools import distribute
 from neomodel import StructuredNode, StructuredRel, db
@@ -9,6 +9,7 @@ from src.lang_typing import YamlType, OrMore
 import pydash as _
 from pydash import chain as c
 
+from src.utils import to_list
 
 QueryNode = str | StructuredNode | Type[StructuredNode]
 QueryRel = str | Type[StructuredRel]
@@ -57,6 +58,7 @@ class Neo4jFormatter:
 
 
 class Neo4jQuerer:
+    # TODO: replace get_one_own_by_rels_props with the something based on the below
     
     @classmethod
     def _normalize_query_component(cls, query_component: AdvQueryComp) -> tuple[list, dict]:
@@ -76,7 +78,6 @@ class Neo4jQuerer:
             case [*labels] if utils.is_all_instance_of_str(labels): return query_component, {}
             case _: raise ValueError(f'Cannot normalize query node: {query_component}')
 
-    # TODO: Move to utils?
     @classmethod
     def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode) -> str:
         """
@@ -115,8 +116,43 @@ class Neo4jQuerer:
         return query
 
     @classmethod
-    def query_by_rel(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
+    def query(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, to_return: str | Sequence = '*'):
         expression = cls.get_query_expression(from_node, *rel_to_nodes)
-        query = f'MATCH {expression} RETURN *'
+        if isinstance(to_return, Sequence):
+            to_return = ', '.join(to_return)
+        query = f'MATCH {expression} RETURN {to_return}'
         return db.cypher_query(query)
-    # TODO: replace get_one_own_by_rels_props with the something based on the above
+
+    # TODO: to test
+    @classmethod
+    def query_nth_s(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, n: int | Sequence = -1, kind: str = 'n'):
+        """
+        :param kind: graphel kind to return [n(ode), r(relationship), e(lem)]
+        :param n: nth graphel to return
+        :return:
+        """
+        orig_n = n
+        max_size = len(rel_to_nodes) // 2
+        if kind not in 'ner':
+            raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
+        underflow = lambda v: max_size + v + 1
+        n = _.map_(_.to_list(n), c().apply_if(underflow, _.is_negative))
+        if kind in 'rn':
+            kinds = kind * len(n)
+        else:  # e
+            kinds = _.map_(n, lambda v: 'nr'[v%2])
+            n = _.map_(n, lambda v: v//2)
+        for v in n:
+            if not (0 <= v <= max_size):
+                raise ValueError(f'Variable n={orig_n} out of bound (-{max_size}, {max_size})')
+        to_return = [f'{k}{v}' for k, v in zip(kinds, n)]
+        return cls.query(from_node, *rel_to_nodes, to_return=to_return)
+
+    @classmethod
+    def query_nth_node_s(cls, n: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
+        return cls.query_nth_s(from_node, *rel_to_nodes, kind='n', n=n)
+
+    @classmethod
+    def query_nth_rel_s(cls, n: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
+        return cls.query_nth_s(from_node, *rel_to_nodes, kind='r', n=n)
+

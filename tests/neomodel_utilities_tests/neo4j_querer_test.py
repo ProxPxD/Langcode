@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import logging
 from collections import namedtuple
+from typing import Callable
 
 from neo4j.graph import Node, Relationship
 from neomodel import db
@@ -28,10 +30,11 @@ class RelationQuerableTCG(TCG):
         (mg)-[:{KNOWS}]->(jd:{PERSON} {{name: '{JD_NAME}'}})-[:{KNOWS}]->(az:{PERSON} {{name: '{AZ_NAME}'}})
     '''
 
-    tc = namedtuple('tc', ['name', 'query_args', 'expected'])
+    tc = namedtuple('tc', ['name', 'method', 'query_args', 'expected'])
     tcs = [
         tc(
             name='Simple Query Directionless',
+            method=Neo4jQuerer.query,
             query_args=(PERSON, IS_AUTHOR_OF, BOOK),
             expected=[
                 [([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([IS_AUTHOR_OF], {})],
@@ -39,6 +42,7 @@ class RelationQuerableTCG(TCG):
         ),
         tc(
             name='Exact Hop Query Directionless',
+            method=Neo4jQuerer.query,
             query_args=(PERSON, [KNOWS, '*2'], PERSON),
             expected=[
                 [([PERSON], dict(name=MG_NAME)), ([PERSON], dict(name=AZ_NAME)), [([KNOWS], {}), ([KNOWS], {})]],
@@ -47,6 +51,7 @@ class RelationQuerableTCG(TCG):
         ),
         tc(
             name='Any Hop Query Directed',
+            method=Neo4jQuerer.query,
             query_args=(PERSON, [KNOWS, '*', '>'], PERSON),
             expected=[
                 [([PERSON], dict(name=MG_NAME)), ([PERSON], dict(name=JD_NAME)), [([KNOWS], {})]],
@@ -56,23 +61,34 @@ class RelationQuerableTCG(TCG):
         ),
         tc(
             name='Two Relations',
+            method=Neo4jQuerer.query,
             query_args=(PERSON, KNOWS, PERSON, IS_AUTHOR_OF, BOOK),
             expected=[
                 [([PERSON], dict(name=JD_NAME)), ([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([KNOWS], {}), ([IS_AUTHOR_OF], {})],
             ],
         ),
-         tc(
+        tc(
             name='Single Node by Props',
+            method=Neo4jQuerer.query,
             query_args=([PERSON, {'name': JD_NAME}],),
             expected=[
                 [([PERSON], dict(name=JD_NAME),)],
             ],
         ),
-         tc(
+        tc(
             name='Unnamed Relation',
+            method=Neo4jQuerer.query,
             query_args=(PERSON, None, BOOK),
             expected=[
                 [([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([IS_AUTHOR_OF], {})],
+            ],
+        ),
+        tc(
+            name='todo',
+            method=Neo4jQuerer.query_nth_node_s,
+            query_args=(-1, PERSON, IS_AUTHOR_OF, BOOK),
+            expected=[
+                [([BOOK], dict(name=WL_NAME))],
             ],
         ),
     ]
@@ -90,9 +106,10 @@ def get_labels(graphel: Node | Relationship) -> list[str]:
         return [graphel.type]
 
 
-@RelationQuerableTCG.parametrize(['name', 'query_args', 'expected'])
-def test(name, query_args, expected):
-    table, names = Neo4jQuerer.query_by_rel(*query_args)
+@RelationQuerableTCG.parametrize(['name', 'method', 'query_args', 'expected'])
+def test(name, method: Callable, query_args: tuple, expected):
+    table, names = method(*query_args)
+    logging.debug(f'Actual: {table}')
     assert len(table) == len(expected)
     for a_row, e_row in zip(table, expected):
         assert len(a_row) == len(e_row)

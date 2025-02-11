@@ -280,6 +280,3 @@ class IRelationQuerable:  # TODO: think of naming convention
     """
     __abstract_node__ = True
 
-
-    def query_last(self):
-        pass
