@@ -142,7 +142,7 @@ class Neo4jQuerer:
             kinds = kind * len(n)
         else:  # e
             kinds = ['nr'[(v+1)%2] for v, orig_v in zip(n, orig_n)]#_.map_(n, lambda v: 'nr'[v%2][::])
-            n = _.map_(n, lambda v: (v+1)//2)
+            n = _.map_(n, lambda v: v//2 + 1)
         for v in n:
             if not (0 <= v <= max_size):
                 raise ValueError(f'Variable n={orig_n} out of bound (-{max_size}, {max_size})')

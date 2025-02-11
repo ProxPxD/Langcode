@@ -101,6 +101,14 @@ class RelationQuerableTCG(TCG):
                 [([BOOK], dict(name=WL_NAME))],
             ],
         ),
+        tc(
+            name='Last but one Graphel',
+            method=Neo4jQuerer.query_nth_s,
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), n=-2, kind='e'),
+            expected=[
+                [([IS_AUTHOR_OF], {})],
+            ],
+        ),
     ]
 
     @classmethod
