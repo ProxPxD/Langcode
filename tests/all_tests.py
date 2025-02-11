@@ -95,5 +95,5 @@ def clear_database():
 
 if __name__ == '__main__':
     db_conf.configure()
-    pytest.main(['neomodel_mixin_tests/'])
+    pytest.main(['neomodel_utilities/'])
     clear_database()

@@ -6,6 +6,7 @@ from neo4j.graph import Node, Relationship
 from neomodel import db
 
 from src.neomodel_utitilities.neomixins import IRelationQuerable
+from src.neomodel_utitilities.neoutils import Neo4jQuerer
 from tests.test_case_generator import TCG
 
 
@@ -91,7 +92,7 @@ def get_labels(graphel: Node | Relationship) -> list[str]:
 
 @RelationQuerableTCG.parametrize(['name', 'query_args', 'expected'])
 def test(name, query_args, expected):
-    table, names = IRelationQuerable.query_by_rel(*query_args)
+    table, names = Neo4jQuerer.query_by_rel(*query_args)
     assert len(table) == len(expected)
     for a_row, e_row in zip(table, expected):
         assert len(a_row) == len(e_row)

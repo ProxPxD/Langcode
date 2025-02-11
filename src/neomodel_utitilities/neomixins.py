@@ -274,87 +274,12 @@ class INeo4jHierarchied(INeo4jFormattable):
         return self.is_ancestor(**kwargs)
 
 
-# IRelationQuerable
-
-QueryNode = str | INeo4jFormattable | Type[INeo4jFormattable]
-SimplifiedQueryNode = str | StructuredNode | Type
-QueryRel = Type[StructuredRel] | str
-QueryDict = dict | str
-FullQueryRel = QueryRel | OrMore[QueryNode] | QueryDict | Tuple[QueryRel, OrMore[QueryNode]] | Tuple[QueryRel, QueryDict] | Tuple[OrMore[QueryNode], QueryDict] | Tuple[QueryRel, OrMore[QueryNode], QueryDict]
-
-AdvQueryRel = QueryRel | tuple[QueryRel, dict]
-AdvQueryNode = QueryNode | tuple[QueryNode, dict]
-AdvQueryComp = QueryRel | QueryNode
-
-
 class IRelationQuerable:  # TODO: think of naming convention
     """
     Class that allows to query nodes in certain relation from the current one
     """
     __abstract_node__ = True
 
-    @classmethod
-    def _normalize_query_component(cls, query_component: AdvQueryComp) -> tuple[list, dict]:
-        """
-        :param query_component: AdvQueryNode | AdvQueryRel
-        :return: (list of labels, properties)
-        """
-        match query_component:
-            case None: return [], {}
-            case dict(): return [], query_component
-            case str(): return c(query_component).split(':').filter().value(), {}
-            case INeo4jFormattable(): return query_component.labels(), {}
-            case [_, dict() | None]:
-                labels, _ = cls._normalize_query_component(query_component[0])
-                _, props = cls._normalize_query_component(query_component[1])
-                return labels, props
-            case [*labels] if utils.is_all_instance_of_str(labels): return query_component, {}
-            case _: raise ValueError(f'Cannot normalize query node: {query_component}')
-
-    # TODO: Move to utils?
-    @classmethod
-    def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode) -> str:
-        """
-        AdvQueryNode:
-            - StructuredNode
-            - str
-            - Type[StructuredNode]
-            - prop_dict
-            - (from_node, prop_dict)
-        AdvQueryRel:
-            - StructuredRel
-            - str
-            - Type[StructuredRel]
-            - prop_dict
-            - (rel, prop_dict)
-        :return:
-        """
-        if len(rel_to_nodes) % 2 != 0:
-            rel_to_nodes = [*rel_to_nodes, None]
-        from_node = cls._normalize_query_component(from_node)
-        rel_to_nodes = c(rel_to_nodes).map(cls._normalize_query_component).value()
-        query = Neo4jFormatter.format_to_node(from_node[0], from_node[1], 'n0')
-        for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
-            l = r = ''
-            if arrow := next(filter('<>'.__contains__, rel_labels), None):
-                rel_labels = rel_labels[::]
-                rel_labels.remove(arrow)
-                match arrow:
-                    case '>': r = '>'
-                    case '<': l = '<'
-
-            node_str = Neo4jFormatter.format_to_node(node_labels, node_props, f'n{i}', parenthesis='()')
-            rel_str  = Neo4jFormatter.format_to_node(rel_labels, rel_props, f'r{i}', parenthesis='[]')
-            rel_str = rel_str.replace(':*', '*')  # Adjust for variable length
-            query += f'{l}-{rel_str}-{r}{node_str}'
-        return query
-
-    @classmethod
-    def query_by_rel(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
-        expression = cls.get_query_expression(from_node, *rel_to_nodes)
-        query = f'MATCH {expression} RETURN *'
-        return db.cypher_query(query)
-    # TODO: replace get_one_own_by_rels_props with the something based on the above
 
     def query_last(self):
         pass
