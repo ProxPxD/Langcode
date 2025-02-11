@@ -141,7 +141,7 @@ class Neo4jQuerer:
         if kind in 'rn':
             kinds = kind * len(n)
         else:  # e
-            kinds = ['nr'[(v+1)%2] for v, orig_v in zip(n, orig_n)]#_.map_(n, lambda v: 'nr'[v%2][::])
+            kinds = ['nr'[(v+1)%2] for v, orig_v in zip(n, orig_n)]
             n = _.map_(n, lambda v: v//2 + 1)
         for v in n:
             if not (0 <= v <= max_size):
