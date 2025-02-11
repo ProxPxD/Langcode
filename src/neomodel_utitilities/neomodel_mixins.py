@@ -15,6 +15,7 @@ from toolz import keyfilter
 from src import utils
 from src.exceptions import DoNotExistException, AmbiguousSubFeaturesException, IDynamicMessageException
 from src.lang_typing import YamlType, OrMore
+from src.neomodel_utitilities.utils import Neo4jFormatter
 from src.utils import exceptions_to
 
 
@@ -25,40 +26,8 @@ class FeaturesNotHierarchied(IDynamicMessageException):
 class INeo4jFormattable(StructuredNode):
     __abstract_node__ = True
 
-    @classmethod
-    def _format_property(cls, prop: YamlType) -> str:
-        match prop:
-            case None: return 'null'
-            case bool() | int() | float(): return str(prop).lower()
-            case str(): return f"'{prop}'"
-            case list(): return '[' + (', '.join(_.map_(prop, cls._format_property))) + ']'
-            case dict() if not prop: return ''
-            case dict(): return '{' + (', '.join([f"{key}: {cls._format_property(val)}" for key, val in prop.items()])) + '}'
-
-    @classmethod
-    def _format_labels(cls, labels: list[str]) -> str:
-        return f":{':'.join(labels)}" if labels else ''
-
-    @classmethod
-    def _format_node(cls, labels: list, props: dict, var_name: str = '', *, parenthesis='()') -> str:
-        l, r = parenthesis
-        return f'{l}{var_name}{cls._format_labels(labels)} {cls._format_property(props)}{r}'
-
-    @property
-    def _props_without_id(self) -> dict:
-        props = {**self.__properties__}
-        del props['element_id_property']
-        return props
-
     def __format__(self, format_spec) -> str:
-        match format_spec:
-            case 'id': return self.element_id
-            case 'label' | 'l': return self.__class__.__name__
-            case 'labels' | 'ls': return self._format_labels(self.labels())
-            case 'properties' | 'props' | 'p': return self._format_property(self._props_without_id)
-            case 'node' | 'n': return self._format_node([f'{self:l}'], self._props_without_id)
-            case 'full': return self._format_node(self.labels(), self._props_without_id)
-            case _: raise ValueError(f'Format spec {format_spec} has not been defined')
+        return Neo4jFormatter.format(self, format_spec)
 
     def __str__(self):
         return f'{self:node}'
@@ -323,8 +292,6 @@ class IRelationQuerable:  # TODO: think of naming convention
     Class that allows to query nodes in certain relation from the current one
     """
     __abstract_node__ = True
-    # TODO: adjust node to mean label or at least allow many labels
-    _main_property_name: str = 'name'
 
     @classmethod
     def _normalize_query_component(cls, query_component: AdvQueryComp) -> tuple[list, dict]:
@@ -388,3 +355,6 @@ class IRelationQuerable:  # TODO: think of naming convention
         query = f'MATCH {expression} RETURN *'
         return db.cypher_query(query)
     # TODO: replace get_one_own_by_rels_props with the something based on the above
+
+    def query_last(self):
+        pass

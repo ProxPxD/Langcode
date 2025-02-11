@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from collections import namedtuple
 
-from neomodel import StringProperty, BooleanProperty, ArrayProperty
+from neomodel import StringProperty, BooleanProperty, ArrayProperty, StructuredNode
 
-from src.neomodel_mixins import INeo4jFormattable
+from src.neomodel_utitilities.neomodel_mixins import INeo4jFormattable
 from tests.test_case_generator import TCG
 
 
