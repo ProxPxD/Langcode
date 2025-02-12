@@ -96,8 +96,8 @@ def clear_database():
 if __name__ == '__main__':
     db_conf.configure()
     pytest.main([
-        '-s',
-        '--log-cli-level=DEBUG',
+        '-s', '-v',
+        #'--log-cli-level=DEBUG',
         'neomodel_utilities_tests/',
     ])
     clear_database()

@@ -1,17 +1,14 @@
-import logging
-from itertools import repeat, cycle
-from typing import Type, Tuple, Sequence
-
-from more_itertools import distribute, take
-from neomodel import StructuredNode, StructuredRel, db
-
-from src import utils
-from src.lang_typing import YamlType, OrMore
+from itertools import cycle
+from itertools import cycle
+from typing import Type, Sequence
 
 import pydash as _
+from more_itertools import distribute, take
+from neomodel import StructuredNode, StructuredRel, db
 from pydash import chain as c
 
-from src.utils import to_list
+from src import utils
+from src.lang_typing import YamlType
 
 QueryNode = str | StructuredNode | Type[StructuredNode]
 QueryRel = str | Type[StructuredRel]
