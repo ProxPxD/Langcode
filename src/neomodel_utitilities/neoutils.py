@@ -1,7 +1,8 @@
 import logging
+from itertools import repeat, cycle
 from typing import Type, Tuple, Sequence
 
-from more_itertools import distribute
+from more_itertools import distribute, take
 from neomodel import StructuredNode, StructuredRel, db
 
 from src import utils
@@ -18,6 +19,15 @@ QueryRel = str | Type[StructuredRel]
 AdvQueryRel = QueryRel | tuple[QueryRel, dict]
 AdvQueryNode = QueryNode | tuple[QueryNode, dict]
 AdvQueryComp = QueryRel | QueryNode
+
+
+def take_out_arrows(labels) -> tuple[list, str, str]:
+    if not (arrow := next(filter('<>'.__contains__, labels), None)):
+        return labels, '', ''
+    labels.remove(arrow)
+    match arrow:
+        case '>': return labels, '', arrow
+        case '<': return labels, arrow, ''
 
 
 class Neo4jFormatter:
@@ -80,7 +90,7 @@ class Neo4jQuerer:
             case _: raise ValueError(f'Cannot normalize query node: {query_component}')
 
     @classmethod
-    def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode) -> str:
+    def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,  names: Sequence[str] = None) -> str:
         """
         AdvQueryNode:
             - StructuredNode
@@ -98,62 +108,54 @@ class Neo4jQuerer:
         """
         if len(rel_to_nodes) % 2 != 0:
             rel_to_nodes = [*rel_to_nodes, None]
+        names = names or ['n0'] + take(len(rel_to_nodes), (f'{name}{i//2 + 1}' for i, name in enumerate(cycle('rn'))))
+        if len(names) != len(rel_to_nodes) + 1:
+            raise ValueError('Graphel names should be as many as graphels')
         from_node = cls._normalize_query_component(from_node)
         rel_to_nodes = c(rel_to_nodes).map(cls._normalize_query_component).value()
-        query = Neo4jFormatter.format_to_node(from_node[0], from_node[1], 'n0')
-        for i, ((rel_labels, rel_props), (node_labels, node_props)) in enumerate(zip(*distribute(2, rel_to_nodes)), start=1):
-            l = r = ''
-            if arrow := next(filter('<>'.__contains__, rel_labels), None):
-                rel_labels = rel_labels[::]
-                rel_labels.remove(arrow)
-                match arrow:
-                    case '>': r = '>'
-                    case '<': l = '<'
-
-            node_str = Neo4jFormatter.format_to_node(node_labels, node_props, f'n{i}', parenthesis='()')
-            rel_str  = Neo4jFormatter.format_to_node(rel_labels, rel_props, f'r{i}', parenthesis='[]')
-            rel_str = rel_str.replace(':*', '*')  # Adjust for variable length
+        query = Neo4jFormatter.format_to_node(from_node[0], from_node[1], names[0])
+        for rel_name, node_name, (rel_labels, rel_props), (node_labels, node_props) \
+                in zip(*distribute(2, names[1:]), *distribute(2, rel_to_nodes)):
+            rel_labels, l, r = take_out_arrows(rel_labels)
+            rel_str = Neo4jFormatter.format_to_node(rel_labels, rel_props, rel_name, parenthesis='[]').replace(':*', '*')  # Adjust for variable length
+            node_str = Neo4jFormatter.format_to_node(node_labels, node_props, node_name, parenthesis='()')
             query += f'{l}-{rel_str}-{r}{node_str}'
         return query
 
     @classmethod
-    def query(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, to_return: str | Sequence = '*'):
-        expression = cls.get_query_expression(from_node, *rel_to_nodes)
+    def query(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, names: Sequence[str] = None, to_return: str | Sequence = '*'):
+        expression = cls.get_query_expression(from_node, *rel_to_nodes, names=names)
         if isinstance(to_return, Sequence):
             to_return = ', '.join(to_return)
         query = f'MATCH {expression} RETURN {to_return}'
         return db.cypher_query(query)
 
-    # TODO: to test
     @classmethod
-    def query_nth_s(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, n: int | Sequence = -1, kind: str = 'n'):
+    def query_nth_s(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, index: int | Sequence = -1, kind: str = 'n'):
         """
         :param kind: graphel kind to return [n(ode), r(relationship), e(lem)]
         :param n: nth graphel to return
         :return:
         """
-        orig_n = _.to_list(n)
-        max_size = len(rel_to_nodes) // 2
+        orig_index = _.to_list(index)
+        max_size = len(rel_to_nodes) // 2 if kind in 'rn' else len(rel_to_nodes)
         if kind not in 'ner':
             raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
         underflow = lambda v: max_size + v + 1
-        n = _.map_(orig_n, c().apply_if(underflow, _.is_negative))
-        if kind in 'rn':
-            kinds = kind * len(n)
-        else:  # e
-            kinds = ['nr'[(v+1)%2] for v, orig_v in zip(n, orig_n)]
-            n = _.map_(n, lambda v: v//2 + 1)
-        for v in n:
-            if not (0 <= v <= max_size):
-                raise ValueError(f'Variable n={orig_n} out of bound (-{max_size}, {max_size})')
-        to_return = [f'{k}{v}' for k, v in zip(kinds, n)]
-        return cls.query(from_node, *rel_to_nodes, to_return=to_return)
+        index = _.map_(orig_index, c().apply_if(underflow, _.is_negative))
+        if any(not (0 <= i <= max_size) for i in index):
+            raise ValueError(f'Variable index={index} out of bound (-{max_size}, {max_size})')
+
+        names = [f'e{i}' for i in range(len(rel_to_nodes) + 1)] if kind == 'e' else None
+        to_return = [f'{kind}{i}' for i in index]
+        return cls.query(from_node, *rel_to_nodes, names=names, to_return=to_return)
+
+    # TODO: to test
+    @classmethod
+    def query_nth_node_s(cls, index: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
+        return cls.query_nth_s(from_node, *rel_to_nodes, kind='n', index=index)
 
     @classmethod
-    def query_nth_node_s(cls, n: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
-        return cls.query_nth_s(from_node, *rel_to_nodes, kind='n', n=n)
-
-    @classmethod
-    def query_nth_rel_s(cls, n: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
-        return cls.query_nth_s(from_node, *rel_to_nodes, kind='r', n=n)
+    def query_nth_rel_s(cls, index: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
+        return cls.query_nth_s(from_node, *rel_to_nodes, kind='r', index=index)
 

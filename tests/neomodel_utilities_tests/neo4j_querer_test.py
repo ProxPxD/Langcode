@@ -112,7 +112,7 @@ class RelationQuerableTCG(TCG):
         tc(
             name='Last Graphel',
             method=Neo4jQuerer.query_nth_s,
-            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), n=-1, kind='e'),
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=-1, kind='e'),
             expected=[
                 [([BOOK], dict(name=WL_NAME))],
             ],
@@ -120,7 +120,7 @@ class RelationQuerableTCG(TCG):
         tc(
             name='Last but one Graphel',
             method=Neo4jQuerer.query_nth_s,
-            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), n=-2, kind='e'),
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=-2, kind='e'),
             expected=[
                 [([IS_AUTHOR_OF], {})],
             ],
@@ -128,9 +128,9 @@ class RelationQuerableTCG(TCG):
         tc(
             name='Second Graphel',
             method=Neo4jQuerer.query_nth_s,
-            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), n=1, kind='e'),
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=1, kind='e'),
             expected=[
-                [([BOOK], {})],
+                [([IS_AUTHOR_OF], {}),],
             ],
         ),
     ]
