@@ -1,14 +1,17 @@
+from itertools import cycle, chain
 from itertools import cycle
-from itertools import cycle
-from typing import Type, Sequence
+from math import ceil
+from typing import Type, Sequence, Optional
 
+import more_itertools
 import pydash as _
-from more_itertools import distribute, take
+from more_itertools import distribute, take, unique_everseen, padded
 from neomodel import StructuredNode, StructuredRel, db
 from pydash import chain as c
 
 from src import utils
 from src.lang_typing import YamlType
+from src.utils import is_sequence, to_list, div_round_up
 
 QueryNode = str | StructuredNode | Type[StructuredNode]
 QueryRel = str | Type[StructuredRel]
@@ -87,7 +90,9 @@ class Neo4jQuerer:
             case _: raise ValueError(f'Cannot normalize query node: {query_component}')
 
     @classmethod
-    def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,  names: Sequence[str] = None) -> str:
+    def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,
+            names: Sequence[str] = None,
+        ) -> str:
         """
         AdvQueryNode:
             - StructuredNode
@@ -103,13 +108,12 @@ class Neo4jQuerer:
             - (rel, prop_dict)
         :return:
         """
-        if len(rel_to_nodes) % 2 != 0:
-            rel_to_nodes = [*rel_to_nodes, None]
-        names = names or ['n0'] + take(len(rel_to_nodes), (f'{name}{i//2 + 1}' for i, name in enumerate(cycle('rn'))))
         if len(names) != len(rel_to_nodes) + 1:
             raise ValueError('Graphel names should be as many as graphels')
+        # Normalize graphels
         from_node = cls._normalize_query_component(from_node)
         rel_to_nodes = c(rel_to_nodes).map(cls._normalize_query_component).value()
+        # Create Query
         query = Neo4jFormatter.format_to_node(from_node[0], from_node[1], names[0])
         for rel_name, node_name, (rel_labels, rel_props), (node_labels, node_props) \
                 in zip(*distribute(2, names[1:]), *distribute(2, rel_to_nodes)):
@@ -120,39 +124,65 @@ class Neo4jQuerer:
         return query
 
     @classmethod
-    def query(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, names: Sequence[str] = None, to_return: str | Sequence = '*'):
-        expression = cls.get_query_expression(from_node, *rel_to_nodes, names=names)
-        if isinstance(to_return, Sequence):
-            to_return = ', '.join(to_return)
-        query = f'MATCH {expression} RETURN {to_return}'
-        return db.cypher_query(query)
-
-    @classmethod
-    def query_nth_s(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode, index: int | Sequence = -1, kind: str = 'n'):
-        """
-        :param kind: graphel kind to return [n(ode), r(relationship), e(lem)]
-        :param n: nth graphel to return
-        :return:
-        """
-        orig_index = _.to_list(index)
-        max_size = len(rel_to_nodes) // 2 if kind in 'rn' else len(rel_to_nodes)
-        if kind not in 'ner':
-            raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
+    def _adjust_index(cls, index: Optional[int | Sequence[int]], max_size: int) -> list[int]:
         underflow = lambda v: max_size + v + 1
-        index = _.map_(orig_index, c().apply_if(underflow, _.is_negative))
+        index = _.map_(_.to_list(index or []), c().apply_if(underflow, _.is_negative))
         if any(not (0 <= i <= max_size) for i in index):
             raise ValueError(f'Variable index={index} out of bound (-{max_size}, {max_size})')
-
-        names = [f'e{i}' for i in range(len(rel_to_nodes) + 1)] if kind == 'e' else None
-        to_return = [f'{kind}{i}' for i in index]
-        return cls.query(from_node, *rel_to_nodes, names=names, to_return=to_return)
-
-    # TODO: to test
-    @classmethod
-    def query_nth_node_s(cls, index: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
-        return cls.query_nth_s(from_node, *rel_to_nodes, kind='n', index=index)
+        return index
 
     @classmethod
-    def query_nth_rel_s(cls, index: int | Sequence, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode):
-        return cls.query_nth_s(from_node, *rel_to_nodes, kind='r', index=index)
+    def _create_expression_names(cls,
+            count: int,
+            kind: str = None,
+        ) -> list[str]:
+        """
+        :param kind: graphel kind to return [n(ode), r(relationship), e(lem)]
+        :param count: count of names
+        :return:
+        """
+        match kind:
+            case 'e': names = [f'e{i}' for i in range(count + 1)]
+            case None | 'r' | 'n': names = ['n0'] + take(count, (f'{name}{i//2 + 1}' for i, name in enumerate(cycle('rn'))))
+            case _: raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
+        return names
+
+    @classmethod
+    def _create_graphels_to_return(cls, to_return: str | list, names: Sequence[Optional[str]], index: Sequence) -> list[str]:
+        match to_return:
+            case str(): return to_return.replace(',', '').replace('\\s', ' ').split(' ')
+            case list(): return to_return
+        if index:
+            return _.at(names, *index)
+        return _.filter_(names, bool)
+
+    @classmethod
+    def query(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,
+            names: Sequence[Optional[str]] = None,
+            index: int | Sequence = None,
+            kind: str = None,
+            to_return: str | Sequence = None,
+            unique_graphels: bool = False,
+            exact_return: bool = False,
+        ):
+        n_graphel = div_round_up(len(rel_to_nodes), 2)
+        rel_to_nodes = list(padded(rel_to_nodes, None, n_graphel))
+        names = names or cls._create_expression_names(n_graphel, kind=kind)
+        index = cls._adjust_index(index, n_graphel)
+        expression = cls.get_query_expression(from_node, *rel_to_nodes, names=names)
+        to_returns = cls._create_graphels_to_return(to_return, names, index)
+        return_expr = ', '.join(to_returns)
+        query = f'MATCH {expression} RETURN {return_expr}'
+        table, names = db.cypher_query(query)
+        orig_table = table
+
+        # Managing return
+        if unique_graphels:
+            table = _.uniq(graphel for row in table for graphel in row)
+        if exact_return:
+            if len(table) > 1:  # TODO rephrase
+                raise ValueError('Queried for an exact return, but got more options', query, orig_table)
+            table = table[0]
+        return table, names
+
 

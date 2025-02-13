@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from copy import copy
+from math import ceil
 from operator import *
 from types import NoneType
 from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence
@@ -169,13 +170,6 @@ def map_nths(func: Callable, iterable: Iterable, n: int | tuple[int]):
 @curry
 def map_nth(n: int, iterable: Iterable):
     return map(nth(n), iterable)
-
-
-@curry
-def mapif(map_func: Callable[[T], Any], cond: Callable[[T], bool], val: T, else_val: Any = NotImplemented) -> Any:
-    return map_func(val) if cond(val) else (val if else_val is NotImplemented else else_val)
-
-# TODO: mapifnot with map_args?
 
 
 def map_arg(*funcs_or_num_funcs, **pos_funcs):
@@ -431,3 +425,7 @@ def apply(*map_funcs):
             return flow(*map_funcs)(f(*args, **kwarg))
         return wrapper
     return decorator
+
+
+def div_round_up(val: int, div: int) -> int:
+    return div*ceil(val/div)

@@ -37,7 +37,7 @@ class RelationQuerableTCG(TCG):
             method=Neo4jQuerer.query,
             query_args=(PERSON, IS_AUTHOR_OF, BOOK),
             expected=[
-                [([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([IS_AUTHOR_OF], {})],
+                [([PERSON], dict(name=MG_NAME)), ([IS_AUTHOR_OF], {}), ([BOOK], dict(name=WL_NAME))],
             ],
         ),
         tc(
@@ -45,8 +45,8 @@ class RelationQuerableTCG(TCG):
             method=Neo4jQuerer.query,
             query_args=(PERSON, [KNOWS, '*2'], PERSON),
             expected=[
-                [([PERSON], dict(name=MG_NAME)), ([PERSON], dict(name=AZ_NAME)), [([KNOWS], {}), ([KNOWS], {})]],
-                [([PERSON], dict(name=AZ_NAME)), ([PERSON], dict(name=MG_NAME)), [([KNOWS], {}), ([KNOWS], {})]],
+                [([PERSON], dict(name=MG_NAME)), [([KNOWS], {}), ([KNOWS], {})], ([PERSON], dict(name=AZ_NAME))],
+                [([PERSON], dict(name=AZ_NAME)), [([KNOWS], {}), ([KNOWS], {})], ([PERSON], dict(name=MG_NAME))],
             ],
         ),
         tc(
@@ -54,9 +54,9 @@ class RelationQuerableTCG(TCG):
             method=Neo4jQuerer.query,
             query_args=(PERSON, [KNOWS, '*', '>'], PERSON),
             expected=[
-                [([PERSON], dict(name=MG_NAME)), ([PERSON], dict(name=JD_NAME)), [([KNOWS], {})]],
-                [([PERSON], dict(name=MG_NAME)), ([PERSON], dict(name=AZ_NAME)), [([KNOWS], {}), ([KNOWS], {})]],
-                [([PERSON], dict(name=JD_NAME)), ([PERSON], dict(name=AZ_NAME)), [([KNOWS], {})]],
+                [([PERSON], dict(name=MG_NAME)), [([KNOWS], {})], ([PERSON], dict(name=JD_NAME))],
+                [([PERSON], dict(name=MG_NAME)), [([KNOWS], {}), ([KNOWS], {})], ([PERSON], dict(name=AZ_NAME))],
+                [([PERSON], dict(name=JD_NAME)), [([KNOWS], {})], ([PERSON], dict(name=AZ_NAME))],
             ],
         ),
         tc(
@@ -64,7 +64,7 @@ class RelationQuerableTCG(TCG):
             method=Neo4jQuerer.query,
             query_args=(PERSON, KNOWS, PERSON, IS_AUTHOR_OF, BOOK),
             expected=[
-                [([PERSON], dict(name=JD_NAME)), ([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([KNOWS], {}), ([IS_AUTHOR_OF], {})],
+                [([PERSON], dict(name=JD_NAME)), ([KNOWS], {}), ([PERSON], dict(name=MG_NAME)), ([IS_AUTHOR_OF], {}), ([BOOK], dict(name=WL_NAME))],
             ],
         ),
         tc(
@@ -80,36 +80,36 @@ class RelationQuerableTCG(TCG):
             method=Neo4jQuerer.query,
             query_args=(PERSON, None, BOOK),
             expected=[
-                [([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME)), ([IS_AUTHOR_OF], {})],
+                [([PERSON], dict(name=MG_NAME)), ([IS_AUTHOR_OF], {}), ([BOOK], dict(name=WL_NAME))],
             ],
         ),
         tc(
             name='First Node',
-            method=Neo4jQuerer.query_nth_node_s,
-            query_args=(0, PERSON, IS_AUTHOR_OF, BOOK),
+            method=Neo4jQuerer.query,
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=0, kind='n'),
             expected=[
                 [([PERSON], dict(name=MG_NAME))],
             ],
         ),
         tc(
             name='Second Node',
-            method=Neo4jQuerer.query_nth_node_s,
-            query_args=(1, PERSON, IS_AUTHOR_OF, BOOK),
+            method=Neo4jQuerer.query,
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=1, kind='n'),
             expected=[
                 [([BOOK], dict(name=WL_NAME))],
             ],
         ),
         tc(
             name='Last Node',
-            method=Neo4jQuerer.query_nth_node_s,
-            query_args=(-1, PERSON, IS_AUTHOR_OF, BOOK),
+            method=Neo4jQuerer.query,
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=-1, kind='n'),
             expected=[
                 [([BOOK], dict(name=WL_NAME))],
             ],
         ),
         tc(
             name='Last Graphel',
-            method=Neo4jQuerer.query_nth_s,
+            method=Neo4jQuerer.query,
             query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=-1, kind='e'),
             expected=[
                 [([BOOK], dict(name=WL_NAME))],
@@ -117,7 +117,7 @@ class RelationQuerableTCG(TCG):
         ),
         tc(
             name='Last but one Graphel',
-            method=Neo4jQuerer.query_nth_s,
+            method=Neo4jQuerer.query,
             query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=-2, kind='e'),
             expected=[
                 [([IS_AUTHOR_OF], {})],
@@ -125,11 +125,17 @@ class RelationQuerableTCG(TCG):
         ),
         tc(
             name='Second Graphel',
-            method=Neo4jQuerer.query_nth_s,
+            method=Neo4jQuerer.query,
             query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), index=1, kind='e'),
             expected=[
                 [([IS_AUTHOR_OF], {}),],
             ],
+        ),
+        tc(
+            name='Exact Return',
+            method=Neo4jQuerer.query,
+            query_args=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), kind='n', exact_return=True),
+            expected=[([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME))],
         ),
     ]
 
@@ -150,31 +156,32 @@ def normalize_query_args(query_args: Sequence | dict) -> Tuple[Sequence, dict]:
     if isinstance(query_args, Sequence):
         return query_args, {}
     else:
-        args = query_args['args']
-        kwargs = query_args
+        args, kwargs = query_args['args'], query_args
         del kwargs['args']
         return args, kwargs
+
+
+def is_graphel_same(a_graphel, e_graphel) -> bool:
+    e_labels, e_props = e_graphel
+    return set(get_labels(a_graphel)) == set(e_labels) and dict(a_graphel.items()) == e_props
+
+
+def is_row_same(a_row, e_row):
+    if hasattr(a_row, 'element_id'):
+        return is_graphel_same(a_row, e_row)
+    for a_graphel, e_graphel in zip_longest(a_row, e_row):
+        if hasattr(a_graphel, 'element_id'):
+            if not is_graphel_same(a_graphel, e_graphel):
+                return False
+        elif not is_row_same(a_graphel, e_graphel):
+            return False
+    return True
 
 
 @RelationQuerableTCG.parametrize(['name', 'method', 'query_args', 'expected'])
 def test(name, method: Callable, query_args: tuple | dict, expected):
     args, kwargs = normalize_query_args(query_args)
     table, names = method(*args, **kwargs)
-    logging.debug(f'Actual:')
-    for i, row in enumerate(table):
-        logging.debug(f'row_{i}:')
-        for j, elem in enumerate(row):
-            logging.debug(f'   - elem_{j}: {elem}')
-
-    def is_row_same(a_row, e_row):
-        for a_graphel, e_graphel in zip_longest(a_row, e_row):
-            if hasattr(a_graphel, 'element_id'):
-                e_labels, e_props = e_graphel
-                if set(get_labels(a_graphel)) != set(e_labels) or dict(a_graphel.items()) != e_props:
-                    return False
-            elif not is_row_same(a_graphel, e_graphel):
-                return False
-        return True
 
     assert len(table) == len(expected)
     for e_row in expected:
