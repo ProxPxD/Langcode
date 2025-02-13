@@ -21,9 +21,10 @@ AdvQueryNode = QueryNode | tuple[QueryNode, dict]
 AdvQueryComp = QueryRel | QueryNode
 
 
-def take_out_arrows(labels) -> tuple[list, str, str]:
+def take_out_arrows(labels: list) -> tuple[list, str, str]:
     if not (arrow := next(filter('<>'.__contains__, labels), None)):
         return labels, '', ''
+    labels = labels[::]
     labels.remove(arrow)
     match arrow:
         case '>': return labels, '', arrow
@@ -125,8 +126,8 @@ class Neo4jQuerer:
 
     @classmethod
     def _adjust_index(cls, index: Optional[int | Sequence[int]], max_size: int) -> list[int]:
-        underflow = lambda v: max_size + v + 1
-        index = _.map_(_.to_list(index or []), c().apply_if(underflow, _.is_negative))
+        underflow = lambda v: max_size + v
+        index = _.map_(_.to_list(index if index is not None else []), c().apply_if(underflow, _.is_negative))
         if any(not (0 <= i <= max_size) for i in index):
             raise ValueError(f'Variable index={index} out of bound (-{max_size}, {max_size})')
         return index
@@ -148,12 +149,13 @@ class Neo4jQuerer:
         return names
 
     @classmethod
-    def _create_graphels_to_return(cls, to_return: str | list, names: Sequence[Optional[str]], index: Sequence) -> list[str]:
+    def _create_graphels_to_return(cls, to_return: str | list, names: Sequence[Optional[str]], index: Sequence, kind: str = None) -> list[str]:
         match to_return:
             case str(): return to_return.replace(',', '').replace('\\s', ' ').split(' ')
             case list(): return to_return
         if index:
-            return _.at(names, *index)
+            adjusted_for_kind = _.filter_(names, c().starts_with(kind)) if kind else names
+            return _.at(adjusted_for_kind, *index)
         return _.filter_(names, bool)
 
     @classmethod
@@ -166,11 +168,12 @@ class Neo4jQuerer:
             exact_return: bool = False,
         ):
         n_graphel = div_round_up(len(rel_to_nodes), 2)
-        rel_to_nodes = list(padded(rel_to_nodes, None, n_graphel))
+        rel_to_nodes = list(padded(rel_to_nodes, None, n_graphel)) if n_graphel else []
         names = names or cls._create_expression_names(n_graphel, kind=kind)
-        index = cls._adjust_index(index, n_graphel)
         expression = cls.get_query_expression(from_node, *rel_to_nodes, names=names)
-        to_returns = cls._create_graphels_to_return(to_return, names, index)
+        kind_names = _.filter_(names, c().starts_with(kind)) if kind else names
+        index = cls._adjust_index(index, len(kind_names))
+        to_returns = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
         return_expr = ', '.join(to_returns)
         query = f'MATCH {expression} RETURN {return_expr}'
         table, names = db.cypher_query(query)
