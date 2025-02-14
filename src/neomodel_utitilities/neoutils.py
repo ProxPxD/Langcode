@@ -1,4 +1,4 @@
-from itertools import cycle, chain, zip_longest
+from itertools import cycle, chain, zip_longest, count, repeat
 from itertools import cycle
 from math import ceil
 from typing import Type, Sequence, Optional, Any
@@ -184,35 +184,23 @@ class Neo4jQuerer:
             ]],
             list[str]
         ] | None:
-        n_graphel = div_round_up(len(rel_to_nodes), 2)
-        rel_to_nodes = list(padded(rel_to_nodes, None, n_graphel)) if n_graphel else []
+        rel_to_nodes = list(padded(rel_to_nodes, None, n=2, next_multiple=True)) if rel_to_nodes else []
+        n_graphel = len(rel_to_nodes)
         names = names or cls._create_expression_names(n_graphel, kind=kind)
-        expression = cls.get_query_expression(from_node, *rel_to_nodes, names=names)
         kind_names = _.filter_(names, c().starts_with(kind)) if kind else names
         index = cls._adjust_index(index, len(kind_names))
         to_return = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
 
-        return_expr = ', '.join(to_return)
-        query = f'MATCH {expression} RETURN {return_expr}'
-        try:
-            table, names = db.cypher_query(query)
-        except NeomodelException as ne:
-            if raises:
-                raise ne
-            return None
-        orig_table = table
-
-        # Managing return
-        if unique_graphels:
-            table = _.uniq(graphel for row in table for pot_graphel in row for graphel in (pot_graphel if is_list(pot_graphel) else [pot_graphel]))
-        if exact_return:
-            if len(table) > 1:  # TODO rephrase
-                raise ValueError('Queried for an exact return, but got more options', query, orig_table)
-            table = table[0]
-        return table, names
+        return cls.query_adv([from_node, *rel_to_nodes],
+            names=[names],
+            to_return=to_return,
+            unique_graphels=unique_graphels,
+            exact_return=exact_return,
+            raises=raises,
+        )
 
     @classmethod
-    def query_adv(cls, *paths: AdvQueryRel | AdvQueryNode,
+    def query_adv(cls, *paths: Sequence[AdvQueryRel | AdvQueryNode],
             to_return: list[str],
             names: list[list[str]] = None,
             path_names: list[str] = None,
@@ -227,10 +215,11 @@ class Neo4jQuerer:
             ]],
             list[str]
         ] | None:
+        id_iter = count() if len(paths) > 1 else repeat(None)
         expression = ',\n'.join(
-            cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name, path_id=i)
-            for i, (path, path_graphel_names, path_name)
-            in enumerate(zip_longest(paths, names or [], path_names or []))
+            cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name, path_id=path_id)
+            for path_id, path, path_graphel_names, path_name
+            in zip(id_iter, paths, padded(names or []), padded(path_names or []))
         )
         return_expr = ', '.join(to_list(to_return))
         query = f'MATCH {expression} RETURN {return_expr}'
