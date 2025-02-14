@@ -166,6 +166,7 @@ class Neo4jQuerer:
             return _.at(adjusted_for_kind, *index)
         return _.filter_(names, bool)
 
+    # TODO: factor the logic out to the advance
     @classmethod
     def query(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,
             names: Sequence[Optional[str]] = None,
@@ -182,6 +183,7 @@ class Neo4jQuerer:
         kind_names = _.filter_(names, c().starts_with(kind)) if kind else names
         index = cls._adjust_index(index, len(kind_names))
         to_returns = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
+
         return_expr = ', '.join(to_returns)
         query = f'MATCH {expression} RETURN {return_expr}'
         table, names = db.cypher_query(query)
@@ -200,7 +202,8 @@ class Neo4jQuerer:
     def query_adv(cls, *paths: AdvQueryRel | AdvQueryNode,
             to_return: list[str],
             names: list[list[str]] = None,
-            path_names: list[str] = None
+            path_names: list[str] = None,
+            unique_graphels: bool = False,
         ):
         expression = ',\n'.join(
             cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name, path_id=i)
@@ -210,4 +213,6 @@ class Neo4jQuerer:
         return_expr = ', '.join(to_list(to_return))
         query = f'MATCH {expression} RETURN {return_expr}'
         table, names = db.cypher_query(query)
+        if unique_graphels:
+            table = _.uniq(graphel for row in table for pot_graphel in row for graphel in (pot_graphel if is_list(pot_graphel) else [pot_graphel]))
         return table, names
