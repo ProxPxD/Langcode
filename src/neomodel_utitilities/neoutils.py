@@ -93,6 +93,7 @@ class Neo4jQuerer:
     @classmethod
     def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,
             names: Sequence[str] = None,
+            path_name: str = None,
         ) -> str:
         """
         AdvQueryNode:
@@ -122,6 +123,8 @@ class Neo4jQuerer:
             rel_str = Neo4jFormatter.format_to_node(rel_labels, rel_props, rel_name, parenthesis='[]').replace(':*', '*')  # Adjust for variable length
             node_str = Neo4jFormatter.format_to_node(node_labels, node_props, node_name, parenthesis='()')
             query += f'{l}-{rel_str}-{r}{node_str}'
+        if path_name:
+            query = f'{path_name} = {query}'
         return query
 
     @classmethod
@@ -188,4 +191,12 @@ class Neo4jQuerer:
             table = table[0]
         return table, names
 
-
+    @classmethod
+    def query_adv(cls, *paths: AdvQueryRel | AdvQueryNode, names: list[list[str]], path_names: list[str], to_return: list[str]):
+        if len(paths) != len(names):
+            raise ValueError('Names and Paths should align')
+        expression = ',\n'.join(cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name) for path, path_graphel_names, path_name in zip(paths, names, path_names))
+        return_expr = ', '.join(to_return)
+        query = f'MATCH {expression} RETURN {return_expr}'
+        table, names = db.cypher_query(query)
+        return table, names

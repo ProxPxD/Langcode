@@ -19,10 +19,6 @@ from src.neomodel_utitilities.neoutils import Neo4jFormatter
 from src.utils import exceptions_to
 
 
-class FeaturesNotHierarchied(IDynamicMessageException):
-    _make_msg = lambda parent, properties: f'{parent:node} is not a parent of a node with those properties: {properties}'
-
-
 class INeo4jFormattable(StructuredNode):
     __abstract_node__ = True
 
