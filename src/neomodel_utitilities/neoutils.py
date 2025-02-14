@@ -6,7 +6,7 @@ from typing import Type, Sequence, Optional, Any
 import more_itertools
 import pydash as _
 from more_itertools import distribute, take, unique_everseen, padded
-from neomodel import StructuredNode, StructuredRel, db
+from neomodel import StructuredNode, StructuredRel, db, NeomodelException
 from pydash import chain as c
 
 from src import utils
@@ -172,21 +172,34 @@ class Neo4jQuerer:
             names: Sequence[Optional[str]] = None,
             index: int | Sequence = None,
             kind: str = None,
-            to_return: str | Sequence = None,
+            to_return: str | Sequence[str] = None,
             unique_graphels: bool = False,
             exact_return: bool = False,
-        ):
+            raises: bool = True,
+        ) -> tuple[
+            list[list[
+                StructuredNode |
+                StructuredRel |
+                list[StructuredNode | StructuredRel]
+            ]],
+            list[str]
+        ] | None:
         n_graphel = div_round_up(len(rel_to_nodes), 2)
         rel_to_nodes = list(padded(rel_to_nodes, None, n_graphel)) if n_graphel else []
         names = names or cls._create_expression_names(n_graphel, kind=kind)
         expression = cls.get_query_expression(from_node, *rel_to_nodes, names=names)
         kind_names = _.filter_(names, c().starts_with(kind)) if kind else names
         index = cls._adjust_index(index, len(kind_names))
-        to_returns = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
+        to_return = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
 
-        return_expr = ', '.join(to_returns)
+        return_expr = ', '.join(to_return)
         query = f'MATCH {expression} RETURN {return_expr}'
-        table, names = db.cypher_query(query)
+        try:
+            table, names = db.cypher_query(query)
+        except NeomodelException as ne:
+            if raises:
+                raise ne
+            return None
         orig_table = table
 
         # Managing return
@@ -204,7 +217,16 @@ class Neo4jQuerer:
             names: list[list[str]] = None,
             path_names: list[str] = None,
             unique_graphels: bool = False,
-        ):
+            exact_return: bool = False,
+            raises: bool = True,
+        ) -> tuple[
+            list[list[
+                StructuredNode |
+                StructuredRel |
+                list[StructuredNode | StructuredRel]
+            ]],
+            list[str]
+        ] | None:
         expression = ',\n'.join(
             cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name, path_id=i)
             for i, (path, path_graphel_names, path_name)
@@ -212,7 +234,16 @@ class Neo4jQuerer:
         )
         return_expr = ', '.join(to_list(to_return))
         query = f'MATCH {expression} RETURN {return_expr}'
-        table, names = db.cypher_query(query)
+        try:
+            table, names = db.cypher_query(query)
+        except NeomodelException as ne:
+            if raises:
+                raise ne
+            return None
         if unique_graphels:
             table = _.uniq(graphel for row in table for pot_graphel in row for graphel in (pot_graphel if is_list(pot_graphel) else [pot_graphel]))
+        if exact_return:
+            if len(table) > 1:  # TODO rephrase
+                raise ValueError('Queried for an exact return, but got more options', query, orig_table)
+            table = table[0]
         return table, names
