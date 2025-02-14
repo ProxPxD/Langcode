@@ -20,7 +20,7 @@ from src.exceptions import LangCodeException
 from src.lang_factory import LangFactory
 from src.lang_typing import OrMore
 from src.language_components import Language, Unit
-from src.loaders import LangDataLoader
+from src.loading.loaders import LangDataLoader
 from src.utils import if_, to_tuple, is_
 from tests.abstractTest import AbstractTest, TestGenerator
 

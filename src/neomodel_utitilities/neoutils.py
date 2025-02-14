@@ -1,17 +1,14 @@
-from itertools import cycle, chain, zip_longest, count, repeat
-from itertools import cycle
-from math import ceil
+from itertools import zip_longest, cycle
 from typing import Type, Sequence, Optional, Any
 
-import more_itertools
 import pydash as _
-from more_itertools import distribute, take, unique_everseen, padded
+from more_itertools import distribute, take, padded
 from neomodel import StructuredNode, StructuredRel, db, NeomodelException
 from pydash import chain as c
 
 from src import utils
 from src.lang_typing import YamlType
-from src.utils import is_sequence, to_list, div_round_up, is_list
+from src.utils import to_list, is_list
 
 QueryNode = str | StructuredNode | Type[StructuredNode]
 QueryRel = str | Type[StructuredRel]
@@ -224,6 +221,7 @@ class Neo4jQuerer:
         query = f'MATCH {expression} RETURN {return_expr}'
         try:
             table, names = db.cypher_query(query)
+            orig_table = table
         except NeomodelException as ne:
             if raises:
                 raise ne

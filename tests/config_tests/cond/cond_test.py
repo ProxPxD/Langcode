@@ -1,15 +1,12 @@
 from collections import namedtuple
-from pathlib import Path
 from typing import Callable, Optional
 
 from parameterized import parameterized
 from itertools import product
 
-from src import utils
 from src.exceptions import NoConditionAppliesException
 from src.language_components import Unit
-from src.language_logic import Cond, Condition
-from src.loaders import YamlLoader
+from src.language_logic import Cond
 from src.utils import is_
 from tests.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 

@@ -6,7 +6,7 @@ import yaml
 from src.exceptions import InvalidPathException
 
 
-class IPath:
+class IPathable:
     def __init__(self, path: str | Path = '', **kwargs):
         self._path = Path(path)
 
@@ -18,26 +18,17 @@ class IPath:
     def path(self, path: str | Path) -> None:
         self._path = Path(path)
 
-    def get_path(self) -> Path:
-        return self.path
 
-    def set_path(self, path: str | Path) -> None:
-        self._path = path
-
-    def set_path_if_not_none(self, path: str | Path, set_path=False) -> None:
-        if set_path and path is not None:
-            self.path = Path(path)
-
-
-class ILoader(ABC, IPath):
+class ILoader(ABC, IPathable):
     @abstractmethod
     def load(self, path: str | Path = None, **kwargs):
         pass
 
 
-class YamlFileLoader(ILoader, IPath):
+class YamlFileLoader(ILoader, IPathable):
     def load(self, path: str | Path = None, **kwargs) -> dict | list:
-        self.set_path_if_not_none(path, **kwargs)
+        if path:
+            self.path = path
         with open(path, 'r') as f:
             data = yaml.safe_load(f)
         return data
@@ -48,7 +39,8 @@ class YamlFileLoader(ILoader, IPath):
 
 class YamlLoader(YamlFileLoader, ILoader):
     def load(self, path: str | Path = None, **kwargs) -> dict:
-        self.set_path_if_not_none(path, **kwargs)
+        if path:
+            self.path = path
         data = self._load_single(path)
         return data
 
@@ -61,7 +53,7 @@ class YamlLoader(YamlFileLoader, ILoader):
             raise InvalidPathException
 
 
-class LangDataLoader(ILoader, IPath):
+class LangDataLoader(ILoader, IPathable):
     def __init__(self, path: str | Path = '', language: str = '', **kwargs):
         super().__init__(**kwargs)
         self.language: str = language
