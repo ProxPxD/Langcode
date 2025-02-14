@@ -214,11 +214,11 @@ class Neo4jQuerer:
             ]],
             list[str]
         ] | None:
-        id_iter = count() if len(paths) > 1 else repeat(None)
+        id_iter = range(len(paths)) if len(paths) > 1 else [None]
         expression = ',\n'.join(
             cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name, path_id=path_id)
             for path_id, path, path_graphel_names, path_name
-            in zip(id_iter, paths, padded(names or []), padded(path_names or []))
+            in zip_longest(id_iter, paths, names or [], path_names or [])
         )
         return_expr = ', '.join(to_list(to_return))
         query = f'MATCH {expression} RETURN {return_expr}'
