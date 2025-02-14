@@ -20,7 +20,7 @@ from src.exceptions import LangCodeException
 from src.lang_factory import LangFactory
 from src.lang_typing import OrMore
 from src.language_components import Language, Unit
-from src.loading.loaders import LangDataLoader
+from src.loading.loaders import LangDataFileLoader
 from src.utils import if_, to_tuple, is_
 from tests.abstractTest import AbstractTest, TestGenerator
 
@@ -69,7 +69,7 @@ class AbstractLangCodeTest(AbstractTest):
     accepted_similarity = .5
 
     defaults = yaml.safe_load(open(Paths.DEFAULTS, 'r'))
-    data_loader = LangDataLoader(Paths.LANGUAGES)
+    data_loader = LangDataFileLoader(Paths.LANGUAGES)
     lang_factory = LangFactory(Paths.LANGUAGES)
 
     not_language_files = ('general_defaults', )

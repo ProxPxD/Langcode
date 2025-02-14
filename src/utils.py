@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import re
 from copy import copy
+from functools import wraps
 from math import ceil
 from operator import *
-from types import NoneType
+from types import NoneType, UnionType
 from typing import Iterable, Callable, Any, AnyStr, Dict, Type, TypeVar, Sequence
 
 import pydash as _
@@ -429,3 +430,45 @@ def apply(*map_funcs):
 
 def div_round_up(val: int, div: int) -> int:
     return div*ceil(val/div)
+
+
+def with_attribute(
+        name: str,
+        default: Any = Empty(),
+        return_type: type | UnionType = Any,
+        setter_type: type | UnionType = Empty(),
+        *,
+        custom_setter: Callable = None,
+    ):
+    custom_setter = custom_setter or _.identity
+    setter_type = return_type if setter_type is Empty else setter_type
+
+    def class_decorator(cls):
+        orig_init = cls.__init__
+        _name = f'_{name}'
+
+        @wraps
+        def new_init(self, *args, **kwargs):
+            args = list(args)
+            if name in kwargs:
+                val = kwargs.pop(name)
+            elif len(args):
+                val = args.pop(0)
+            elif default is not Empty:
+                val = default
+            else:
+                raise ValueError(name)
+            setattr(self, _name, val)
+            orig_init(*args, **kwargs)
+
+        def getter(self) -> return_type:
+            return getattr(self, _name)
+
+        def setter(self, val: setter_type) -> cls.__class__:
+            setattr(self, _name, custom_setter(val))
+            return self
+
+        cls.__init__ = new_init
+        setattr(cls, name, property(getter, setter))
+        return cls
+    return class_decorator

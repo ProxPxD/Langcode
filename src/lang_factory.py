@@ -1,14 +1,14 @@
 from pathlib import Path
 
 from src.language_components import Language
-from src.loading.loaders import ILoader, IPathable, LangDataLoader
+from src.loading.loaders import IFileLoader, IPathable, LangDataFileLoader
 from src.schema_validator import LanguageSchema
 
 
-class LangFactory(ILoader, IPathable):
+class LangFactory(IFileLoader, IPathable):
     def __init__(self, path: str | Path = '', language: str = '', **kwargs):
         super().__init__(**kwargs)
-        self._lang_data_loader: LangDataLoader = LangDataLoader(path, language)
+        self._lang_data_loader: LangDataFileLoader = LangDataFileLoader(path, language)
 
     @property
     def path(self) -> Path:

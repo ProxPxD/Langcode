@@ -1,83 +1,68 @@
-from abc import ABC, abstractmethod
 from pathlib import Path
+from pathlib import Path
+from typing import Callable, Sequence, Optional, TextIO
 
-import yaml
+import pydash as _
 
-from src.exceptions import InvalidPathException
+from src.utils import to_tuple, is_dict
 
 
 class IPathable:
-    def __init__(self, path: str | Path = '', **kwargs):
-        self._path = Path(path)
+    def __init__(self, path: str | Path, *args, **kwargs):
+        self._path: Path = path
+        super().__init__(*args, **kwargs)
 
     @property
     def path(self) -> Path:
         return self._path
 
     @path.setter
-    def path(self, path: str | Path) -> None:
+    def path(self, path: str | Path):
         self._path = Path(path)
 
 
-class ILoader(ABC, IPathable):
-    @abstractmethod
-    def load(self, path: str | Path = None, **kwargs):
-        pass
+class FileLoader:
+    def __init__(self,
+            load: Callable[[str | Path | TextIO], dict],
+            suffix: str | Sequence = None,
+            is_loadable: Callable[[Path | str], bool] = _.constant(True),
+    ):
+        self._load = load
+        self._suffixes = to_tuple(suffix)
+        is_suffixed = lambda path: not self._suffixes or path.suffix in self._suffixes
+        self.is_loadable = lambda path: is_suffixed(path) and is_loadable(path)
+
+    def load(self, path: str | Path | TextIO) -> dict:
+        result = None
+        try:
+            if is_dict(result := self._load(path)):
+                return result
+        except Exception:
+            pass
+        with open(path) as f:
+            return self._load(f)
 
 
-class YamlFileLoader(ILoader, IPathable):
-    def load(self, path: str | Path = None, **kwargs) -> dict | list:
-        if path:
-            self.path = path
-        with open(path, 'r') as f:
-            data = yaml.safe_load(f)
-        return data
-
-    def is_yaml(self, path: Path) -> bool:
-        return path.suffix in ('.yaml', '.yml')
-
-
-class YamlLoader(YamlFileLoader, ILoader):
-    def load(self, path: str | Path = None, **kwargs) -> dict:
-        if path:
-            self.path = path
-        data = self._load_single(path)
-        return data
-
-    def _load_single(self, path: Path) -> dict | list:
-        if path.is_dir():
-            return {file.stem: self._load_single(file) for file in path.iterdir()}
-        elif path.is_file() and self.is_yaml(path):
-            return super().load(path, set_path=False)
-        else:
-            raise InvalidPathException
-
-
-class LangDataLoader(ILoader, IPathable):
-    def __init__(self, path: str | Path = '', language: str = '', **kwargs):
+class DirLoader(IPathable):
+    def __init__(self, *file_loaders: FileLoader, **kwargs):
+        self.file_loaders = file_loaders
         super().__init__(**kwargs)
-        self.language: str = language
-        self._yaml_loader = YamlLoader(path)
 
-    def load(self, language: str = None, **kwargs) -> dict:
-        if language is not None:
-            self.language = language
-        lang_data = self._yaml_loader.load(self.true_path, **kwargs)
-        return lang_data
+    def load(self, path: str | Path = None) -> dict:
+        self.path = path or self.path
+        return self._load(self.path)
 
-    @property
-    def path(self) -> Path:
-        return self._yaml_loader.path
+    def _load(self, path: Path) -> dict:
+        if path.is_file() and (loader := self._pick_file_loader(path)):
+            return loader.load(path)
+        elif path.is_dir():
+            return {
+                subpath.stem: content
+                for subpath in path.iterdir()
+                if (content := self._load(subpath)) is not None
+            }
 
-    @path.setter
-    def path(self, path: str | Path) -> None:
-        self._yaml_loader.path = path
+    def _pick_file_loader(self, path: Path) -> Optional[FileLoader]:
+        return next((file_loader for file_loader in self.file_loaders if file_loader.is_loadable(path)), None)
 
-    @property
-    def true_path(self) -> Path:
-        lang_path = self.path / self.language
-        if self.path.is_dir() and lang_path.exists():
-            return lang_path
-        elif not self.language:
-            return self.path
-        raise InvalidPathException
+
