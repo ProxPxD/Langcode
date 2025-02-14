@@ -1,5 +1,4 @@
 from pathlib import Path
-from pathlib import Path
 from typing import Callable, Sequence, Optional, TextIO
 
 import pydash as _
@@ -33,7 +32,6 @@ class FileLoader:
         self.is_loadable = lambda path: is_suffixed(path) and is_loadable(path)
 
     def load(self, path: str | Path | TextIO) -> dict:
-        result = None
         try:
             if is_dict(result := self._load(path)):
                 return result
