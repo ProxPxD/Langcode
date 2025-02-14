@@ -137,6 +137,24 @@ class RelationQuerableTCG(TCG):
             query_params=dict(args=(PERSON, IS_AUTHOR_OF, BOOK), kind='n', exact_return=True),
             expected=[([PERSON], dict(name=MG_NAME)), ([BOOK], dict(name=WL_NAME))],
         ),
+        tc(
+            name='Query Adv shorted names',
+            method=Neo4jQuerer.query_adv,
+            query_params=dict(
+                args=[
+                    [PERSON, IS_AUTHOR_OF, (BOOK, dict(name=WL_NAME))],
+                    [PERSON, KNOWS, (PERSON, dict(name=JD_NAME))],
+                ],
+                names=[
+                    ['author'],
+                    ['author']
+                ],
+                to_return='author'
+            ),
+            expected=[
+                [([PERSON], dict(name=MG_NAME))]
+            ],
+        ),
     ]
 
     @classmethod

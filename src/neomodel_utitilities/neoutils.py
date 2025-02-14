@@ -1,7 +1,7 @@
-from itertools import cycle, chain
+from itertools import cycle, chain, zip_longest
 from itertools import cycle
 from math import ceil
-from typing import Type, Sequence, Optional
+from typing import Type, Sequence, Optional, Any
 
 import more_itertools
 import pydash as _
@@ -94,6 +94,7 @@ class Neo4jQuerer:
     def get_query_expression(cls, from_node: AdvQueryNode, *rel_to_nodes: AdvQueryRel | AdvQueryNode,
             names: Sequence[str] = None,
             path_name: str = None,
+            path_id: Any = None
         ) -> str:
         """
         AdvQueryNode:
@@ -110,7 +111,10 @@ class Neo4jQuerer:
             - (rel, prop_dict)
         :return:
         """
-        if len(names) != len(rel_to_nodes) + 1:
+        if len(names) < len(rel_to_nodes):  # TODO: idea, make create expression names "start from <int>"
+            kind = f'e_{path_id}_' if path_id else 'e'
+            names = list(names) + cls._create_expression_names(len(rel_to_nodes) - len(names), kind)
+        elif len(names) > len(rel_to_nodes) + 1:
             raise ValueError('Graphel names should be as many as graphels')
         # Normalize graphels
         from_node = cls._normalize_query_component(from_node)
@@ -148,7 +152,8 @@ class Neo4jQuerer:
         match kind:
             case 'e': names = [f'e{i}' for i in range(count + 1)]
             case None | 'r' | 'n': names = ['n0'] + take(count, (f'{name}{i//2 + 1}' for i, name in enumerate(cycle('rn'))))
-            case _: raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
+            case _: names = [f'{kind}{i}' for i in range(count + 1)]
+            #case _: raise ValueError(f'Unknown kind "{kind}". Available: [n(ode), r(relationship), e(lem)]')
         return names
 
     @classmethod
@@ -192,11 +197,17 @@ class Neo4jQuerer:
         return table, names
 
     @classmethod
-    def query_adv(cls, *paths: AdvQueryRel | AdvQueryNode, names: list[list[str]], path_names: list[str], to_return: list[str]):
-        if len(paths) != len(names):
-            raise ValueError('Names and Paths should align')
-        expression = ',\n'.join(cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name) for path, path_graphel_names, path_name in zip(paths, names, path_names))
-        return_expr = ', '.join(to_return)
+    def query_adv(cls, *paths: AdvQueryRel | AdvQueryNode,
+            to_return: list[str],
+            names: list[list[str]] = None,
+            path_names: list[str] = None
+        ):
+        expression = ',\n'.join(
+            cls.get_query_expression(*path, names=path_graphel_names, path_name=path_name, path_id=i)
+            for i, (path, path_graphel_names, path_name)
+            in enumerate(zip_longest(paths, names or [], path_names or []))
+        )
+        return_expr = ', '.join(to_list(to_return))
         query = f'MATCH {expression} RETURN {return_expr}'
         table, names = db.cypher_query(query)
         return table, names
