@@ -11,7 +11,7 @@ from pydash import chain as c
 
 from src import utils
 from src.lang_typing import YamlType
-from src.utils import is_sequence, to_list, div_round_up
+from src.utils import is_sequence, to_list, div_round_up, is_list
 
 QueryNode = str | StructuredNode | Type[StructuredNode]
 QueryRel = str | Type[StructuredRel]
@@ -181,7 +181,7 @@ class Neo4jQuerer:
 
         # Managing return
         if unique_graphels:
-            table = _.uniq(graphel for row in table for graphel in row)
+            table = _.uniq(graphel for row in table for pot_graphel in row for graphel in (pot_graphel if is_list(pot_graphel) else [pot_graphel]))
         if exact_return:
             if len(table) > 1:  # TODO rephrase
                 raise ValueError('Queried for an exact return, but got more options', query, orig_table)
