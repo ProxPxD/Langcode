@@ -184,9 +184,8 @@ class Neo4jQuerer:
             ]],
             list[str]
         ] | None:
-        rel_to_nodes = list(padded(rel_to_nodes, None, n=2, next_multiple=True)) if rel_to_nodes else []
-        n_graphel = len(rel_to_nodes)
-        names = names or cls._create_expression_names(n_graphel, kind=kind)
+        rel_to_nodes = list(padded(rel_to_nodes, n=2, next_multiple=True))
+        names = names or cls._create_expression_names(len(rel_to_nodes), kind=kind)
         kind_names = _.filter_(names, c().starts_with(kind)) if kind else names
         index = cls._adjust_index(index, len(kind_names))
         to_return = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
