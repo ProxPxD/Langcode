@@ -2,7 +2,7 @@ from pathlib import Path
 
 from src.language_components import Language
 from src.loading.loaders import IFileLoader, IPathable, LangDataFileLoader
-from src.schema_validator import LanguageSchema
+from src.interpreting.schema_validator import LanguageSchema
 
 
 class LangFactory(IFileLoader, IPathable):
