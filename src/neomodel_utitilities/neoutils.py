@@ -4,14 +4,14 @@ from typing import Type, Sequence, Optional, Any
 import pydash as _
 from more_itertools import distribute, take, padded
 from neomodel import StructuredNode, StructuredRel, db, NeomodelException
-from neomodel.contrib.sync_.semi_structured import SemiStructuredNode
+from neomodel.sync_.core import NodeBase
 from pydash import chain as c
 
 from src import utils
 from src.lang_typing import YamlType
 from src.utils import to_list, is_list
 
-QueryNode = str | StructuredNode | SemiStructuredNode | Type[StructuredNode | SemiStructuredNode]
+QueryNode = str | NodeBase | Type[NodeBase]
 QueryRel = str | Type[StructuredRel]
 
 AdvQueryRel = QueryRel | tuple[QueryRel, dict]
@@ -27,6 +27,7 @@ def take_out_arrows(labels: list) -> tuple[list, str, str]:
     match arrow:
         case '>': return labels, '', arrow
         case '<': return labels, arrow, ''
+        case _: raise Exception('Impossible!')
 
 
 class Neo4jFormatter:
@@ -50,13 +51,13 @@ class Neo4jFormatter:
         return f'{l}{var_name}{cls.format_labels(labels)} {cls.format_property(props)}{r}'
 
     @classmethod
-    def get_props_without_id(cls, node: StructuredNode | SemiStructuredNode) -> dict:
+    def get_props_without_id(cls, node: NodeBase) -> dict:
         props = {**node.__properties__}
         del props['element_id_property']
         return props
 
     @classmethod
-    def format(cls, node: StructuredNode | SemiStructuredNode, format_spec: str) -> str:
+    def format(cls, node: NodeBase, format_spec: str) -> str:
         match format_spec:
             case 'id': return node.element_id
             case 'label' | 'l': return node.__class__.__name__
@@ -171,14 +172,14 @@ class Neo4jQuerer:
             index: int | Sequence = None,
             kind: str = None,
             to_return: str | Sequence[str] = None,
-            unique_graphels: bool = False,
-            exact_return: bool = False,
+            unique: bool = False,
+            single: bool = False,
             raises: bool = True,
         ) -> tuple[
             list[list[
-                StructuredNode |
+                NodeBase|
                 StructuredRel |
-                list[StructuredNode | StructuredRel]
+                list[NodeBase| StructuredRel]
             ]],
             list[str]
         ] | None:
@@ -189,26 +190,26 @@ class Neo4jQuerer:
         to_return = cls._create_graphels_to_return(to_return, names=kind_names, index=index, kind=kind)
 
         return cls.query_adv([from_node, *rel_to_nodes],
-            names=[names],
-            to_return=to_return,
-            unique_graphels=unique_graphels,
-            exact_return=exact_return,
-            raises=raises,
-        )
+                             names=[names],
+                             to_return=to_return,
+                             unique=unique,
+                             single=single,
+                             raises=raises,
+                             )
 
     @classmethod
     def query_adv(cls, *paths: Sequence[AdvQueryRel | AdvQueryNode],
             to_return: list[str],
             names: list[list[str]] = None,
             path_names: list[str] = None,
-            unique_graphels: bool = False,
-            exact_return: bool = False,
+            unique: bool = False,
+            single: bool = False,
             raises: bool = True,
         ) -> tuple[
             list[list[
-                StructuredNode |
+                NodeBase|
                 StructuredRel |
-                list[StructuredNode | StructuredRel]
+                list[NodeBase| StructuredRel]
             ]],
             list[str]
         ] | None:
@@ -227,9 +228,9 @@ class Neo4jQuerer:
             if raises:
                 raise ne
             return None
-        if unique_graphels:
+        if unique:
             table = _.uniq(graphel for row in table for pot_graphel in row for graphel in (pot_graphel if is_list(pot_graphel) else [pot_graphel]))
-        if exact_return:
+        if single:
             if len(table) > 1:  # TODO rephrase
                 raise ValueError('Queried for an exact return, but got more options', query, orig_table)
             table = table[0]
