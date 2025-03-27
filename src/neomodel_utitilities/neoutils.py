@@ -4,13 +4,14 @@ from typing import Type, Sequence, Optional, Any
 import pydash as _
 from more_itertools import distribute, take, padded
 from neomodel import StructuredNode, StructuredRel, db, NeomodelException
+from neomodel.contrib.sync_.semi_structured import SemiStructuredNode
 from pydash import chain as c
 
 from src import utils
 from src.lang_typing import YamlType
 from src.utils import to_list, is_list
 
-QueryNode = str | StructuredNode | Type[StructuredNode]
+QueryNode = str | StructuredNode | SemiStructuredNode | Type[StructuredNode | SemiStructuredNode]
 QueryRel = str | Type[StructuredRel]
 
 AdvQueryRel = QueryRel | tuple[QueryRel, dict]
@@ -49,13 +50,13 @@ class Neo4jFormatter:
         return f'{l}{var_name}{cls.format_labels(labels)} {cls.format_property(props)}{r}'
 
     @classmethod
-    def get_props_without_id(cls, node: StructuredNode) -> dict:
+    def get_props_without_id(cls, node: StructuredNode | SemiStructuredNode) -> dict:
         props = {**node.__properties__}
         del props['element_id_property']
         return props
 
     @classmethod
-    def format(cls, node: StructuredNode, format_spec: str) -> str:
+    def format(cls, node: StructuredNode | SemiStructuredNode, format_spec: str) -> str:
         match format_spec:
             case 'id': return node.element_id
             case 'label' | 'l': return node.__class__.__name__

@@ -5,7 +5,7 @@ from neomodel import StructuredNode
 from src.neomodel_utitilities.neoutils import Neo4jFormatter
 
 
-class INeo4jFormattable(StructuredNode):
+class INeo4jFormattable:
     __abstract_node__ = True
 
     def __format__(self, format_spec) -> str:
