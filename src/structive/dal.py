@@ -13,6 +13,12 @@ import pydash as _
 from pydash import chain as c
 
 
+class Structive:
+    def __init__(self, *labels, __is_forming: bool = False, **props):
+        self._ogm: StructiveOGM = StructiveOGM(*labels, **props)
+        self.__is_forming: bool = __is_forming
+
+
 class StructiveDAO:
     def __init__(self, *args, __is_forming: bool = False, **kwargs):
         match len(args), len(kwargs):
@@ -21,6 +27,7 @@ class StructiveDAO:
             case _: raise ValueError('Arguments can be either an OGM or kwargs')
         self._ogm: StructiveOGM = ogm
         self.__is_forming: bool = __is_forming
+        self.__rels = {}
 
     def prop(self, **kwargs) -> StructiveDAO:
         self._ogm._data.update(kwargs)
@@ -52,8 +59,21 @@ class StructiveDAO:
     def __getitem__(self, item: str) -> Any:
         return self.__props[item]
 
-    def __getattr__(self, item: str) -> Any:
-        return self[item]
+    # def __getattr__(self, item: str) -> Any:
+    #     return self[item]
+    #
+    # def add_rel(self, name, from_node=None, to_node=None):
+    #     if name in self.__rels:
+    #         raise ...
+    #     rel = self.__rels.setdefault(name, {})
+    #     if from_node:
+    #         rel['from_node'] = from_node
+    #     if to_node:
+    #         rel['to_node'] = to_node
+
+    def __getattr__(self, name):
+        if name in self.__rels:
+            pass# return callable adding this
 
     def is_(self, *structives: StructiveDAO) -> StructiveDAO:
         for structive in structives:
@@ -73,12 +93,22 @@ class StructiveDAO:
             structive.is_(self)
         return structives
 
-    def __and__(self, other: StructiveDAO):
+    def __and__(self, other: StructiveDAO) -> StructiveDAO:
+        """
+        Concatenation
+        """
         if isinstance(other, StructiveDAO):
             raise ValueError('Conjuncted object has to be a DAO')
         match self.__is_forming:
             case False: return StructiveDAO(__is_forming=True).is_(self, other)
             case True: return self.is_(other)
+            case _: raise ValueError(f'Improper state! Value is_forming should be boolean!')
+
+    def __add__(self, other: StructiveDAO) -> StructiveDAO:
+        """
+        Concatenation
+        """
+        raise NotImplementedError
 
 
 S = StructiveDAO
@@ -111,5 +141,7 @@ coronals = coronal.ex(
 bilabial, labiodental = labials
 alveolar, = coronals
 
-labial_nasal = S(name='labial_nasal').is_(bilabial, nasal)
-alveolar_nasal = (alveolar and nasal).prop(name='alveolar_nasal')
+labial_nasal = S(name='labial_nasal', aliases=['m']).is_(bilabial, nasal)
+alveolar_nasal = (alveolar and nasal).prop(name='alveolar_nasal', aliases=['n'])
+
+mn = labial_nasal + alveolar_nasal

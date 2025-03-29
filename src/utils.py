@@ -37,6 +37,7 @@ is_list = is_(list)
 is_int = is_(int)
 is_str = is_(str)
 is_sequence = is_(Sequence)
+is_not_sequence = is_not(Sequence)
 
 is_not_empty = is_not(Empty)
 is_not_int = is_not(int)
