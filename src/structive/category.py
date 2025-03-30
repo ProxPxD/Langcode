@@ -84,11 +84,15 @@ def adjust_for_moc(moc) -> Sequence[Moc]:  # returns single and collection, lol
 class Moc(Node):
     _is = Relationship.type('IS')
 
-    def __init__(self, *labels, **kwargs):
-        # when: kwarg({k: v}) is Moc
-        # then: **k** is Moc of value **v**
+    def __init__(self, *labels, **props):
+        # Labels
+        # when: label is Moc
+        # then: label
+        # Props
+        # when: props({k: v}) is Moc
+        # then: **k** is Cat of Object **v**
         # else: props
-        super().__init__(*labels, **kwargs)
+        super().__init__(*labels, **props)
 
     def __call__(self, *args, **kwargs) -> Moc | Sequence[Moc]:
         if c(args).every(c().is_string()):
@@ -117,6 +121,7 @@ class Moc(Node):
 # Graphemes (top level)
 Graph = Moc('Graph')
 a, e, o, u, i = Graph([*'aeoui'])
+ł = Graph()
 
 # Phone(me)s
 
@@ -128,14 +133,40 @@ Front, Central, Back = Backness(['Front', 'Central', 'Back'])
 Rounded, Unrounded = Roundness(['Rounded', 'Unrounded'])
 
 # TODO: Think how to specify only rounded and infer unrounded
+a_sound = Moc(Low, Central, Unrounded, ipa=a)
 a_sound = Moc(ipa=a).thru(Low, Central, Unrounded)
 e_sound = Moc(ipa=e).thru(Mid, Front, Unrounded)
 o_sound = Moc(ipa=o).thru(Mid, Back, Rounded)
 i_sound = Moc(ipa=i).thru(High, Front, Unrounded)
 u_sound = Moc(ipa=u).thru(High, Back, Rounded)
 
+w_sound = Phon()
 
 
+# Structants
+PolishAlphabet = Graph()
+PolishAlphabet.ex(ł, a, e, o, u, i, 'ch', 'h')
+PolishOrthography = Moc('Polish', 'Orthography')
+PolishOrthography.add_rule(ł, w_sound)
 
+PolishOrthography.add_rule('[PolishAlphabet] {vowel}{u}', '[Phon] {vowel}w')
+PolishOrthography.map('[PolishAlhabet]', '[Phon]').add(
+    '[{ch}{h}]{voiced} => ɣ{voiced} / x',  # else?
+    When('[{ch}{h}]{voiced}').then('ɣ{voiced}').else_('x'),
+    Cond(dict(when='[{ch}{h}]{voiced}', then='ɣ{voiced}', else_='x')),
+)
 
-Sem = Moc('Sem')
+Moc().map('[Noun & Polish]', 'Gender').add(
+    '[Standard] a$ => F',  # short for standard orthography
+    '[Standard] [oę]$ => {N}',
+    '[Standard] {M}',
+)
+
+io = Moc(form=[i, o])
+
+Morph = Moc('Morph')
+_o_ = Morph(n_args=2, autonomy='bound', func=[
+    (1, 'stem'),  # other morpheme
+    {'to': 1, 'apply': 'stem'},  # or with as to save elsewhere
+    {'compound': [1, 'o', 2]},
+])
