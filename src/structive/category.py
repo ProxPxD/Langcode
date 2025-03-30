@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-from more_itertools import bucket, collapse
-from more_itertools.recipes import flatten
-from neomodel.contrib.sync_.semi_structured import SemiStructuredNode
-from numpy.random.mtrand import Sequence
-
-from py2neo import Graph, Node, Relationship, Subgraph
-from toolz.functoolz import return_none
 import pydash as _
-from pydash import chain as c, flow
-from itertools import groupby, chain
+from more_itertools import bucket
+from numpy.random.mtrand import Sequence
+from py2neo import Graph, Node, Relationship, Subgraph
+from pydash import chain as c
 
-from src import utils
-from src.utils import is_sequence, is_dict, is_all_instance_of_str, is_not_sequence, is_not_dict, is_
+from src.utils import is_dict, is_all_instance_of_str, is_not_sequence, is_not_dict
 
 graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
 
