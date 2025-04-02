@@ -30,7 +30,7 @@ G = TypeVar('G')
 vec_seq = Sequence[T] | T
 
 is_ = curry(flip(isinstance))  # overrides operator
-is_not = curry(lambda _type, obj: not is_(_type, obj))
+is_not = curry(lambda type_, obj: not is_(type_, obj))
 is_empty = is_(Empty)
 is_dict = is_(dict)
 is_list = is_(list)
