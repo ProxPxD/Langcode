@@ -1,0 +1,73 @@
+---
+# not morpheme file
+latin:
+  sub:
+    # ...
+  op: concat  # refers to pandas rethink
+
+ipa: ...
+
+phonemic:
+  alias: phon
+  sub: ...
+  auto:
+    arg: m
+    when: ^m.phonemic & m.latin
+    then:
+      source: latin  # Rethink how to define a facilitation
+      target: phonemic
+      phonemic: # rules to match phonemic repr from the latin for Spanish
+        - 'h => '
+        - 'u{latin.vowel} => u{phonemic.vowel}'  # How should such matching work?
+        - 'i{latin.vowel} => i{phonemic.vowel}'  # Should it be explicitly defined
+        - '{vowel} => {vowel}'
+        - 'vb => β'
+        - ...
+---
+morpheme:
+  auto:
+    arg: m
+    def:
+      when.file: morphemes
+      then:
+        when:
+          match: child.is(m)
+        then: m.abstract # or just abstract?
+        else: m.concrete  # or just concrete?
+  ex:
+    concrete:
+      init:  # init for something with concrete set. Effectively logic could be moved to an appropriate "then"
+        when: ^self.latin
+        then:
+          latin: id  # Keyword?
+    abstract:
+---
+pos:
+  abstract: true
+  sub:
+    noun:
+    verb:
+    adjective:
+
+number:
+  alias: num
+  abstract: true
+  source: pos.noun  # can branch for verbs too
+  ex:
+    singular:
+      alias: sg
+      target: '?'
+    plural:
+      alias: pl
+      target:
+        - '[phon] {vowel}$ => [phon] $s'  # or maybe phon: $s
+        - '[phon] s$ => [phon] s'  # think in the future of the latinos
+        - 'origin.english => [phon] $s'
+        - '[phon] {consonant}$ => [phon] $s'
+
+hombre:
+  pos: N
+mujer:
+  pos: N
+bus:
+  pos: N
