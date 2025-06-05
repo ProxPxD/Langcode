@@ -4,7 +4,7 @@ from pathlib import Path
 
 from parameterized import parameterized
 
-from tests.lang_code_test import AbstractLangCodeTest, yaml_types, test_generator, Generator
+from tests.core.lang_code_test import AbstractLangCodeTest, yaml_types, test_generator, Generator
 
 
 def get_func_name(method, param_num, params):

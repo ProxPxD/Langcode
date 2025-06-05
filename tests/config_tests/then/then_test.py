@@ -3,11 +3,11 @@ from typing import Iterable, Sequence
 
 import pytest
 
-import tests.lang_code_test_utils as utils
+import tests.core.lang_code_test_utils as utils
 from src.lang_typing import YamlType
 from src.language_components import Unit
 from src.language_logic import Then
-from tests.lang_code_test_utils import Preex, LangCodeTCG
+from tests.core.lang_code_test_utils import Preex, LangCodeTCG
 
 
 class ThenTCG(LangCodeTCG):

@@ -6,7 +6,7 @@ from parameterized import parameterized
 from src.exceptions import LangCodeException
 from src.language_components import Unit
 from src.utils import is_not, is_any_instance_of_dict, is_any_instance_of_str, is_not_dict
-from tests.lang_code_test import LangCodeTestGenerator, AbstractLangCodeTest
+from tests.core.lang_code_test import LangCodeTestGenerator, AbstractLangCodeTest
 
 
 class EmeTestGenerator(LangCodeTestGenerator):

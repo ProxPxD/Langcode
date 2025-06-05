@@ -15,7 +15,7 @@ from src.exceptions import LangCodeException
 from src.lang_typing import OrMore
 from src.language_components import Unit
 from src.utils import is_, is_not_dict, to_tuple
-from tests.test_case_generator import TCG
+from tests.core.test_case_generator import TCG
 
 
 @dataclass(frozen=False)
@@ -113,4 +113,3 @@ class LangCodeTCG(TCG):
         if is_any:
             yield 'explicit-features'  # TODO: think
         return []
-

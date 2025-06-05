@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import logging
 from collections import namedtuple
-from itertools import zip_longest
 from typing import Callable, Sequence, Tuple
 
 import pytest
@@ -10,7 +8,7 @@ from neo4j.graph import Node, Relationship
 from neomodel import db
 
 from src.neomodel_utitilities.neoutils import Neo4jQuerer
-from tests.test_case_generator import TCG
+from tests.core.test_case_generator import TCG
 
 PERSON = 'Person'
 BOOK = 'Book'

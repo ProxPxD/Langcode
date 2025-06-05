@@ -3,7 +3,7 @@ from __future__ import annotations
 import pydash as _
 from parameterized import parameterized
 
-from tests.lang_code_test import AbstractLangCodeTest, yaml_types, Generator, test_generator
+from tests.core.lang_code_test import AbstractLangCodeTest, yaml_types, Generator, test_generator
 
 
 def get_func_name(method, param_num, params):

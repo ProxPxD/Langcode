@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import unittest
 from unittest import SkipTest
 
 from parameterized import parameterized
 
 from src.constants import ComplexTerms
-from tests.lang_code_test import AbstractLangCodeTest, test_generator, Generator
+from tests.core.lang_code_test import AbstractLangCodeTest, test_generator, Generator
 
 
 def get_func_name(method, param_num, params):
