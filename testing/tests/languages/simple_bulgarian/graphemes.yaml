@@ -1,5 +1,5 @@
 # TODO: add separate language and test for soft consonants and soft vowels, preferable: Russian
-# TODO: add tests for elems as list and as dicts
+# TODO: add testing for elems as list and as dicts
 features:
   cyrillic:
     - а

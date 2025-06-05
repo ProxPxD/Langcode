@@ -144,7 +144,7 @@ class AbstractMorpheme(Generic[MU]):
 class SimpleMorphemeND(AbstractMorpheme, Generic[MU]):
     is_using_inversion = True
 
-    # TODO: change tests to encopass the raises argument
+    # TODO: change testing to encopass the raises argument
     def __init__(self, form1: MU = None, form2: MU = None, *, at: At = None, by: By = None, side: Side = None, raises: bool = False, **kwargs):
         super().__init__(**kwargs)
         self.to_remove: MU = form1 if form1 is not None else self._get_default(C.FORM)
