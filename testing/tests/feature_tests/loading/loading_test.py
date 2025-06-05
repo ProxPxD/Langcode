@@ -5,7 +5,7 @@ import traceback
 from pyxdameraulevenshtein import damerau_levenshtein_distance
 
 from src.exceptions import InvalidYamlException, InvalidPathException, ConflictingKeysException
-from tests.core.lang_code_test import Paths, AbstractLangCodeTest, Generator, test_generator
+from testing.core.lang_code_test import Paths, AbstractLangCodeTest, Generator, test_generator
 
 
 # @generator

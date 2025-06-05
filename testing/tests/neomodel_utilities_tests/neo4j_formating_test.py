@@ -5,7 +5,7 @@ from collections import namedtuple
 from neomodel import StringProperty, BooleanProperty, ArrayProperty
 
 from src.neomodel_utitilities.neomixins import INeo4jFormattable
-from tests.core.test_case_generator import TCG
+from testing.core.test_case_generator import TCG
 
 
 class Animal(INeo4jFormattable):

@@ -8,7 +8,7 @@ from parameterized import parameterized
 from src.lang_typing import YamlType
 from src.language_components import Unit
 from src.language_logic import When
-from tests.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
+from testing.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 
 class WhenTestGenerator(LangCodeTestGenerator):

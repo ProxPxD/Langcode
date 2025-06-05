@@ -8,7 +8,7 @@ from src.exceptions import NoConditionAppliesException
 from src.language_components import Unit
 from src.language_logic import Cond
 from src.utils import is_
-from tests.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
+from testing.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 
 class CondTestGenerator(LangCodeTestGenerator):

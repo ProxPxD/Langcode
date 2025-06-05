@@ -6,7 +6,7 @@ import nutree
 from parameterized import parameterized
 
 from src.langtree import LangTree
-from tests.core.lang_code_test import AbstractLangCodeTest, Generator, test_generator
+from testing.core.lang_code_test import AbstractLangCodeTest, Generator, test_generator
 
 
 def get_func_name(method, param_num, params):

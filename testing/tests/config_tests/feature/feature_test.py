@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Iterable, Sequence
 
-import tests.core.lang_code_test_utils as utils
+import testing.core.lang_code_test_utils as utils
 from src.lang_typing import YamlType
 from src.language_components import Unit
-from tests.core.lang_code_test_utils import Preex, LangCodeTCG
+from testing.core.lang_code_test_utils import Preex, LangCodeTCG
 
 
 @dataclass(frozen=False)

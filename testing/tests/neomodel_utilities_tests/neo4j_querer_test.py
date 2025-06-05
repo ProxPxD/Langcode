@@ -8,7 +8,7 @@ from neo4j.graph import Node, Relationship
 from neomodel import db
 
 from src.neomodel_utitilities.neoutils import Neo4jQuerer
-from tests.core.test_case_generator import TCG
+from testing.core.test_case_generator import TCG
 
 PERSON = 'Person'
 BOOK = 'Book'

@@ -5,7 +5,7 @@ from unittest import SkipTest
 import pydash as _
 from parameterized import parameterized
 
-from tests.core.lang_code_test import AbstractLangCodeTest, test_generator, Generator
+from testing.core.lang_code_test import AbstractLangCodeTest, test_generator, Generator
 
 
 # name_func=lambda method, param_num, params: f'{method.__name__}_{param_num}_' + get_lang_type(params[0][0])
