@@ -5,7 +5,7 @@ from typing import Any, List, Sequence
 import pydash as _
 from pydash import chain as c
 
-from src.structive.ogm import StructiveOGM
+from ogm import StructiveOGM
 
 
 class Structive:
