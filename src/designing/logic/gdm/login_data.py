@@ -1,0 +1,40 @@
+from typing import Optional, Any
+
+from pydantic import BaseModel, model_validator
+
+
+class LoginData(BaseModel):
+    uri: str
+    user: str
+    password: str
+    database: Optional[str] = None
+
+    @property
+    def auth(self) -> tuple[str, str]:
+        return self.user, self.password
+
+    @model_validator(mode='before')
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        data = self.validate_auth(**data)
+        data = self.adjust(**data)
+        return data
+
+    @classmethod
+    def validate_auth(cls,
+            auth: tuple[str, str] | tuple[str] = None,
+            user: str = None,
+            password: str = None,
+            **data
+        ) -> dict:
+        if not (auth or user and password):
+            raise ValueError(f'Logging requires "auth" or "user" and "password" in init')
+        data.update(
+            user=user or auth[0],
+            password=password or auth[-1],
+        )
+        return data
+
+    @classmethod
+    def adjust(cls, database: str = None, db: str = None, **data) -> dict:
+        data.update(database=database or db)
+        return data

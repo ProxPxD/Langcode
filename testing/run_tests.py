@@ -18,5 +18,5 @@ if __name__ == '__main__':
             '-s',
             '-v',
             #'--log-cli-level=DEBUG',
-            'neomodel_utilities_tests/',
+            'structive/',
         ])
