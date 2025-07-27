@@ -22,12 +22,14 @@ class FileLoader:
     def __init__(self,
             load: Callable[[str | Path | TextIO], dict],
             suffix: str | Sequence = None,
-            is_loadable: Callable[[Path | str], bool] = _.constant(True),
+            is_loadable: Callable[[Path | str], bool] = _.constant(False),
     ):
         self._load = load
         self._suffixes = _.to_list(suffix, False)
-        is_suffixed = lambda path: not self._suffixes or path.suffix in self._suffixes
-        self.is_loadable = lambda path: is_suffixed(path) and is_loadable(path)
+        self._is_loadable = is_loadable
+
+    def is_loadable(self, path: str | Path) -> bool:
+        return Path(path).suffix in self._suffixes or self._is_loadable(path)
 
     def load(self, path: str | Path | TextIO) -> dict:
         try:
@@ -45,8 +47,7 @@ class DirLoader(IPathable):
         super().__init__(**kwargs)
 
     def load(self, path: str | Path = None) -> dict:
-        self.path = path or self.path
-        return self._load(self.path)
+        return self._load(path or self.path)
 
     def _load(self, path: Path) -> dict:
         if path.is_file() and (loader := self._pick_file_loader(path)):
