@@ -10,12 +10,12 @@ from pydantic import BaseModel, field_validator, model_validator
 from pydash import chain as c
 from toolz import keyfilter
 
-import src.utils as utils
-from src.constants import ST
-from src.exceptions import ConflictingKeysException
-from src.lang_typing import Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf, YamlType
-from src.language_components import Unit, Feature, Language
-from src.utils import is_list
+import old_src2.utils as utils
+from old_src2.constants import ST
+from old_src2.exceptions import ConflictingKeysException
+from old_src2.lang_typing import Kind, Resolution, ElemsConf, ComplexYamlType, FeatureConf, YamlType
+from old_src2.language_components import Unit, Feature, Language
+from old_src2.utils import is_list
 
 
 # TODO: Decision: do the I and potentially extend for the III one later and maybe with a flag

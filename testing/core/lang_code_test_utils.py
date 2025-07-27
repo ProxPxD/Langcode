@@ -10,11 +10,11 @@ from more_itertools import flatten
 from pydash import chain as c
 from toolz.curried import *
 
-from src import utils
-from src.exceptions import LangCodeException
-from src.lang_typing import OrMore
-from src.language_components import Unit
-from src.utils import is_, is_not_dict, to_tuple
+from old_src2 import utils
+from old_src2.exceptions import LangCodeException
+from old_src2.lang_typing import OrMore
+from old_src2.language_components import Unit
+from old_src2.utils import is_, is_not_dict, to_tuple
 from testing.core.test_case_generator import TCG
 
 

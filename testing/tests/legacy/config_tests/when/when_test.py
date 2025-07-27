@@ -5,9 +5,9 @@ from typing import Iterable, Optional
 
 from parameterized import parameterized
 
-from src.lang_typing import YamlType
-from src.language_components import Unit
-from src.language_logic import When
+from old_src2.lang_typing import YamlType
+from old_src2.language_components import Unit
+from old_src2.language_logic import When
 from testing.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 

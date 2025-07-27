@@ -4,7 +4,7 @@ import pydash as _
 from neomodel import StructuredRel, RelationshipDefinition, StructuredNode, RelationshipTo, Relationship, RelationshipFrom, ZeroOrMore
 from pydash import chain as c
 
-from src.utils import if_
+from old_src2.utils import if_
 
 
 class IClassNameAsRelName:

@@ -6,7 +6,7 @@ from _pytest.mark import MarkDecorator, ParameterSet
 from pydash import chain as c
 from toolz import unique
 
-from src.utils import is_not, apply
+from old_src2.utils import is_not, apply
 
 
 class TCG:

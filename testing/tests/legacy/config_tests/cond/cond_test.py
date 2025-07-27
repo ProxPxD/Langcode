@@ -4,10 +4,10 @@ from typing import Callable, Optional
 from parameterized import parameterized
 from itertools import product
 
-from src.exceptions import NoConditionAppliesException
-from src.language_components import Unit
-from src.language_logic import Cond
-from src.utils import is_
+from old_src2.exceptions import NoConditionAppliesException
+from old_src2.language_components import Unit
+from old_src2.language_logic import Cond
+from old_src2.utils import is_
 from testing.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 

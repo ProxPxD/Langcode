@@ -14,14 +14,14 @@ from toolz import valfilter
 from toolz.curried import *
 from typing_extensions import deprecated
 
-from src import utils
-from src.constants import ST
-from src.exceptions import LangCodeException
-from src.lang_factory import LangFactory
-from src.lang_typing import OrMore
-from src.language_components import Language, Unit
+from old_src2 import utils
+from old_src2.constants import ST
+from old_src2.exceptions import LangCodeException
+from old_src2.lang_factory import LangFactory
+from old_src2.lang_typing import OrMore
+from old_src2.language_components import Language, Unit
 from src.loading.loaders import LangDataFileLoader
-from src.utils import if_, to_tuple, is_
+from old_src2.utils import if_, to_tuple, is_
 from tests.abstractTest import AbstractTest, TestGenerator
 
 

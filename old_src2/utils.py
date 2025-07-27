@@ -13,7 +13,7 @@ from pydash import flow, chain as c
 from toolz.curried import *
 from toolz.curried.operator import *
 
-from src.lang_typing import BasicYamlType, YamlType
+from old_src2.lang_typing import BasicYamlType, YamlType
 
 fjoin = compose = pipeline = compose_left
 revarg = curry(lambda *args, **kwargs: lambda f: f(*args, **kwargs))

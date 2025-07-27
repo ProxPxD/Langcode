@@ -3,9 +3,9 @@ from __future__ import annotations
 import re
 from typing import Callable, Any
 
-from src.constants import ST
-from src.exceptions import NoConditionAppliesException
-from src.lang_typing import YamlType
+from old_src2.constants import ST
+from old_src2.exceptions import NoConditionAppliesException
+from old_src2.lang_typing import YamlType
 
 
 class Condition:

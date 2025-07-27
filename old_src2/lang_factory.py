@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.language_components import Language
+from old_src2.language_components import Language
 from src.loading.loaders import IFileLoader, IPathable, LangDataFileLoader
 from src.interpreting.schema_validator import LanguageSchema
 

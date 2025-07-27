@@ -7,8 +7,8 @@ from typing import Literal, TypeVar, Generic, Callable, Iterable, Tuple, Any, Li
 
 import numpy as np
 
-from src.morphemes_nd import MU
-from src.utils import DictClass, get_name, word_to_basics, get_extreme_points
+from old_src2.morphemes_nd import MU
+from old_src2.utils import DictClass, get_name, word_to_basics, get_extreme_points
 
 from morphemes_nd import At, Size, By, Side
 
