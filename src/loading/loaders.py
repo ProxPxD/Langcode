@@ -3,8 +3,6 @@ from typing import Callable, Sequence, Optional, TextIO
 
 import pydash as _
 
-from src.utils import to_tuple, is_dict
-
 
 class IPathable:
     def __init__(self, path: str | Path, *args, **kwargs):
@@ -27,13 +25,13 @@ class FileLoader:
             is_loadable: Callable[[Path | str], bool] = _.constant(True),
     ):
         self._load = load
-        self._suffixes = to_tuple(suffix)
+        self._suffixes = _.to_list(suffix, False)
         is_suffixed = lambda path: not self._suffixes or path.suffix in self._suffixes
         self.is_loadable = lambda path: is_suffixed(path) and is_loadable(path)
 
     def load(self, path: str | Path | TextIO) -> dict:
         try:
-            if is_dict(result := self._load(path)):
+            if _.is_dict(result := self._load(path)):
                 return result
         except Exception:
             pass
