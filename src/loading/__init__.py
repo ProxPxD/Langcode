@@ -1,2 +1,2 @@
-from loaders import DirLoader, FileLoader
-from file_loaders import *
+from abstract_loaders import DirLoader, FileLoader
+from concrete_loaders import *
