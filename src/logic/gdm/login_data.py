@@ -16,7 +16,7 @@ class LoginData(BaseModel):
     @model_validator(mode='before')
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         data = self.validate_auth(**data)
-        data = self.adjust(**data)
+        data = self.adjust_names(**data)
         return data
 
     @classmethod
@@ -35,6 +35,6 @@ class LoginData(BaseModel):
         return data
 
     @classmethod
-    def adjust(cls, database: str = None, db: str = None, **data) -> dict:
+    def adjust_names(cls, database: str = None, db: str = None, **data) -> dict:
         data.update(database=database or db)
         return data
