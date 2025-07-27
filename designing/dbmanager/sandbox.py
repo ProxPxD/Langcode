@@ -1,5 +1,5 @@
-from src.designing.dbmanager.constants import URI, PASSWORD, USER, DB
-from src.designing.dbmanager.dbmanager import DBManager
+from designing.dbmanager.constants import URI, PASSWORD, USER, DB
+from designing.dbmanager.dbmanager import DBManager
 
 dbm = DBManager(uri=URI, auth=(USER, PASSWORD))
 

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from typing import Any
 
-from src.designing.logic.gdm.login_data import LoginData
+from src.logic.gdm.login_data import LoginData
 
 
 class GDM(ABC):

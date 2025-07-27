@@ -1,6 +1,6 @@
-from src.designing.logic.gdm import GDM, Neo4jGDM, LoginData
-from src.designing.logic.ict import ICT
-from src.designing.logic.sci import SCI
+from src.logic.gdm import GDM, Neo4jGDM, LoginData
+from src.logic.ict import ICT
+from src.logic.sci import SCI
 
 
 class LCM:

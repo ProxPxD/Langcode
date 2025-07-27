@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from src.model.constants import RelNames as R
+from old_src2.model.constants import RelNames as R
 
 
 @dataclass

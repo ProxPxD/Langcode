@@ -1,7 +1,7 @@
 from types import NoneType
 from typing import Optional
 
-from src.designing.logic.gdm import GDM
+from src.logic.gdm import GDM
 
 
 class Structive:

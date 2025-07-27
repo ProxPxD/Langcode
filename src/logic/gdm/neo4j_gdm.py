@@ -2,7 +2,7 @@ from typing import Optional, LiteralString
 
 from neo4j import Driver, GraphDatabase, Session, Result
 
-from src.designing.logic.gdm import GDM, LoginData
+from src.logic.gdm import GDM, LoginData
 
 
 class Neo4jGDM(GDM):

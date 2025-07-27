@@ -1,6 +1,6 @@
 from prompt_toolkit.widgets import Box
 
-from src.designing.proxy.category import Category
+from designing.proxy.category import Category
 
 alphabet = 'abc'
 alphacats = Box({letter: Category(unicode=letter) for letter in alphabet})
