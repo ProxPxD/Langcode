@@ -28,7 +28,7 @@ class LoginData(BaseModel):
             password: str = None,
             database: str = None,
         ):
-        super().__init__(**locals())
+        super().__init__(**locals())  # passes "self", but it doesn't hurt
 
     @property
     def auth(self) -> tuple[str, str]:
