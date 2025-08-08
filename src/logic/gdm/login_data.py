@@ -13,8 +13,10 @@ class LoginData(BaseModel):
     protocol: str = None
     host: str = None
     port: int = None
+
     user: str = None
     password: str = None
+
     database: str = None
 
     @property
