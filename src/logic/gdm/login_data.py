@@ -5,7 +5,6 @@ from typing import Any
 
 from pydantic import BaseModel, model_validator
 
-
 uri_pattern: re.Pattern = re.compile(r'(?P<protocol>[^:]+)://(?P<host>[^:]+):(?P<port>\d{1,5})')
 
 
@@ -49,11 +48,11 @@ class LoginData(BaseModel):
 
     @classmethod
     def _validate_auth(cls,
-                       auth: tuple[str, str] | str = None,
-                       user: str = None,
-                       password: str = None,
-                       **data
-                       ) -> dict:
+            auth: tuple[str, str] | str = None,
+            user: str = None,
+            password: str = None,
+            **data
+        ) -> dict:
         if not (auth or user and password):
             raise ValueError(f'Logging requires "auth" or "user" and "password" in init')
         user, password = (user, password) if user and password else (auth.split(':') if isinstance(auth, str) else auth)
