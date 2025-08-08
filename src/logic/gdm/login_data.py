@@ -19,6 +19,18 @@ class LoginData(BaseModel):
 
     database: str = None
 
+    def __init__(self,
+            uri: str = None,
+            protocol: str = None,
+            host: str = None,
+            port: int = None,
+            auth: tuple[str, str] | str = None,
+            user: str = None,
+            password: str = None,
+            database: str = None,
+        ):
+        super().__init__(**locals())
+
     @property
     def auth(self) -> tuple[str, str]:
         return self.user, self.password
