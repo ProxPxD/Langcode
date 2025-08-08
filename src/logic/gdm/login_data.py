@@ -4,18 +4,24 @@ from pydantic import BaseModel, model_validator
 
 
 class LoginData(BaseModel):
-    uri: str
-    user: str
-    password: str
+    port: int = None
+    host: str = None
+    user: str = None
+    password: str = None
     database: Optional[str] = None
 
     @property
     def auth(self) -> tuple[str, str]:
         return self.user, self.password
 
+    @property
+    def uri(self) -> str:
+        return f'{self.host}:{self.port}'
+
     @model_validator(mode='before')
     def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         data = self.validate_auth(**data)
+        data = self.validate_uri(**data)
         data = self.adjust_names(**data)
         return data
 
@@ -32,6 +38,14 @@ class LoginData(BaseModel):
             user=user or auth[0],
             password=password or auth[-1],
         )
+        return data
+
+    @classmethod
+    def validate_uri(cls, uri: str, host: str, port: int | str, **data) -> dict:
+        if not (uri or host and port):
+            raise ValueError(f'Logging requires "uri" or "host" and "port" in init')
+        host, port = (host, port) if host and port else uri.split(':')
+        data.update(host=host, port=int(port))
         return data
 
     @classmethod
