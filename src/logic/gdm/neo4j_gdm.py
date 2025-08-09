@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, LiteralString
 
 from neo4j import Driver, GraphDatabase, Session, Result

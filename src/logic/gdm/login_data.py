@@ -27,6 +27,7 @@ class LoginData(BaseModel):
             user: str = None,
             password: str = None,
             database: str = None,
+            repo: str = None,
         ):
         super().__init__(**locals())  # passes "self", but it doesn't hurt
 
@@ -37,6 +38,10 @@ class LoginData(BaseModel):
     @property
     def uri(self) -> str:
         return f'{self.protocol}://{self.host}:{self.port}'
+
+    @property
+    def repo(self) -> str:
+        return self.database
 
     @model_validator(mode='before')
     @classmethod
@@ -65,9 +70,4 @@ class LoginData(BaseModel):
             raise ValueError(f'Logging requires "uri" or "host" and "port" in init')
         protocol, host, port = (protocol, host, port) if protocol and host and port else uri_pattern.match(uri).groups()
         data.update(protocol=protocol, host=host, port=int(port))
-        return data
-
-    @classmethod
-    def _adjust_names(cls, database: str = None, db: str = None, **data) -> dict:
-        data.update(database=database or db)
         return data

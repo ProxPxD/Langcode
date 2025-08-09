@@ -20,12 +20,12 @@ class GDM(ABC):
     def __init__(self, log: LoginData, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.database: str = log.database
-        self.driver = None
         self._session = None
+        self._gdm = self
 
     def __eq__(self, other: GDM | Any) -> bool:
         match other:
-            case GDM(): return self.driver == other.driver
+            case GDM(): return self.database == other.database
             case _: return False
 
     @contextmanager
