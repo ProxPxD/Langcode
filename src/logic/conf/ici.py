@@ -1,9 +1,9 @@
 from box import Box
 
 
-class ICT:
+class ICI:
     """
-    Ingrain Config Transformer
+    Ingrain Config Interpreter -- Transforms configs according to the ingrain configuration
     # TODO: I have to decide the ingrain syntax to finish
     # consider a mere transformation vs interpretation - together or separate
     """

@@ -1,4 +1,4 @@
-from src.logic.gdm import LoginData
+from src.logic.db import LoginData
 
 neo4j_log = LoginData(
     uri='bolt://localhost:7687',
@@ -8,7 +8,7 @@ neo4j_log = LoginData(
 )
 
 rdf_log = LoginData(
-    uri='http://localhost:7200',
+    uri='http://localhost:43953',  # TODO: Port has to be dynamically got
     user='langcode',
     password='langcode',
     database='langcode-dev',
@@ -17,3 +17,4 @@ rdf_log = LoginData(
 log = rdf_log
 
 TIMEOUT = 5
+

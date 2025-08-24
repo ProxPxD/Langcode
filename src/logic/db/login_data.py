@@ -48,7 +48,6 @@ class LoginData(BaseModel):
     def validate(cls, data: dict[str, Any]) -> dict[str, Any]:
         data = cls._validate_auth(**data)
         data = cls._validate_uri(**data)
-        data = cls._adjust_names(**data)
         return data
 
     @classmethod

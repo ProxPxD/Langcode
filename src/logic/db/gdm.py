@@ -7,7 +7,7 @@ from typing import Optional, LiteralString, Sequence
 from SPARQLWrapper import SPARQLWrapper, QueryResult
 from pydantic import BaseModel
 
-from src.logic.gdm import GDM, LoginData
+from src.logic.db import GDM, LoginData
 import pydash as _
 from pydash import chain as c
 
@@ -34,11 +34,22 @@ class QueryKeywords(ReadOps, WriteOps, UriKeywords):
 QK = QueryKeywords
 
 
-class GraphdbGDM(GDM):
+class GDM:
+    """
+    Graph Database Manager -- Interface for common queries
+    """
+
+    _gdm = None
+
+    @classmethod
+    def curr(cls) -> GDM:
+        return cls._gdm
+
     def __init__(self, log: LoginData, *args, **kwargs):
         super().__init__(log, *args, **kwargs)
         self.query_wrapper = SPARQLWrapper(query_endpoint := f'{log.uri}/repositories/{log.repo}')
         self.update_wrapper = SPARQLWrapper(f'{query_endpoint}/statements')
+        self._gdm = self
 
     def init_session(self, *args,  **kwargs):
         raise NotImplementedError('Not Possible')
