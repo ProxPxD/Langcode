@@ -1,0 +1,15 @@
+basic:
+  src:
+  obj:
+    is: feature
+  trg:
+
+verbalize:
+  src:
+    is: noun
+  obj:
+  trg:
+    is: verb
+    apply:
+      - stem
+      - form: '$ear'

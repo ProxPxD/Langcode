@@ -1,0 +1,83 @@
+general:
+ingrains:
+structives:
+  script:
+    - ex:
+        #######
+        # IPA #
+        #######
+        #gesture:  # TODO: extend after reading articulatory phonology
+        ipa:  # needs ingrains
+          pulmonic:
+            place:
+              - labial:
+                  - bilabial:
+                  - labiodental:
+              - coronal:
+                  - linguolabial:
+                  - dental:
+                  - alveolar:
+                  - postalveolar:
+                  - retroflex:
+                  - palatal:
+              - dorsal:
+                  - velar:
+                  - uvular:
+              - laryngeal:
+                  - pharyngeal:
+                  - glottal:
+            manner:
+              nasal:
+              plosive:
+              sibilant:
+                fricative:
+                affricate:
+              non-sibilant:
+                fricative:
+                affricate:
+              approximant:
+              tap:
+              thrill:
+              lateral:
+                fricative:
+                affricate:
+                approximant:
+                tap:
+    - via:  # Suprascriptic
+        feature:
+          ex:
+            case:  # Is there a need to discriminate letters from strings? After all string do have complex cases that are case-strings
+              ex:
+                excl: [ lower, upper ]
+    - via: # Cartesian Product
+        latin:
+          ex:
+            for: [l, u]
+            zip:
+              - abcdefghijklmnopqrstuvwxyz
+              - ABCDEFGHIJKLMNOPQRSTUVWXYZ
+            do:
+              - id: '{l}_'
+                ex:
+                  - id: '{l}'
+                    case: lower
+                  - id: '{u}'
+                    case: upper
+        # Floor before means a blank node (e.g. _polish)
+        # (in this case automatic as "polish-script" or something)
+        polish:
+          ex:
+            - for: l
+              in: latin.script.ex*
+              do:
+                copy: '{l}' # Potentially specify upto which point copy
+            # By default should detect the one just created, right?
+            - a_:
+                ur: ipa.a
+  underlying-representation:
+    alias: ur
+  lang:
+    ex:
+      polish:
+        via:  # Cartesian Product with keys being arguments, but defining the result
+          ur:
