@@ -4,7 +4,7 @@ from unittest import SkipTest
 
 from parameterized import parameterized
 
-from old_src2.constants import ComplexTerms
+from old.morph_objs_src import ComplexTerms
 from testing.core.lang_code_test import AbstractLangCodeTest, test_generator, Generator
 
 

@@ -9,13 +9,14 @@ from neomodel import StructuredNode, StringProperty, RelationshipTo, StructuredR
 from pydash import chain as c
 from typing_extensions import deprecated
 
-from old_src2 import relationships, utils
-from old_src2.constants import CT, ST
-from old_src2.exceptions import AmbiguousNodeException, DoNotExistException, LangCodeException
-from old_src2.lang_typing import YamlType, Config, ComplexYamlType
-from src.neomodel_utitilities.neomixins import ICorePropertied, INeo4jHierarchied, FeaturesNotHierarchied, IRelationQuerable, FullQueryRel
-from old_src2.relationships import Features, Belongs, IsSuperOf, HasKind
-from old_src2.utils import adjust_str, exceptions_to, is_, is_yaml_type, is_nothing_instance_of_none
+from old.morph_objs_src import relationships
+from old.morph_objs_src import utils
+from old.morph_objs_src import CT, ST
+from old.morph_objs_src.exceptions import AmbiguousNodeException, DoNotExistException, LangCodeException
+from old.morph_objs_src.lang_typing import YamlType, Config, ComplexYamlType
+from old.neomodel_utitilities import ICorePropertied, INeo4jHierarchied, FeaturesNotHierarchied, IRelationQuerable, FullQueryRel
+from old.morph_objs_src import Features, Belongs, IsSuperOf, HasKind
+from old.morph_objs_src.utils import adjust_str, exceptions_to, is_, is_yaml_type, is_nothing_instance_of_none
 
 db.configure()
 

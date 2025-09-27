@@ -4,7 +4,7 @@ from collections import namedtuple
 
 from neomodel import StringProperty, BooleanProperty, ArrayProperty
 
-from src.neomodel_utitilities.neomixins import INeo4jFormattable
+from old.neomodel_utitilities import INeo4jFormattable
 from testing.core.test_case_generator import TCG
 
 

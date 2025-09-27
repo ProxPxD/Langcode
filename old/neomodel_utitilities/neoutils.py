@@ -7,9 +7,9 @@ from neomodel import StructuredNode, StructuredRel, db, NeomodelException
 from neomodel.sync_.core import NodeBase
 from pydash import chain as c
 
-from old_src2 import utils
-from old_src2.lang_typing import YamlType
-from old_src2.utils import to_list, is_list
+from old.morph_objs_src import utils
+from old.morph_objs_src.lang_typing import YamlType
+from old.morph_objs_src import to_list, is_list
 
 QueryNode = str | NodeBase | Type[NodeBase]
 QueryRel = str | Type[StructuredRel]

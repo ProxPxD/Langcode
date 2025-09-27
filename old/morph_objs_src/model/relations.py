@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 
-from old_src2.model.constants import RelNames as R
+from old.morph_objs_src.model.constants import RelNames as R
 
 
 @dataclass

@@ -6,7 +6,7 @@ from numpy.random.mtrand import Sequence
 from py2neo import Graph, Node, Relationship, Subgraph
 from pydash import chain as c
 
-from old_src2.utils import is_dict, is_all_instance_of_str, is_not_sequence, is_not_dict
+from old.morph_objs_src import is_dict, is_all_instance_of_str, is_not_sequence, is_not_dict
 
 graph = Graph("bolt://localhost:7687", auth=("neo4j", "password"))
 

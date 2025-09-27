@@ -7,7 +7,7 @@ import pytest
 from neo4j.graph import Node, Relationship
 from neomodel import db
 
-from src.neomodel_utitilities.neoutils import Neo4jQuerer
+from old.neomodel_utitilities import Neo4jQuerer
 from testing.core.test_case_generator import TCG
 
 PERSON = 'Person'

@@ -1,9 +1,8 @@
-from dataclasses import dataclass
 import operator as op
 from dataclasses import dataclass
 from functools import reduce
 
-from old_src.langcode import Postfix, FormPotential
+from old.defined_grammar_src.langcode import Postfix, FormPotential
 # from parsimonious.grammar import Grammar
 # from parsimonious.nodes import NodeVisitor, Node
 

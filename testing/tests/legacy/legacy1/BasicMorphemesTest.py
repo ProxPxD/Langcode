@@ -4,7 +4,7 @@ import inspect
 from dataclasses import dataclass, asdict
 from typing import Type, Iterable
 
-from old_src2.morphemes import SimpleMorphemeND, Side, By, At, By, Side
+from old.morph_objs_src import SimpleMorphemeND, At, By, Side
 from tests.abstractTest import AbstractTest
 
 Record = tuple[str, str | None, str | None, At, By, Side, tuple[str], tuple[str | Type[Exception | ValueError]]]

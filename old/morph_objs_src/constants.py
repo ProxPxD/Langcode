@@ -7,7 +7,7 @@ from pathlib import Path
 
 @dataclass(frozen=True)
 class SimpleTerms:
-    LANGUAGES = 'languages'
+    LANGUAGES = 'old_lang_confs'
     LANGUAGE = 'language'
     GENERAL = 'general'
     NATIVE_NAME = 'native-name'

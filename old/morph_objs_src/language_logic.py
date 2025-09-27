@@ -3,9 +3,9 @@ from __future__ import annotations
 import re
 from typing import Callable, Any
 
-from old_src2.constants import ST
-from old_src2.exceptions import NoConditionAppliesException
-from old_src2.lang_typing import YamlType
+from old.morph_objs_src import ST
+from old.morph_objs_src.exceptions import NoConditionAppliesException
+from old.morph_objs_src.lang_typing import YamlType
 
 
 class Condition:

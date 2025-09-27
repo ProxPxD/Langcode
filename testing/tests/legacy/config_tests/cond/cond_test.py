@@ -4,10 +4,10 @@ from typing import Callable, Optional
 from parameterized import parameterized
 from itertools import product
 
-from old_src2.exceptions import NoConditionAppliesException
-from old_src2.language_components import Unit
-from old_src2.language_logic import Cond
-from old_src2.utils import is_
+from old.morph_objs_src import NoConditionAppliesException
+from old.morph_objs_src import Unit
+from old.morph_objs_src import Cond
+from old.morph_objs_src import is_
 from testing.core.lang_code_test import AbstractLangCodeTest, LangCodeTestGenerator
 
 

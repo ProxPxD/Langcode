@@ -4,9 +4,9 @@ from typing import Iterable, Sequence
 import pytest
 
 import testing.core.lang_code_test_utils as utils
-from old_src2.lang_typing import YamlType
-from old_src2.language_components import Unit
-from old_src2.language_logic import Then
+from old.morph_objs_src.lang_typing import YamlType
+from old.morph_objs_src import Unit
+from old.morph_objs_src import Then
 from testing.core.lang_code_test_utils import Preex, LangCodeTCG
 
 

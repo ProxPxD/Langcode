@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from functools import reduce
-from typing import Literal, TypeVar, Generic, Callable, Iterable, Tuple, Any, List, Optional
+from typing import Generic, Callable, Tuple, Any, List
 
 import numpy as np
 
-from old_src2.morphemes_nd import MU
-from old_src2.utils import DictClass, get_name, word_to_basics, get_extreme_points
+from old.morph_objs_src import MU
+from old.morph_objs_src.utils import DictClass, get_name, word_to_basics, get_extreme_points
 
 from morphemes_nd import At, Size, By, Side
 

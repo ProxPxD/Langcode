@@ -14,14 +14,14 @@ from toolz import valfilter
 from toolz.curried import *
 from typing_extensions import deprecated
 
-from old_src2 import utils
-from old_src2.constants import ST
-from old_src2.exceptions import LangCodeException
-from old_src2.lang_factory import LangFactory
-from old_src2.lang_typing import OrMore
-from old_src2.language_components import Language, Unit
+from old.morph_objs_src import utils
+from old.morph_objs_src import ST
+from old.morph_objs_src import LangCodeException
+from old.morph_objs_src import LangFactory
+from old.morph_objs_src.lang_typing import OrMore
+from old.morph_objs_src import Language, Unit
 from src.loading.abstract_loaders import LangDataFileLoader
-from old_src2.utils import if_, to_tuple, is_
+from old.morph_objs_src import if_, to_tuple, is_
 from tests.abstractTest import AbstractTest, TestGenerator
 
 
@@ -32,7 +32,7 @@ yaml_types = dict | bool | str | int | None
 
 @dataclass
 class Paths:
-    LANGUAGES = Path(__file__).parent / 'languages'
+    LANGUAGES = Path(__file__).parent / 'old_lang_confs'
     DEFAULTS = LANGUAGES / 'general_defaults.yaml'
 
 

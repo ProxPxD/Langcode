@@ -4,7 +4,7 @@ from abc import abstractmethod
 from dataclasses import asdict
 from typing import TypeVar, Generic, Callable, Literal, Iterable, Optional
 
-from old_src2.utils import get_name
+from old.morph_objs_src.utils import get_name
 
 MU = TypeVar('MU')  # Morpheme Unit
 
