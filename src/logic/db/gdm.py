@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from asyncore import write
-from dataclasses import dataclass, asdict
-from typing import Optional, LiteralString, Sequence
+from typing import LiteralString
 
 from SPARQLWrapper import SPARQLWrapper, QueryResult
 from pydantic import BaseModel
-
-from src.logic.db import GDM, LoginData
-import pydash as _
 from pydash import chain as c
+
+from login_data import LoginData
 
 
 class ReadOps(BaseModel):
