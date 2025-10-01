@@ -39,6 +39,7 @@ class Structant(BaseModel):
         match content:
             case None: return {}
             case dict(): return content
+            case str(): return {content: True}
             case list(): return dict.fromkeys(content, True)
             case _: raise ValueError(f'Unsupported type for dictionarization: {type(content)}')
 
