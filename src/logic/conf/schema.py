@@ -32,6 +32,8 @@ class Structant(BaseModel):
         structant: ConfType = _.map_values(structant, self.dictionarize_item)
         structant[UID] = str(uuid.uuid4())
         structant = self.fulfill_object(structant, data)
+        if data:
+            raise NotImplementedError(f'Some structant data is still not properly moved: {data}')
         return structant
 
     @classmethod
@@ -41,7 +43,7 @@ class Structant(BaseModel):
             case dict(): return content
             case str(): return {content: True}
             case list(): return dict.fromkeys(content, True)
-            case _: raise ValueError(f'Unsupported type for dictionarization: {type(content)}')
+            case _: raise ValueError(f'Unsupported type for dictionarization: {type(content)}, content: {content}')
 
     @classmethod
     def fulfill_object(cls, structant: ConfType, data: ConfType) -> ConfType:
