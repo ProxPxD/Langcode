@@ -21,9 +21,9 @@ ConfType = dict[str, Any]
 
 class Structant(BaseModel):
     uid: Alphanumeric = Field(alias=UID)
-    source: None = Field(alias=SOURCE)
-    object: None = Field(alias=OBJECT)
-    target: None = Field(alias=TARGET)
+    source: dict[str, Any] = Field(alias=SOURCE)
+    object: dict[str, Any] = Field(alias=OBJECT)
+    target: dict[str, Any] = Field(alias=TARGET)
     define: None = Field(alias=DEFINE)
 
     @model_validator(mode="before")
@@ -48,6 +48,7 @@ class Structant(BaseModel):
         if not (structant_id := data.pop(ID, NONE_ID_PREFIX)).startswith(NONE_ID_PREFIX):
             structant[OBJECT].setdefault(ALIASES, []).append(structant_id)
         return structant
+    
 
 class Config(BaseModel):
     general: dict[Alphanumeric, Any] = Field(alias=GENERAL)
