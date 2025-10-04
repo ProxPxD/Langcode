@@ -13,3 +13,16 @@ verbalize:
     apply:
       - stem
       - form: '$ear'
+
+o:
+  - src:
+      first:
+        gender: F
+      last:
+        pos: V
+  - src:
+      gender: N
+      pos: N
+  - src:
+      - gender: N
+        pos: N

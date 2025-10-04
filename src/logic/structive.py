@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from types import NoneType
 from typing import Optional
 
+from src.logic.conf.schema import ConfType
 from src.logic.db import GDM
 
 
@@ -32,3 +35,7 @@ class Structive_:
 
     def __init__(self, conf: dict = None, **kwargs):
         ...
+
+    @classmethod
+    def from_conf(cls, conf: ConfType) -> Structive_:
+        raise NotImplementedError
