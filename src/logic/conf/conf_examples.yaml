@@ -26,3 +26,41 @@ o:
   - src:
       - gender: N
         pos: N
+
+
+
+# Simple Spanish?
+ito1:
+  src: noun
+  def: '<ipa> {vowel}?$ => it{vowel}'
+
+ito2:
+  src:
+    arg:
+      noun: true
+  def:  # TODO: Think of joining (with when/then?)
+    - val1:  # Root
+        path: 'arg.ipa'
+        regex: '(.*)({vowel})$'
+        group: 1
+    - val2:  # Vowel
+        path: 'arg.ipa'
+        regex: '(.*)({vowel})$'
+        group: 2
+  trg:
+    ipa: '{val1}it{val2}'
+
+
+perrito1: [perro, ito1]
+perrito2:
+  ito2: perro
+perrito3:
+  def:
+    ito1: perro  # TODO think: ?Inferred by the lack of "src" and
+                 # a nondefault <func>: <arg> names
+perrito4:
+  def:
+  - ito2: perro
+perrito5:
+  obj:  # TODO think: both "obj" and "def" should work?
+    ito1: perro
