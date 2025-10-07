@@ -16,7 +16,7 @@ ALT_KWS = (
     TARGET_ALTS := (TARGET := 'target', 'trg'),
     DEFINE_ALTS := (DEFINE := 'define', 'def'),
     ID_ALTS := (ID := 'id',),
-    UID_ALTS := (UID := 'id',),
+    UID_ALTS := (UID := 'uid',),
     NONE_ID_PREFIX_ALTS := (NONE_ID_PREFIX := '_', ),
     ALIASES_ALTS := (ALIASES := 'aliases', 'alias'),
 )
