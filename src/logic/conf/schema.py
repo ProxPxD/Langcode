@@ -3,7 +3,9 @@ from collections import defaultdict
 from distutils.core import setup_keywords
 from typing import Annotated, Any, Optional
 
-from pydantic import BaseModel, Field, BeforeValidator, model_validator, RootModel
+from pydantic import BaseModel, Field, BeforeValidator, model_validator, RootModel, field_validator
+from pydash import curry
+
 from keywords import *
 import pydash as _
 
@@ -16,40 +18,68 @@ def ensure_dict_list(data: list | dict[str, Any]) -> list[dict]:
         case None: return []
         case _: raise ValueError(f'No strategy for mapping: {data}')
 
+@curry
+def is_x_of_y(x_type, y_type, obj) -> bool:
+    if not isinstance(obj, x_type): return False
+    match obj:
+        case list(): items = obj
+        case dict(): items = obj.values()
+        case _: raise ValueError(f'Unsupported type: {type(obj)}')
+    for item in items:
+        if not isinstance(item, y_type):
+            return False
+    return True
+
+is_dict_of_dict = is_x_of_y(dict, dict)
 
 Alphanumeric = Annotated[str, Field(pattern=r'^[a-zA-Z0-9_-]+$')]
 ConfType = dict[str, Any]
 
 
-class Source(RootModel[dict[str, ...]]):
+class Source(RootModel[dict[str, dict[str, ...]]]):
+    @classmethod
     @model_validator(mode="before")
-    def normalize_data(self, data: dict | list | str | int) -> ConfType:
-        return self.normalize(data)
+    def normalize_source(cls, source: dict | list | str | int) -> dict[str, dict[str, ...]]:
+        return cls.normalize(source)
 
     @classmethod
-    def normalize(cls, data: dict | list | str | int) -> ConfType:
-        match data:
+    def normalize(cls, source: dict | list | str | int) -> dict[str, dict[str, ...]]:
+        match source:
             case int() as n_args: return {str(i+1): {} for i in range(n_args)}
             case str() as feat: return cls.normalize([feat])
-            case list(): ...
-            case dict(): ...
+            case list() as lst: ...
+            case dict() as dct: ...
             case _: raise ValueError('Incorrect data for structant source')
+
+class Define(RootModel[list[dict[str, ...]]]):
+    @classmethod
+    @model_validator(mode='before')
+    def normalize_define(cls, define) -> list[dict[str, ...]]:
+        return cls.normalize(define)
+
+    @classmethod
+    def normalize(cls, define) -> list[dict[str, ...]]:
+        match define:
+            case str(): raise NotImplementedError('"define: <str>" is not decided')
+            case dict(): return cls.normalize([define])
+            case list(): return define
 
 class Structant(BaseModel):
     uid: Alphanumeric = Field(alias=UID)
     source: Source = Field(alias=SOURCE)
     object: dict[str, Any] = Field(alias=OBJECT)
     target: dict[str, Any] = Field(alias=TARGET)
-    define: None = Field(alias=DEFINE)
+    define: Define = Field(alias=DEFINE)
 
+    @classmethod
     @model_validator(mode="before")
-    def normalize(self, data: ConfType) -> ConfType:
+    def normalize(cls, data: ConfType) -> ConfType:
         structant = {kw: data.pop(kw, None) for kw in STRUCTANT_KWS}
         # structant: ConfType = _.map_values(structant, self.dictionarize_item)
         structant[UID] = str(uuid.uuid4())
-        structant[SOURCE] = self._normalize_source(structant[SOURCE])
-        structant = self.fulfill_object(structant, data)
-        structant[OBJECT] = self._normalize_object(structant[OBJECT])
+        structant[SOURCE] = cls._normalize_source(structant[SOURCE])
+        structant = cls.fulfill_object(structant, data)
+        structant[OBJECT] = cls._normalize_object(structant[OBJECT])
         if data:
             raise NotImplementedError(f'Some structant data is still not properly moved: {data}')
         return structant
@@ -62,13 +92,6 @@ class Structant(BaseModel):
             case str(): return {content: True}
             case list(): return dict.fromkeys(content, True)
             case _: raise ValueError(f'Unsupported type for dictionarization: {type(content)}, content: {content}')
-
-    @classmethod
-    def _normalize_source(cls, source: dict | list | str | int) -> Optional[ConfType]:
-        if not source:
-            return None
-        if isinstance(source, list):
-            ...
 
     @classmethod
     def _normalize_object(cls, object: dict | list | str) -> Optional[ConfType]:
@@ -84,8 +107,20 @@ class Structant(BaseModel):
 class Config(BaseModel):
     general: dict[Alphanumeric, Any] = Field(alias=GENERAL)
     ingrains: dict[Alphanumeric, Any] = Field(alias=INGRAINS)
-    structants: Annotated[
-        list[Structant] | dict[Alphanumeric, Structant],
-        BeforeValidator(ensure_dict_list)
-    ] = Field(alias=STRUCTANTS)
+    structants: list[Structant] = Field(alias=STRUCTANTS)
 
+    @classmethod
+    @field_validator('structants', mode="before")
+    def normalize_structants(cls, structants: ConfType | list[dict]) -> list[dict]:
+        match structants:
+            case list(): return structants
+            case dict(): return [cls.merge_main_alias_with_content(key, content) for key, content in structants.items()]
+
+    @classmethod
+    def merge_main_alias_with_content(cls, main_alias: str, content: Any) -> dict:
+        match content:
+            case dict():
+                content.setdefault(ID, main_alias)
+                return content
+            case _:
+                return cls.merge_main_alias_with_content(main_alias, {DEFINE: content})
