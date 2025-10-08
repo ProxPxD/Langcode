@@ -35,7 +35,6 @@ is_dict_of_dict = is_x_of_y(dict, dict)
 Alphanumeric = Annotated[str, Field(pattern=r'^[a-zA-Z0-9_-]+$')]
 ConfType = dict[str, Any]
 
-
 class Source(RootModel[dict[str, dict[str, ...]]]):
     @classmethod
     @model_validator(mode="before")
@@ -47,9 +46,18 @@ class Source(RootModel[dict[str, dict[str, ...]]]):
         match source:
             case int() as n_args: return {str(i+1): {} for i in range(n_args)}
             case str() as feat: return cls.normalize([feat])
-            case list() as lst: ...
-            case dict() as dct: ...
+            case list() as lst: return  cls.normalize([dict.fromkeys(lst, True)])
+            case dict() as dct: return dct  # TODO: finish
             case _: raise ValueError('Incorrect data for structant source')
+
+
+class Object(RootModel[dict[str, Any]]):
+    ...
+
+
+class Target(RootModel[dict[str, Any]]):
+    ...
+
 
 class Define(RootModel[list[dict[str, ...]]]):
     @classmethod
@@ -65,11 +73,11 @@ class Define(RootModel[list[dict[str, ...]]]):
             case list(): return define
 
 class Structant(BaseModel):
-    uid: Alphanumeric = Field(alias=UID)
-    source: Source = Field(alias=SOURCE)
-    object: dict[str, Any] = Field(alias=OBJECT)
-    target: dict[str, Any] = Field(alias=TARGET)
-    define: Define = Field(alias=DEFINE)
+    uid: Alphanumeric = Field(validation_alias=UID_ALTS)
+    source: Source = Field(validation_alias=SOURCE_ALTS)
+    object: Object = Field(validation_alias=OBJECT_ALTS)
+    target: Target = Field(validation_alias=TARGET_ALTS)
+    define: Define = Field(validation_alias=DEFINE_ALTS)
 
     @classmethod
     @model_validator(mode="before")
