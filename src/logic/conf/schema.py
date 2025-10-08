@@ -36,41 +36,16 @@ Alphanumeric = Annotated[str, Field(pattern=r'^[a-zA-Z0-9_-]+$')]
 ConfType = dict[str, Any]
 
 class Source(RootModel[dict[str, dict[str, ...]]]):
-    @classmethod
-    @model_validator(mode="before")
-    def normalize_source(cls, source: dict | list | str | int) -> dict[str, dict[str, ...]]:
-        return cls.normalize(source)
-
-    @classmethod
-    def normalize(cls, source: dict | list | str | int) -> dict[str, dict[str, ...]]:
-        match source:
-            case int() as n_args: return {str(i+1): {} for i in range(n_args)}
-            case str() as feat: return cls.normalize([feat])
-            case list() as lst: return  cls.normalize([dict.fromkeys(lst, True)])
-            case dict() as dct: return dct  # TODO: finish
-            case _: raise ValueError('Incorrect data for structant source')
-
+    ...
 
 class Object(RootModel[dict[str, Any]]):
     ...
 
-
 class Target(RootModel[dict[str, Any]]):
     ...
 
-
 class Define(RootModel[list[dict[str, ...]]]):
-    @classmethod
-    @model_validator(mode='before')
-    def normalize_define(cls, define) -> list[dict[str, ...]]:
-        return cls.normalize(define)
-
-    @classmethod
-    def normalize(cls, define) -> list[dict[str, ...]]:
-        match define:
-            case str(): raise NotImplementedError('"define: <str>" is not decided')
-            case dict(): return cls.normalize([define])
-            case list(): return define
+    ...
 
 class Structant(BaseModel):
     uid: Alphanumeric = Field(validation_alias=UID_ALTS)
@@ -88,12 +63,23 @@ class Structant(BaseModel):
         structant[SOURCE] = cls._normalize_source(structant[SOURCE])
         structant = cls.fulfill_object(structant, data)
         structant[OBJECT] = cls._normalize_object(structant[OBJECT])
+        structant[TARGET] = cls._normalize_target(structant[TARGET])
+        structant[DEFINE] = cls._normalize_define(structant[DEFINE])
         if data:
             raise NotImplementedError(f'Some structant data is still not properly moved: {data}')
         return structant
 
     @classmethod
-    def dictionarize_item(cls, content: Any) -> dict:
+    def _normalize_source(cls, source: dict | list | str | int) -> dict[str, dict[str, ...]]:
+        match source:
+            case int() as n_args: return {str(i + 1): {} for i in range(n_args)}
+            case str() as feat: return cls._normalize_source([feat])
+            case list() as lst: return cls._normalize_source([dict.fromkeys(lst, True)])
+            case dict() as dct: return dct  # TODO: finish
+            case _: raise ValueError('Incorrect data for structant source')
+
+    @classmethod
+    def _normalize_object(cls, content: dict | list | str) -> dict:
         match content:
             case None: return {}
             case dict(): return content
@@ -102,8 +88,15 @@ class Structant(BaseModel):
             case _: raise ValueError(f'Unsupported type for dictionarization: {type(content)}, content: {content}')
 
     @classmethod
-    def _normalize_object(cls, object: dict | list | str) -> Optional[ConfType]:
-        return cls.dictionarize_item(object)
+    def _normalize_define(cls, define) -> list[dict[str, ...]]:
+        match define:
+            case str(): raise NotImplementedError('"define: <str>" is not decided')
+            case dict(): return cls.normalize([define])
+            case list(): return define
+
+    @classmethod
+    def _normalize_target(cls, target) -> dict:
+        return target
 
     @classmethod
     def fulfill_object(cls, structant: ConfType, data: ConfType) -> ConfType:
