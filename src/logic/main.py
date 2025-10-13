@@ -1,4 +1,4 @@
-from src.logic.constants import log
+from src.logic.constants import log, URI_PREFIX
 from src.logic.lcm import LCM
 from uuid import uuid1, uuid5
 
@@ -7,13 +7,11 @@ lcm = LCM(log=log)
 
 
 
-namespace = 'http://langcode/'
-
 uid = uuid1
 query = f'''
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 
-PREFIX : <{namespace}>
+PREFIX : <{URI_PREFIX}>
 
 ############
 # Ontology #
@@ -58,7 +56,6 @@ INSERT {{
             [:val 'z']
 WHERE {{
     BIND([] AS ?latin)
-}}
 }}
 '''
 
