@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from functools import cache, cached_property
 from typing import Any
 
 from pydantic import BaseModel, model_validator
@@ -31,15 +32,19 @@ class LoginData(BaseModel):
         ):
         super().__init__(**locals())  # passes "self", but it doesn't hurt
 
-    @property
+    @cached_property
     def auth(self) -> tuple[str, str]:
         return self.user, self.password
 
-    @property
+    @cached_property
     def uri(self) -> str:
         return f'{self.protocol}://{self.host}:{self.port}'
 
-    @property
+    @cached_property
+    def endpoint(self) -> str:
+        return f'{self.uri}/repositories/{self.repo}'
+
+    @cached_property
     def repo(self) -> str:
         return self.database
 
@@ -67,6 +72,10 @@ class LoginData(BaseModel):
     def _validate_uri(cls, uri: str = None, protocol: str = None, host: str = None, port: int | str = None, **data) -> dict:
         if not (uri or protocol and host and port):
             raise ValueError(f'Logging requires "uri" or "host" and "port" in init')
+        if uri and port:
+            uri, port = f'{uri}:{port}', None
+        if uri and protocol:
+            uri, protocol = f'{protocol}://{uri}', None
         protocol, host, port = (protocol, host, port) if protocol and host and port else uri_pattern.match(uri).groups()
         data.update(protocol=protocol, host=host, port=int(port))
         return data

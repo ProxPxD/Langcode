@@ -7,11 +7,6 @@ lcm = LCM(log=log)
 
 
 
-
-
-
-
-
 namespace = 'http://langcode/'
 
 uid = uuid1

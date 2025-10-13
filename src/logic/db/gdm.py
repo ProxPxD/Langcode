@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import LiteralString
+from functools import cached_property
+from typing import LiteralString, Sequence
 
-from SPARQLWrapper import SPARQLWrapper, QueryResult
+from SPARQLWrapper import SPARQLWrapper, QueryResult, XML, BASIC
 from pydantic import BaseModel
 from pydash import chain as c
 
@@ -35,7 +36,6 @@ class GDM:
     """
     Graph Database Manager -- Interface for common queries
     """
-
     _gdm = None
 
     @classmethod
@@ -43,20 +43,31 @@ class GDM:
         return cls._gdm
 
     def __init__(self, log: LoginData, *args, **kwargs):
-        super().__init__(log, *args, **kwargs)
-        self.query_wrapper = SPARQLWrapper(query_endpoint := f'{log.uri}/repositories/{log.repo}')
-        self.update_wrapper = SPARQLWrapper(f'{query_endpoint}/statements')
+        self.database: str = log.database
+        self.query_wrapper = SPARQLWrapper(log.endpoint)
+        self.update_wrapper = SPARQLWrapper(f'{log.endpoint}/statements')
         self._gdm = self
+        self._set_wrappers(log)
+
+    @cached_property
+    def _wrappers(self) -> Sequence[SPARQLWrapper]:
+        return self.query_wrapper, self.update_wrapper
+
+    def _set_wrappers(self, log: LoginData) -> None:
+        for wrapper in self._wrappers:
+            wrapper.setHTTPAuth(BASIC)
+            wrapper.setCredentials(*log.auth)
 
     def init_session(self, *args,  **kwargs):
         raise NotImplementedError('Not Possible')
 
-    def raw_query(self, query: LiteralString, **kwargs) -> QueryResult:
+    def raw_query(self, query: str, return_format: str = XML, **kwargs) -> QueryResult:
         wrapper = self._get_wrapper(query)
         wrapper.setQuery(query)
+        wrapper.setReturnFormat(return_format)
         return wrapper.query()
 
-    def _get_wrapper(self, query: LiteralString) -> SPARQLWrapper:
+    def _get_wrapper(self, query: str) -> SPARQLWrapper:
         op: str = (c(query).trim().split('\n')
          .reject(lambda line: c(dict(UriKeywords()).values()).some(line.startswith))
          .nth(0).split(' ').nth(0).value())
