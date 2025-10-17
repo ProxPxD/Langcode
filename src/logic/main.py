@@ -6,7 +6,6 @@ from uuid import uuid1, uuid5
 lcm = LCM(log=log)
 
 
-
 uid = uuid1
 query = f'''
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
@@ -62,4 +61,5 @@ WHERE {{
 
 print(query)
 
-lcm.gdm
+lcm.gdm.raw_query(query)
+
