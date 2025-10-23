@@ -5,8 +5,7 @@ import pytest
 from _pytest.mark import MarkDecorator, ParameterSet
 from pydash import chain as c
 from toolz import unique
-
-from old.morph_objs_src import is_not, apply
+from utils import apply
 
 
 class TCG:
@@ -51,7 +50,7 @@ class TCG:
     def _as_paramset(cls, tc, tags: list = None) -> ParameterSet:
         marks = cls._generate_marks(tags or [])
         tc = cls.map(tc)
-        values = (tc, ) if hasattr(tc, '_asdict') or is_not(tuple, tc) else tc
+        values = (tc, ) if hasattr(tc, '_asdict') or not isinstance(tc, tuple) else tc
         return pytest.param(*values, marks=marks)
 
     @classmethod
