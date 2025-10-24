@@ -5,7 +5,7 @@ import pytest
 from _pytest.mark import MarkDecorator, ParameterSet
 from pydash import chain as c
 from toolz import unique
-from utils import apply
+from .utils import apply
 
 
 class TCG:

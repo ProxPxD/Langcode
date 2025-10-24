@@ -1,2 +1,2 @@
-from test_case_generator import TCG
-from lang_code_test_utils import LangCodeTCG
+from .test_case_generator import TCG
+

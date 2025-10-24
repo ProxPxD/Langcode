@@ -61,5 +61,5 @@ WHERE {{
 
 print(query)
 
-lcm.gdm.raw_query(query)
+# lcm.gdm.raw_query(query)
 

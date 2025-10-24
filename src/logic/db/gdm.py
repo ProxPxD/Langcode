@@ -3,11 +3,11 @@ from __future__ import annotations
 from functools import cached_property
 from typing import LiteralString, Sequence
 
-from SPARQLWrapper import SPARQLWrapper, QueryResult, XML, BASIC
+from SPARQLWrapper import SPARQLWrapper, QueryResult, XML, BASIC, POST
 from pydantic import BaseModel
 from pydash import chain as c
 
-from login_data import LoginData
+from .login_data import LoginData
 
 
 class ReadOps(BaseModel):
@@ -46,7 +46,7 @@ class GDM:
         self.database: str = log.database
         self.query_wrapper = SPARQLWrapper(log.endpoint)
         self.update_wrapper = SPARQLWrapper(f'{log.endpoint}/statements')
-        self._gdm = self
+        self.__class__._gdm = self
         self._set_wrappers(log)
 
     @cached_property
@@ -57,6 +57,7 @@ class GDM:
         for wrapper in self._wrappers:
             wrapper.setHTTPAuth(BASIC)
             wrapper.setCredentials(*log.auth)
+        self.update_wrapper.setMethod(POST)
 
     def init_session(self, *args,  **kwargs):
         raise NotImplementedError('Not Possible')
@@ -69,8 +70,9 @@ class GDM:
 
     def _get_wrapper(self, query: str) -> SPARQLWrapper:
         op: str = (c(query).trim().split('\n')
-         .reject(lambda line: c(dict(UriKeywords()).values()).some(line.startswith))
-         .nth(0).split(' ').nth(0).value())
+                   .reject(lambda line: c(dict(UriKeywords()).values()).some(line.startswith).value())
+                   .reject(lambda line: not line.strip() or line.startswith('#'))
+                   .nth(0).split(' ').nth(0).value())
         match op:
             case _ if op in dict(ReadOps()).values():
                 return self.query_wrapper

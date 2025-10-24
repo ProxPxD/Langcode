@@ -1,3 +1,5 @@
+import os
+
 from src.logic.db import LoginData
 
 neo4j_log = LoginData(
@@ -10,9 +12,9 @@ neo4j_log = LoginData(
 
 rdf_log = LoginData(
     uri='http://localhost',
-    port=43953,
-    user='langcode',
-    password='langcode',
+    port=7001,
+    user=os.getenv('GRAPHDB_DEV_USER'),
+    password=os.getenv('GRAPHDB_DEV_PASS'),
     database='langcode-dev',
 )
 
