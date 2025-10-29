@@ -18,7 +18,14 @@ rdf_log = LoginData(
     database='langcode-dev',
 )
 
-log = rdf_log
+rdf_dev_log = LoginData(
+    uri='http://localhost',
+    port=7001,
+    user=os.getenv('GRAPHDB_DEV_USER'),
+    password=os.getenv('GRAPHDB_DEV_PASS'),
+    database='langcode-dev',
+)
+
 
 TIMEOUT = 5
 

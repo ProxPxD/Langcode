@@ -1,9 +1,9 @@
-from src.logic.constants import log, URI_PREFIX
+from src.logic.constants import rdf_log, URI_PREFIX
 from src.logic.lcm import LCM
 from uuid import uuid1, uuid5
 
 
-lcm = LCM(log=log)
+lcm = LCM(log=rdf_log)
 
 
 uid = uuid1
