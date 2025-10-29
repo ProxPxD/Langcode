@@ -92,4 +92,7 @@ class RDFNode:
             case bool(): return f'"{str(val).lower()}"^^<{XSD.boolean}>'
             case _: raise ValueError(f'Type "{type(val)}" is not supported yet')
 
+    def __hash__(self):
+        return hash(self.uri)
+
 N = RDFNode
