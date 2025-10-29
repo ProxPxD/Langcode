@@ -14,6 +14,9 @@ from src.logic.db import GDM
 from pydash import chain as c
 import pydash as _
 
+from ordered_set import OrderedSet
+
+
 class RDFNode:
     _prefix: str = URI_PREFIX
 
@@ -55,7 +58,7 @@ class RDFNode:
         else:
             return self.create_pred(pred, val)
 
-    def get_pred(self, pred: str) -> list[RDFNode]:
+    def get_pred(self, pred: str) -> OrderedSet[RDFNode]:
         """Dynamically resolve attributes as outgoing RDF relations."""
         pred_uri = f'{self._prefix}{pred}'
         query = f'SELECT ?o WHERE {{ <{self.uri}> <{pred_uri}> ?o . }}'
@@ -63,10 +66,10 @@ class RDFNode:
             raise AttributeError(f'No property "{pred}" for {self.uri}')
         results = results.convert().get('results', {}).get('bindings', [])
         # Return multiple values as a list
-        objs = []
+        objs = OrderedSet()
         for result in results:
             obj = Box(result['o'])
-            objs.append(RDFNode(obj.value) if obj.type == 'uri' else obj.value)
+            objs.add(RDFNode(obj.value) if obj.type == 'uri' else obj.value)
         return objs
 
     def create_pred(self, pred: str, val: RDFNode | str | float | int | bool) -> RDFNode:
