@@ -21,7 +21,7 @@ def run_container():
     kws = dict(capture_output=True, text=True, shell=True)
     is_running = subprocess.run("podman ps --filter name=" + container + " --format '{{.Names}}'", **kws).stdout.strip()
     if not is_running:
-        logging.info(f'Starting {container}')
+        logging.debug(f'Starting {container}')
         subprocess.run(f'podman start {container}', **kws)
         exists = False
         while not exists:
@@ -29,14 +29,14 @@ def run_container():
             exists = bool(subprocess.run('podman ps --filter name=' + container + ' --format {{.Names}}', **kws).stdout.strip())
     yield
     if not is_running:
-        logging.info(f'Stopping {container}')
+        logging.debug(f'Stopping {container}')
         subprocess.run(f'podman stop {container}', **kws)
 
 @pytest.fixture(scope='function', autouse=True)
 def _():
-    logging.info("Setup")
+    logging.debug("Setup")
     yield
-    logging.info("Teardown")
+    logging.debug("Teardown")
 
 
 def test():

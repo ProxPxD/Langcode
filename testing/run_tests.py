@@ -11,6 +11,6 @@ if __name__ == '__main__':
         pytest.main([
             '-s',
             '-v',
-            #'--log-cli-level=DEBUG',
+            # '--log-cli-level=INFO',
             'tests/gen_test.py',
         ])
