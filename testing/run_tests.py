@@ -9,5 +9,6 @@ import pytest
 #     finally:
 #         db.cypher_query('MATCH (n) DETACH DELETE n')
 
+
 if __name__ == '__main__':
     pytest.main(sys.argv)

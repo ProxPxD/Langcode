@@ -20,6 +20,7 @@ class WriteOps(BaseModel):
     INSERT: str = 'INSERT'
     DELETE: str = 'DELETE'
     LD: str = 'LD'
+    CLEAR: str = 'CLEAR'
 
 class UriKeywords(BaseModel):
     PREFIX: str = 'PREFIX'

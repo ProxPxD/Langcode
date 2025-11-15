@@ -19,10 +19,15 @@ from ordered_set import OrderedSet
 
 class RDFNode:
     _prefix: str = URI_PREFIX
+    _graph_name: str = None
 
     @classmethod
     def set_prefix(cls, prefix: str) -> None:
         cls._prefix = prefix
+
+    @property
+    def gdm(self) -> GDM:
+        return GDM.curr()
 
     # TODO: Think whether to pass attributes that are not plural somewhere
     def __init__(self, uri: str = None, *, name: str = None):
@@ -34,12 +39,11 @@ class RDFNode:
 
         self.uri = uri
 
-    @property
-    def gdm(self) -> GDM:
-        return GDM.curr()
-
     def __repr__(self) -> str:
         return f'<RDFNode {self.uri}>'
+
+    def __hash__(self):
+        return hash(self.uri)
 
     def __eq__(self, other) -> bool:
         match other:
@@ -50,15 +54,15 @@ class RDFNode:
         try:
             return self.__getattribute__(pred)
         except AttributeError:
-            return self.get_pred(pred)
+            return self.get_via_pred(pred)
 
     def __setattr__(self, pred, val: RDFNode | str | float | int | bool ) -> Optional[RDFNode]:
         if pred.startswith("_") or pred in ('uri', 'gdm'):
             return super().__setattr__(pred, val)
         else:
-            return self.create_pred(pred, val)
+            return self.create_triple(pred, val)
 
-    def get_pred(self, pred: str) -> OrderedSet[RDFNode]:
+    def get_via_pred(self, pred: str) -> OrderedSet[RDFNode]:
         """Dynamically resolve attributes as outgoing RDF relations."""
         pred_uri = f'{self._prefix}{pred}'
         query = f'SELECT ?o WHERE {{ <{self.uri}> <{pred_uri}> ?o . }}'
@@ -72,7 +76,7 @@ class RDFNode:
             objs.add(RDFNode(obj.value) if obj.type == 'uri' else obj.value)
         return objs
 
-    def create_pred(self, pred: str, val: RDFNode | str | float | int | bool) -> RDFNode:
+    def create_triple(self, pred: str, val: RDFNode | str | float | int | bool) -> RDFNode:
         """Create a relationship triple (self, pred, obj)."""
         pred_uri = f'{self._prefix}{pred}'
         obj = self._map_val_to_rdf(val)
@@ -82,6 +86,7 @@ class RDFNode:
 
     @classmethod
     def _map_val_to_rdf(cls, val: Any) -> str:
+        """TODO (PORFARO): Movu al iu utilaĵaro"""
         match val:
             case RDFNode(): return f'<{val.uri}>'
             case str():
@@ -91,8 +96,5 @@ class RDFNode:
             case int(): return f'"{val}"^^<{XSD.integer}>'
             case bool(): return f'"{str(val).lower()}"^^<{XSD.boolean}>'
             case _: raise ValueError(f'Type "{type(val)}" is not supported yet')
-
-    def __hash__(self):
-        return hash(self.uri)
 
 N = RDFNode
