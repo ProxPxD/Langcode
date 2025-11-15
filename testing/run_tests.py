@@ -1,3 +1,5 @@
+import sys
+
 import pytest
 
 # @contextmanager
@@ -8,9 +10,4 @@ import pytest
 #         db.cypher_query('MATCH (n) DETACH DELETE n')
 
 if __name__ == '__main__':
-        pytest.main([
-            '-s',
-            '-v',
-            # '--log-cli-level=INFO',
-            'tests/gen_test.py',
-        ])
+    pytest.main(sys.argv)

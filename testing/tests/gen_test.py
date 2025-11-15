@@ -25,7 +25,7 @@ def run_container():
         subprocess.run(f'podman start {container}', **kws)
         exists = False
         while not exists:
-            sleep(1)
+            sleep(0.1)
             exists = bool(subprocess.run('podman ps --filter name=' + container + ' --format {{.Names}}', **kws).stdout.strip())
     yield
     if not is_running:
