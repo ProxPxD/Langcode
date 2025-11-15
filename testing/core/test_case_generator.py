@@ -55,7 +55,7 @@ class TCG:
 
     @classmethod
     @apply(list)
-    def generate_params(cls) -> list[ParameterSet]:
+    def generate_params(cls) -> Iterable[ParameterSet]:
         for big_tc in cls.generate_tcs():
             big_tags = list(cls.gather_tag_before_mapping_to_many(big_tc))
             for lil_tc in cls.map_to_many(big_tc):
