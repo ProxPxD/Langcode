@@ -1,0 +1,13 @@
+ev:
+  noun: true
+  form: ev
+
+laer:
+  src: [noun]  # [noun, -laer]
+  def:
+    is_front: arg.syllable[0].nucleus.front
+    vowel: <self> is_front => e / a
+  trg:
+    form: '$l{vowel}r'
+
+evler: [ev, laer]
