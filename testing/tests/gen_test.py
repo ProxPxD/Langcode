@@ -78,7 +78,7 @@ class GenTCG(TCG):
     def generate_tcs(cls) -> list:
         return [
             TC(
-                conf='''yaml
+                conf='''
                 test: sa
                 ''',
             ),
