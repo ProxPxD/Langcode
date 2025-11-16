@@ -4,7 +4,9 @@ from uuid import uuid1, uuid5
 
 
 lcm = LCM(log=rdf_log)
+lcm.run()
 
+exit(0)
 
 uid = uuid1
 query = f'''
