@@ -37,7 +37,6 @@ class CLI:
             epilog=''
         )
 
-        # parser = _.flow()(parser)
         sub = parser.add_subparsers(dest='cmd', required=True)
         sub = _.flow(self._add_rdf_subcmd, self._add_run_subcmd)(sub)
         return parser

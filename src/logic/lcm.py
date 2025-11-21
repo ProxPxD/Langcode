@@ -1,7 +1,7 @@
 import logging
 from argparse import Namespace
 
-from src.logic.cli import CLI, Modes
+from src.cli import CLI, Modes
 from src.logic.conf.fcn import FCN
 from src.logic.db import GDM, LoginData
 from src.logic.sci import SCI
