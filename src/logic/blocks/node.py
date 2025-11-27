@@ -1,18 +1,14 @@
 from __future__ import annotations
 
 import uuid
-from functools import cache
 from typing import Any, Optional
 
-from SPARQLWrapper import SPARQLWrapper, JSON
+from SPARQLWrapper import JSON
 from box import Box
 from rdflib import XSD
 
-from src.logic.constants import URI_PREFIX
+from src.logic.constants.db import URI_PREFIX
 from src.logic.db import GDM
-
-from pydash import chain as c
-import pydash as _
 
 from ordered_set import OrderedSet
 

@@ -1,7 +1,6 @@
-from src.logic.constants import rdf_log, URI_PREFIX
+from src.logic.constants.db import rdf_log, URI_PREFIX
 from src.logic.lcm import LCM
-from uuid import uuid1, uuid5
-
+from uuid import uuid1
 
 lcm = LCM(log=rdf_log)
 lcm.run()
