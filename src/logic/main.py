@@ -1,4 +1,4 @@
-from src.logic.constants.db import rdf_log, URI_PREFIX
+from src.logic.consts.db import rdf_log, URI_PREFIX
 from src.logic.lcm import LCM
 from uuid import uuid1
 

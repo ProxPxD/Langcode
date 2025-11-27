@@ -1,4 +1,6 @@
+import src.logic.consts as consts
+
 KEEP_GRAPH_FLAG = '--keep-graph'
 KEEP_GRAPH_OPT = KEEP_GRAPH_FLAG.lstrip('-').replace('-', '_')
 
-PREFIX = 'http://langcode/test/'
+URI_PREFIX = f'{consts.db.URI_PREFIX}/test/'

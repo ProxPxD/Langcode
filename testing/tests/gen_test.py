@@ -6,7 +6,7 @@ import pytest
 from _pytest.outcomes import fail
 
 from src.logic.blocks.node import N
-from src.logic.constants.db import rdf_dev_log
+from src.logic.consts.db import rdf_dev_log
 from src.logic.lcm import LCM
 from testing.core import TCG
 

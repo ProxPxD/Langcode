@@ -7,7 +7,7 @@ from SPARQLWrapper import JSON
 from box import Box
 from rdflib import XSD
 
-from src.logic.constants.db import URI_PREFIX
+from src.logic.consts.db import URI_PREFIX
 from src.logic.db import GDM
 
 from ordered_set import OrderedSet

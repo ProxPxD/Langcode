@@ -7,7 +7,7 @@ from _pytest.fixtures import FixtureRequest
 
 from src.logic.blocks.node import N
 from src.logic.db import GDM
-from testing.consts import KEEP_GRAPH_FLAG, PREFIX, KEEP_GRAPH_OPT
+from testing.consts import KEEP_GRAPH_FLAG, URI_PREFIX, KEEP_GRAPH_OPT
 
 
 def pytest_addoption(parser):
@@ -34,7 +34,7 @@ def run_container():
 
 @pytest.fixture(scope='function', autouse=True)
 def test_fixture(request: FixtureRequest):
-    N.set_prefix(PREFIX)
+    N.set_prefix(URI_PREFIX)
     yield
     keep = request.config.getoption(KEEP_GRAPH_OPT)
     if not keep:
@@ -42,9 +42,9 @@ def test_fixture(request: FixtureRequest):
             DELETE {{ ?s ?p ?o . }} WHERE {{
                 ?s ?p ?o .
                 FILTER(
-                    STRSTARTS(STR(?s), "{PREFIX}") ||
-                    STRSTARTS(STR(?p), "{PREFIX}") ||
-                    STRSTARTS(STR(?o), "{PREFIX}")
+                    STRSTARTS(STR(?s), "{URI_PREFIX}") ||
+                    STRSTARTS(STR(?p), "{URI_PREFIX}") ||
+                    STRSTARTS(STR(?o), "{URI_PREFIX}")
                 )
             }};
         ''')
