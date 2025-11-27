@@ -30,7 +30,7 @@ class LogicTCG(TCG):
                 {(name:='empty')}: 
                 ''',
                 e_triples={
-                  'exist': (name, '', ''),
+                  'exist': (name, '', ''),  # TODO
                 },
             ),
         ]
