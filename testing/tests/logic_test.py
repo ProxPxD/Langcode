@@ -4,6 +4,7 @@ from typing import Any, Collection
 from _pytest.outcomes import fail
 
 from src.logic.blocks.node import N
+from src.logic.consts.keywords import IS, STRUCTANT
 from testing.core import TCG
 
 
@@ -30,7 +31,7 @@ class LogicTCG(TCG):
                 {(name:='empty')}: 
                 ''',
                 e_triples={
-                  'exist': (name, IS, STRUCTANT),  # TODO
+                  'exist': (name, IS, STRUCTANT),
                 },
             ),
         ]

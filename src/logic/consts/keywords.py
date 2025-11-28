@@ -12,17 +12,16 @@ ALT_KWS = (
     STRUCTANTS_ALTS := (STRUCTANTS := 'structants',),
     # Structants
     STRUCTANT_ALTS := (STRUCTANT := 'structant',),
-    SOURCE_ALTS := (SOURCE := 'source', 'src'),
-    OBJECT_ALTS := (OBJECT := 'object', 'obj'),
-    TARGET_ALTS := (TARGET := 'target', 'trg'),
-    DEFINE_ALTS := (DEFINE := 'define', 'def'),
+    SOURCE_ALTS := (SOURCE := 'source', SRC := 'src'),
+    OBJECT_ALTS := (OBJECT := 'object', OBJ := 'obj'),
+    TARGET_ALTS := (TARGET := 'target', TRG := 'trg'),
+    DEFINE_ALTS := (DEFINE := 'define', DEF := 'def'),
     ID_ALTS := (ID := 'id',),
     UID_ALTS := (UID := 'uid',),
     NONE_ID_PREFIX_ALTS := (NONE_ID_PREFIX := '_', ),
-    ALIASES_ALTS := (ALIASES := 'aliases', 'alias'),
+    ALIASES_ALTS := (ALIASES := 'aliases', ALIAS := 'alias'),
     IS_ALTS := (IS := 'is',),
     EX_ALTS := (EX := 'ex',),
-
 )
 
 
