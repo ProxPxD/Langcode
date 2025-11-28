@@ -1,2 +1,0 @@
-import nouns
-import verbs

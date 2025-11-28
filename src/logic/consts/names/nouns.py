@@ -1,1 +1,0 @@
-STRUCTANT = 'structant'

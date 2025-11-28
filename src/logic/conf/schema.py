@@ -1,13 +1,11 @@
 import uuid
-from collections import defaultdict
-from distutils.core import setup_keywords
-from typing import Annotated, Any, Optional
+from typing import Annotated, Any
 
-from pydantic import BaseModel, Field, BeforeValidator, model_validator, RootModel, field_validator
+from pydantic import BaseModel, Field, model_validator, RootModel, field_validator
 from pydash import curry
 
-from keywords import *
-import pydash as _
+from src.logic.consts.keywords import *
+
 
 # Config Validation Schema
 
@@ -103,7 +101,7 @@ class Structant(BaseModel):
         if not (structant_id := data.pop(ID, NONE_ID_PREFIX)).startswith(NONE_ID_PREFIX):
             structant[OBJECT].setdefault(ALIASES, []).append(structant_id)
         return structant
-    
+
 
 class Config(BaseModel):
     general: dict[Alphanumeric, Any] = Field(alias=GENERAL)

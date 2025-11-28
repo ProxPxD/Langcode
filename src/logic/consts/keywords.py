@@ -3,7 +3,7 @@ from collections.abc import Sequence
 import pydash as _
 from pydash import chain as c
 
-from .types import YamlType, SimpleYamlType
+from src.logic.conf.types import YamlType, SimpleYamlType
 
 ALT_KWS = (
     # Top level
@@ -11,6 +11,7 @@ ALT_KWS = (
     INGRAINS_ALTS := (INGRAINS := 'ingrains',),
     STRUCTANTS_ALTS := (STRUCTANTS := 'structants',),
     # Structants
+    STRUCTANT_ALTS := (STRUCTANT := 'structant',),
     SOURCE_ALTS := (SOURCE := 'source', 'src'),
     OBJECT_ALTS := (OBJECT := 'object', 'obj'),
     TARGET_ALTS := (TARGET := 'target', 'trg'),
@@ -19,6 +20,9 @@ ALT_KWS = (
     UID_ALTS := (UID := 'uid',),
     NONE_ID_PREFIX_ALTS := (NONE_ID_PREFIX := '_', ),
     ALIASES_ALTS := (ALIASES := 'aliases', 'alias'),
+    IS_ALTS := (IS := 'is',),
+    EX_ALTS := (EX := 'ex',),
+
 )
 
 
