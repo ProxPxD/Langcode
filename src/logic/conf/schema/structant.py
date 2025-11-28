@@ -1,14 +1,14 @@
 import uuid
 from typing import Any
 
-from pydantic import RootModel, BaseModel, Field
+from pydantic import RootModel, BaseModel, Field, AliasChoices
 from pydantic import model_validator
 
 from src.logic.conf.schema.utils import Alphanumeric, ConfType
 from src.logic.consts.keywords import *
 
 
-class Source(RootModel[dict[str, dict[str, ...]]]):
+class Source(RootModel[dict[str, Any]]):
     ...
 
 class Object(RootModel[dict[str, Any]]):
@@ -17,18 +17,19 @@ class Object(RootModel[dict[str, Any]]):
 class Target(RootModel[dict[str, Any]]):
     ...
 
-class Define(RootModel[list[dict[str, ...]]]):
+class Define(RootModel[list[dict[str, Any]]]):
     ...
 
 class Structant(BaseModel):
-    uid: Alphanumeric = Field(validation_alias=UID_ALTS)
-    source: Source = Field(validation_alias=SOURCE_ALTS)
-    object: Object = Field(validation_alias=OBJECT_ALTS)
-    target: Target = Field(validation_alias=TARGET_ALTS)
-    define: Define = Field(validation_alias=DEFINE_ALTS)
+    uid: Alphanumeric = Field(validation_alias=AliasChoices(*UID_ALTS))
+    source: Source = Field(validation_alias=AliasChoices(*SOURCE_ALTS))
+    object: Object = Field(validation_alias=AliasChoices(*OBJECT_ALTS))
+    target: Target = Field(validation_alias=AliasChoices(*TARGET_ALTS))
+    define: Define = Field(validation_alias=AliasChoices(*DEFINE_ALTS))
 
-    @classmethod
+
     @model_validator(mode="before")
+    @classmethod
     def normalize(cls, data: ConfType) -> ConfType:
         structant = {kw: data.pop(kw, None) for kw in STRUCTANT_KWS}
         # structant: ConfType = _.map_values(structant, self.dictionarize_item)

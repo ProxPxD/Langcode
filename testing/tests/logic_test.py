@@ -1,17 +1,28 @@
 from dataclasses import dataclass
 from itertools import product
+from pathlib import Path
 from typing import Any, Collection, Iterable, Generator
 
+import pytest
+import yaml
 from _pytest.outcomes import fail
 
 from src.logic.blocks.node import N
 from src.logic.conf.schema.top import Conf
+from src.logic.consts.db import rdf_dev_log
 from src.logic.consts.keywords import IS, STRUCTANT, SUB, EX
+from src.logic.lcm import LCM
 from testing.core import TCG
 import pydash as _
 from pydash import chain as c
 
 from testing.core.utils import apply
+
+
+SYSTEM_PATH = Path(__file__).parent
+TMP_DIR = SYSTEM_PATH / 'tmp'
+TEST_CONF = TMP_DIR / 'conf.yaml'
+
 
 StrS = str | Collection[str]
 
@@ -21,7 +32,7 @@ def to_list(pos_str) -> list[str]:
     raise ValueError(f'Unhandled type: {type(pos_str)}')
 
 @apply(list)
-def gen_triples(s: StrS, v: StrS, o: StrS, *, reverse: str | bool = None) -> Generator[Collection[str]]:
+def gen_triples(s: StrS, v: StrS, o: StrS, *, reverse: str | bool = None) -> Generator[Collection[str], None, None]:
     svo = _.map_((s, v, o), to_list)
     for s_, v_, o_ in product(*svo):
         yield s_, v_, o_
@@ -113,11 +124,19 @@ class LogicTCG(TCG):
             ),
         ]
 
+    @classmethod
+    def map(cls, tc):
+        return tc
 
 @LogicTCG.parametrize('tc')
 def test(tc: Tc | TC):
+    with open(TEST_CONF, 'w') as f:
+        yaml.dump(tc.conf.model_dump(), f, default_flow_style=False, allow_unicode=True)
+
+    lcm = LCM(log=rdf_dev_log)
     woman = N(name='woman')
     name = N(name='name')
     woman.name = name
     if woman.name[0] != name:
         fail('Wrong result')
+    pytest.fail('Nefiniĝita')

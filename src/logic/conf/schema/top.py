@@ -1,5 +1,5 @@
 import uuid
-from typing import Annotated, Any
+from typing import Annotated, Any, Optional
 
 import yaml
 from pydantic import BaseModel, Field, model_validator, RootModel, field_validator
@@ -38,13 +38,14 @@ from src.logic.consts.keywords import *
 class Conf(BaseModel):
     general: General = Field(alias=GENERAL, default=None)
     ingrains: dict[Alphanumeric, Any] = Field(alias=INGRAINS, default=None)
-    structants: list[Structant] | dict[str, Structant] | str  = Field(alias=STRUCTANTS)
+    structants: list[Optional[Structant]] | dict[str, Optional[Structant]] | str  = Field(alias=STRUCTANTS)
 
-    @classmethod
+
     @field_validator('structants', mode='before')
+    @classmethod
     def normalize_structants(cls, structants: ConfType | list[dict] | str) -> list[dict]:
         match structants:
-            case str(): return yaml.safe_load(structants)
+            case str(): return cls.normalize_structants(yaml.safe_load(structants))
             case list(): return structants
             case dict(): return [cls.merge_main_alias_with_content(key, content) for key, content in structants.items()]
 
