@@ -13,7 +13,7 @@ from testing.core import TCG
 class TC:
     descr: str
     conf: Conf
-    e_triples: dict[str, tuple[str, str, str]]
+    e_triples: dict[str, Collection[str]] | Collection[Exception]
     tags: Collection[str] = frozenset()
 
 @dataclass
@@ -30,11 +30,24 @@ class LogicTCG(TCG):
                 tags={'empty', 'id'},
                 conf=Conf(
                     structants=f'''
-                    {(name:='empty')}: 
-                    '''
+                                {(name := 'empty')}: 
+                                '''
                 ),
                 e_triples={
-                  'exist': (name, IS, STRUCTANT),
+                    'exist': (name, IS, STRUCTANT),
+                },
+            ),
+            TC(
+                descr='Empty Structant',
+                tags={'empty', 'id'},
+                conf=Conf(
+                    general=dict(),
+                    structants=f'''
+                            {(name := 'empty')}: 
+                            '''
+                ),
+                e_triples={
+                    'exist': (name, IS, STRUCTANT),
                 },
             ),
         ]

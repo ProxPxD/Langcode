@@ -1,38 +1,12 @@
 import uuid
-from typing import Annotated, Any
+from typing import Any
 
-import yaml
-from pydantic import BaseModel, Field, model_validator, RootModel, field_validator
-from pydash import curry
+from pydantic import RootModel, BaseModel, Field
+from pydantic import model_validator
 
+from src.logic.conf.schema.utils import Alphanumeric, ConfType
 from src.logic.consts.keywords import *
 
-
-# Config Validation Schema
-
-def ensure_dict_list(data: list | dict[str, Any]) -> list[dict]:
-    match data:
-        case list(): return data
-        case dict(): return [{'id': key, **content} for key, content in data.items()]
-        case None: return []
-        case _: raise ValueError(f'No strategy for mapping: {data}')
-
-@curry
-def is_x_of_y(x_type, y_type, obj) -> bool:
-    if not isinstance(obj, x_type): return False
-    match obj:
-        case list(): items = obj
-        case dict(): items = obj.values()
-        case _: raise ValueError(f'Unsupported type: {type(obj)}')
-    for item in items:
-        if not isinstance(item, y_type):
-            return False
-    return True
-
-is_dict_of_dict = is_x_of_y(dict, dict)
-
-Alphanumeric = Annotated[str, Field(pattern=r'^[a-zA-Z0-9_-]+$')]
-ConfType = dict[str, Any]
 
 class Source(RootModel[dict[str, dict[str, ...]]]):
     ...
@@ -102,26 +76,3 @@ class Structant(BaseModel):
         if not (structant_id := data.pop(ID, NONE_ID_PREFIX)).startswith(NONE_ID_PREFIX):
             structant[OBJECT].setdefault(ALIASES, []).append(structant_id)
         return structant
-
-
-class Conf(BaseModel):
-    general: dict[Alphanumeric, Any] = Field(alias=GENERAL)
-    ingrains: dict[Alphanumeric, Any] = Field(alias=INGRAINS)
-    structants: list[Structant] = Field(alias=STRUCTANTS)
-
-    @classmethod
-    @field_validator('structants', mode='before')
-    def normalize_structants(cls, structants: ConfType | list[dict] | str) -> list[dict]:
-        match structants:
-            case str(): return yaml.safe_load(structants)
-            case list(): return structants
-            case dict(): return [cls.merge_main_alias_with_content(key, content) for key, content in structants.items()]
-
-    @classmethod
-    def merge_main_alias_with_content(cls, main_alias: str, content: Any) -> dict:
-        match content:
-            case dict():
-                content.setdefault(ID, main_alias)
-                return content
-            case _:
-                return cls.merge_main_alias_with_content(main_alias, {DEFINE: content})
