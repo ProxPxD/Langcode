@@ -1,6 +1,7 @@
 import uuid
 from typing import Annotated, Any
 
+import yaml
 from pydantic import BaseModel, Field, model_validator, RootModel, field_validator
 from pydash import curry
 
@@ -103,15 +104,16 @@ class Structant(BaseModel):
         return structant
 
 
-class Config(BaseModel):
+class Conf(BaseModel):
     general: dict[Alphanumeric, Any] = Field(alias=GENERAL)
     ingrains: dict[Alphanumeric, Any] = Field(alias=INGRAINS)
     structants: list[Structant] = Field(alias=STRUCTANTS)
 
     @classmethod
-    @field_validator('structants', mode="before")
-    def normalize_structants(cls, structants: ConfType | list[dict]) -> list[dict]:
+    @field_validator('structants', mode='before')
+    def normalize_structants(cls, structants: ConfType | list[dict] | str) -> list[dict]:
         match structants:
+            case str(): return yaml.safe_load(structants)
             case list(): return structants
             case dict(): return [cls.merge_main_alias_with_content(key, content) for key, content in structants.items()]
 

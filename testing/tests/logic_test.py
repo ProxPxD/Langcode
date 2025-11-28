@@ -4,6 +4,7 @@ from typing import Any, Collection
 from _pytest.outcomes import fail
 
 from src.logic.blocks.node import N
+from src.logic.conf.schema import Conf
 from src.logic.consts.keywords import IS, STRUCTANT
 from testing.core import TCG
 
@@ -11,7 +12,7 @@ from testing.core import TCG
 @dataclass
 class TC:
     descr: str
-    conf: Any
+    conf: Conf
     e_triples: dict[str, tuple[str, str, str]]
     tags: Collection[str] = frozenset()
 
@@ -27,9 +28,11 @@ class LogicTCG(TCG):
             TC(
                 descr='Empty Structant',
                 tags={'empty', 'id'},
-                conf=f'''
-                {(name:='empty')}: 
-                ''',
+                conf=Conf(
+                    structants=f'''
+                    {(name:='empty')}: 
+                    '''
+                ),
                 e_triples={
                   'exist': (name, IS, STRUCTANT),
                 },
