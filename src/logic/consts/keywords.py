@@ -22,6 +22,7 @@ ALT_KWS = (
     ALIASES_ALTS := (ALIASES := 'aliases', ALIAS := 'alias'),
     IS_ALTS := (IS := 'is',),
     EX_ALTS := (EX := 'ex',),
+    SUB_ALTS := (SUB := 'sub',),
 )
 
 

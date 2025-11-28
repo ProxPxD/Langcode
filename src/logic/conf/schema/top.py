@@ -5,6 +5,7 @@ import yaml
 from pydantic import BaseModel, Field, model_validator, RootModel, field_validator
 from pydash import curry
 
+from src.logic.conf.schema.general import General
 from src.logic.conf.schema.structant import Structant
 from src.logic.conf.schema.utils import Alphanumeric, ConfType
 from src.logic.consts.keywords import *
@@ -35,9 +36,9 @@ from src.logic.consts.keywords import *
 
 
 class Conf(BaseModel):
-    general: dict[Alphanumeric, Any] = Field(alias=GENERAL)
-    ingrains: dict[Alphanumeric, Any] = Field(alias=INGRAINS)
-    structants: list[Structant] = Field(alias=STRUCTANTS)
+    general: General = Field(alias=GENERAL, default=None)
+    ingrains: dict[Alphanumeric, Any] = Field(alias=INGRAINS, default=None)
+    structants: list[Structant] | dict[str, Structant] | str  = Field(alias=STRUCTANTS)
 
     @classmethod
     @field_validator('structants', mode='before')
