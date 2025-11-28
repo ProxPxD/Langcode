@@ -4,3 +4,6 @@ class SCI:
     """
     def __init__(self):
         ...
+
+    def interpret(self, conf):
+        ...

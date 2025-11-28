@@ -1,2 +1,2 @@
-import names
-import db
+from . import db
+from . import keywords

@@ -1,4 +1,6 @@
 import logging
+import shlex
+import sys
 from argparse import ArgumentParser, Namespace
 from dataclasses import dataclass
 
@@ -10,6 +12,7 @@ from pydash import chain as c
 class Modes:
     run: str = 'run'
     rdf: str = 'rdf'
+    load: str = 'load'
 
 
 class CLI:
@@ -18,10 +21,11 @@ class CLI:
         ...
 
     def parse(self, args: list[str] | str = None) -> Namespace:
+        args = shlex.split(args) if isinstance(args, str) else (args or sys.argv[1:])
         if len(args) == 0: # TODO potentially edit for loop
             self.parser.print_help()
             exit(0)  # change
-        args = [a for arg in args for a in arg.split('\xa0')]
+        args = _.flat_map(args, c().split('\xa0'))
         parsed = self.parser.parse_args(args)
         # parsed, remaining = self.parser.parse_known_args(args)
         # parsed.args += remaining
@@ -38,7 +42,7 @@ class CLI:
         )
 
         sub = parser.add_subparsers(dest='cmd', required=True)
-        sub = _.flow(self._add_rdf_subcmd, self._add_run_subcmd)(sub)
+        sub = _.flow(self._add_rdf_subcmd, self._add_run_subcmd, self._add_load_subcmd)(sub)
         return parser
 
     def _add_run_subcmd(self, sub: ArgumentParser) -> ArgumentParser:
@@ -48,4 +52,9 @@ class CLI:
     def _add_rdf_subcmd(self, sub: ArgumentParser) -> ArgumentParser:
         p_rdf = sub.add_parser('rdf', help='Run an RDF query')
         p_rdf.add_argument('query', type=str, help='RDF query to execute')
+        return sub
+
+    def _add_load_subcmd(self, sub: ArgumentParser) -> ArgumentParser:
+        p_load = sub.add_parser('load', help='Run an RDF query')
+        p_load.add_argument('file', type=str, help='File to load')  # TODO: Lasu multajn bazojn
         return sub

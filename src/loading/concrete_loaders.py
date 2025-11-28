@@ -2,7 +2,7 @@ import json
 
 import yaml
 
-from abstract_loaders import FileLoader, DirLoader
+from src.loading.abstract_loaders import FileLoader, DirLoader
 
 basic_file_loaders = [
     yaml_file_loader := FileLoader(yaml.safe_load, ('.yaml', '.yml')),

@@ -7,3 +7,6 @@ class FCN:
     """
     def __init__(self):
         self.ici: ICI = ICI()
+
+    def norm(self, conf: dict) -> dict:
+        return conf

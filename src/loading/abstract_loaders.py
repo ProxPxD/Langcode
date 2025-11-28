@@ -5,7 +5,7 @@ import pydash as _
 
 
 class IPathable:
-    def __init__(self, path: str | Path, *args, **kwargs):
+    def __init__(self, path: str | Path = None, *args, **kwargs):
         self._path: Path = path
         super().__init__(*args, **kwargs)
 
