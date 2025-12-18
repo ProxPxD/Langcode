@@ -46,6 +46,7 @@ class Structant(BaseModel):
     @classmethod
     def _normalize_source(cls, source: dict | list | str | int) -> dict[str, dict[str, ...]]:
         match source:
+            case None: return {}
             case int() as n_args: return {str(i + 1): {} for i in range(n_args)}
             case str() as feat: return cls._normalize_source([feat])
             case list() as lst: return cls._normalize_source([dict.fromkeys(lst, True)])
@@ -64,13 +65,14 @@ class Structant(BaseModel):
     @classmethod
     def _normalize_define(cls, define) -> list[dict[str, ...]]:
         match define:
+            case None: return []
             case str(): raise NotImplementedError('"define: <str>" is not decided')
-            case dict(): return cls.normalize([define])
+            case dict(): return cls._normalize_define([define])
             case list(): return define
 
     @classmethod
     def _normalize_target(cls, target) -> dict:
-        return target
+        return target or {}
 
     @classmethod
     def fulfill_object(cls, structant: ConfType, data: ConfType) -> ConfType:

@@ -43,17 +43,18 @@ class Conf(BaseModel):
 
     @field_validator('structants', mode='before')
     @classmethod
-    def normalize_structants(cls, structants: ConfType | list[dict] | str) -> list[dict]:
+    def normalize_structants(cls, structants: ConfType | list[dict] | str) -> list[Structant]:
         match structants:
             case str(): return cls.normalize_structants(yaml.safe_load(structants))
-            case list(): return structants
+            case list(): return list(map(lambda s: cls.merge_main_alias_with_content(None, s), structants))
             case dict(): return [cls.merge_main_alias_with_content(key, content) for key, content in structants.items()]
 
     @classmethod
-    def merge_main_alias_with_content(cls, main_alias: str, content: Any) -> dict:
+    def merge_main_alias_with_content(cls, main_alias: Optional[str], content: Any) -> Structant:
         match content:
             case dict():
-                content.setdefault(ID, main_alias)
-                return content
+                if main_alias:
+                    content.setdefault(ID, main_alias)
+                return Structant(**(content or {}))
             case _:
                 return cls.merge_main_alias_with_content(main_alias, {DEFINE: content})
