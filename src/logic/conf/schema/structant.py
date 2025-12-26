@@ -31,7 +31,7 @@ class Structant(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def normalize(cls, data: ConfType) -> ConfType:
-        structant = {kw: data.pop(kw, None) for kw in STRUCTANT_KWS}
+        structant = {kw: data.pop(kw, {}) or {} for kw in STRUCTANT_KWS}
         # structant: ConfType = _.map_values(structant, self.dictionarize_item)
         structant[UID] = str(uuid.uuid4())
         structant[SOURCE] = cls._normalize_source(structant[SOURCE])
@@ -76,6 +76,7 @@ class Structant(BaseModel):
 
     @classmethod
     def fulfill_object(cls, structant: ConfType, data: ConfType) -> ConfType:
+        print(structant)
         if not (structant_id := data.pop(ID, NONE_ID_PREFIX)).startswith(NONE_ID_PREFIX):
             structant.setdefault(OBJECT, {}).setdefault(ALIASES, []).append(structant_id)
         return structant
