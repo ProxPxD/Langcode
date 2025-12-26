@@ -91,10 +91,10 @@ class LogicTCG(TCG):
                 tags={'sub/def', 'sub/set/parent', 'id'},
                 conf=Conf(
                     structants=f'''
-                                {binary_category}
-                                {(word := 'word')}:
-                                    {category}: {choice1}
-                                '''
+                    {binary_category}
+                    {(word := 'word')}:
+                        {category}: {choice1}
+                    '''
                 ),
                 e_triples=(
                     (word, IS, STRUCTANT),

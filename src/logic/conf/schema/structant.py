@@ -77,5 +77,5 @@ class Structant(BaseModel):
     @classmethod
     def fulfill_object(cls, structant: ConfType, data: ConfType) -> ConfType:
         if not (structant_id := data.pop(ID, NONE_ID_PREFIX)).startswith(NONE_ID_PREFIX):
-            structant[OBJECT].setdefault(ALIASES, []).append(structant_id)
+            structant.setdefault(OBJECT, {}).setdefault(ALIASES, []).append(structant_id)
         return structant
