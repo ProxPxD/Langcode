@@ -54,7 +54,7 @@ class Tc:
     ...
 
 
-class LogicTCG(TCG):
+class SystemConfTCG(TCG):
     @classmethod
     def generate_tcs(cls) -> list:
         return [
@@ -128,7 +128,7 @@ class LogicTCG(TCG):
     def map(cls, tc):
         return tc
 
-@LogicTCG.parametrize('tc')
+@SystemConfTCG.parametrize('tc')
 def test(tc: Tc | TC):
     with open(TEST_CONF, 'w') as f:
         yaml.dump(tc.conf.model_dump(), f, default_flow_style=False, allow_unicode=True)
