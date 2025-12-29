@@ -1,2 +1,2 @@
-from .test_case_generator import TCG
+from .TCG import TCG
 

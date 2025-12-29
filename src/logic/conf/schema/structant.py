@@ -1,5 +1,7 @@
+from __future__ import annotations
+
 import uuid
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import RootModel, BaseModel, Field, AliasChoices
 from pydantic import model_validator
@@ -21,11 +23,12 @@ class Define(RootModel[list[dict[str, Any]]]):
     ...
 
 class Structant(BaseModel):
-    uid: Alphanumeric = Field(validation_alias=AliasChoices(*UID_ALTS))
+    uid: Optional[Alphanumeric] = Field(validation_alias=AliasChoices(*UID_ALTS))
     source: Source = Field(validation_alias=AliasChoices(*SOURCE_ALTS))
     object: Object = Field(validation_alias=AliasChoices(*OBJECT_ALTS))
     target: Target = Field(validation_alias=AliasChoices(*TARGET_ALTS))
     define: Define = Field(validation_alias=AliasChoices(*DEFINE_ALTS))
+    sub: list[Structant] = Field(validation_alias=AliasChoices(*SUB_ALTS))
 
 
     @model_validator(mode="before")

@@ -47,7 +47,7 @@ not
 
 '''
 rel(args=args, props=props)
-__call__(self, *rels)
+__call__(self, *preds)
 not_
 perforate/sub
 

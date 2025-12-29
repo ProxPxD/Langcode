@@ -1,17 +1,18 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any, Optional
+from functools import cached_property
+from typing import Any, Optional, Collection
 
 from SPARQLWrapper import JSON
 from box import Box
+from ordered_set import OrderedSet
 from rdflib import XSD
 
 from src.logic.consts.db import URI_PREFIX
 from src.logic.db import GDM
 
-from ordered_set import OrderedSet
-
+RDFType = str | float | int | bool
 
 class RDFNode:
     _prefix: str = URI_PREFIX
@@ -25,15 +26,24 @@ class RDFNode:
     def gdm(self) -> GDM:
         return GDM.curr()
 
-    # TODO: Think whether to pass attributes that are not plural somewhere
-    def __init__(self, uri: str = None, *, name: str = None):
-        match bool(uri), bool(name):
-            case True, True: raise ValueError('Create RDFNode cannot have both "uri" or "name" to init')
-            case False, False: uri = f'{self._prefix}{uuid.uuid4()}'
-            case False, True: uri = f'{self._prefix}{name}'
-            case True, False: pass
+    def __init__(self,
+            uid: str = None, *, uri: str = None,
+            **preds: Collection[RDFNode | RDFType] | RDFNode | RDFType,
+        ):
+        self.uid = self._extract_uid(uid, uri)
+        self.create_triples(**preds)
 
-        self.uri = uri
+    @classmethod
+    def _extract_uid(cls, uid: Optional[str], uri: Optional[str]) -> str:  # noqa
+        match bool(uid), bool(uri):  # noqa
+            case (True, True): raise ValueError('Create RDFNode cannot have both "uri" or "uuid" to init')
+            case (False, True): return uri.rsplit('/')[-1]
+            case (False, False): return str(uuid.uuid4())
+            case (True, False): return uid
+
+    @cached_property
+    def uri(self) -> str:
+        return f'{self._prefix}{self.uid}'
 
     def __repr__(self) -> str:
         return f'<RDFNode {self.uri}>'
@@ -52,7 +62,7 @@ class RDFNode:
         except AttributeError:
             return self.get_via_pred(pred)
 
-    def __setattr__(self, pred, val: RDFNode | str | float | int | bool ) -> Optional[RDFNode]:
+    def __setattr__(self, pred, val: RDFNode | RDFType) -> Optional[RDFNode]:
         if pred.startswith("_") or pred in ('uri', 'gdm'):
             return super().__setattr__(pred, val)
         else:
@@ -72,7 +82,15 @@ class RDFNode:
             objs.add(RDFNode(obj.value) if obj.type == 'uri' else obj.value)
         return objs
 
-    def create_triple(self, pred: str, val: RDFNode | str | float | int | bool) -> RDFNode:
+    def create_triples(self, **preds: Collection[RDFNode | RDFType] | RDFNode | RDFType) -> RDFNode:
+        for verb_name, node_s in preds.items():
+            nodes = [node_s] if isinstance(node_s, RDFNode) else node_s
+            verb_name = verb_name.removesuffix('_')
+            for node in nodes:
+                self.create_triple(verb_name, node)
+        return self
+
+    def create_triple(self, pred: str, val: RDFNode | RDFType) -> RDFNode:
         """Create a relationship triple (self, pred, obj)."""
         pred_uri = f'{self._prefix}{pred}'
         obj = self._map_val_to_rdf(val)
