@@ -30,7 +30,7 @@ class LCM:
             case Modes.start: self.run_loop(parsed.run)
             case Modes.query: self.run_rdf(parsed.rdf)
             case Modes.load: self.run_load(parsed.load)
-            case _: raise ValueError(f'Unrecognized cmd: {parsed.cmd}')
+            case _: raise ValueError(f'Unrecognized command: {parsed.cmd}')
 
     def run_loop(self, run_parsed) -> None:
         logging.debug('Run Loop')

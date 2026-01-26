@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from itertools import product
 from pathlib import Path
-from typing import Any, Collection, Iterable, Generator
+from typing import Collection, Iterable, Generator
 
 import pytest
 import yaml
@@ -11,10 +11,9 @@ from src.logic.blocks.node import N
 from src.logic.conf.schema.top import Conf
 from src.logic.consts.db import rdf_dev_log
 from src.logic.consts.keywords import IS, STRUCTANT, SUB, EX
-from src.logic.lcm import LCM
+from src.lcm import LCM
 from testing.core import TCG
 import pydash as _
-from pydash import chain as c
 
 from testing.core.utils import apply
 
