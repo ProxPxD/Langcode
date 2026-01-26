@@ -1,12 +1,12 @@
 from argparse import Namespace
 
-from src.cli.keywords import run as run
+from src.cli.keywords import run
 
 
 class InputProcessor:
     @classmethod
     def process(cls, parsed: Namespace) -> Namespace:  # TODO: context!?
-        cls.process_create(parsed.create)
+        getattr(cls, f'process_{parsed.cmd}')(parsed)
         return parsed
 
     @classmethod
@@ -22,9 +22,9 @@ class InputProcessor:
         over_upto_idx = min(under_idx, len(args)) if under_idx > over_idx else len(args)
 
         # The names switch as something that a category spreads over is an under category
-        names, over_cats, under_cats = args[:name_upto_idx], args[under_idx:under_upto_idx], args[over_idx:over_upto_idx]
-        if len(names) != 1:
-            raise ValueError(f'"{run.CREATE}" command has to have a category name specified')  # Parsing error?
+        trash, over_cats, under_cats = args[:name_upto_idx], args[under_idx:under_upto_idx], args[over_idx:over_upto_idx]
+        if trash:
+            raise ValueError(f'"{run.CREATE}" command has to have one category name specified')  # Parsing error?
         if not over_cats and under_idx < len(args):
             raise ValueError(f'"{coords.UNDER}" has to have exactly one category specified')
         if not under_cats and over_idx < len(args):
@@ -32,7 +32,6 @@ class InputProcessor:
 
         create.over_cat = over_cats
         create.under_cat = under_cats
-        create.cat_name = names[0]
 
 
 

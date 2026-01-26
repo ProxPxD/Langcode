@@ -1,10 +1,12 @@
 from argparse import ArgumentParser, SUPPRESS, _SubParsersAction
 
-from src.cli import keywords as run
+
 from src.cli.cli import CLI
+from src.cli.keywords import run
 
 
 class LoopCLI(CLI):
+    @property
     def parser(self) -> ArgumentParser:
         parser = ArgumentParser()
         cmd = parser.add_subparsers(dest=run.CMD)
@@ -17,7 +19,7 @@ class LoopCLI(CLI):
     def _create_cmd_create_section(self, cmd: _SubParsersAction):
         create = cmd.add_parser(run.CREATE, aliases=run.create.ALIASES)
         create.add_argument(run.create.CAT)
-        create.add_argument(run.create.ARGS, nargs='+', help=SUPPRESS)
+        create.add_argument(run.create.ARGS, nargs='*', help=SUPPRESS)
         create.epilog = (
             f'Bare flags (order-independent):\n'
             f'  {run.create.coords.UNDER}    Specify one category the new one is under\n'

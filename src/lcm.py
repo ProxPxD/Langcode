@@ -1,5 +1,6 @@
 import logging
 from argparse import Namespace
+from os import lchown
 
 from src.loop_mging.input_mgr import InputMgr
 from src.cli.outer_cli import OuterCLI, Modes
@@ -25,14 +26,14 @@ class LCM:
     def run(self) -> None:
         parsed: Namespace = self.outer_cli.parse()  # TODO: add a proper application context
         match parsed.cmd:
-            case Modes.start: self.run_loop(parsed.run)
+            case Modes.start: self.run_loop()
             case Modes.query: self.run_rdf(parsed.rdf)
             case Modes.load: self.run_load(parsed.load)
             case _: raise ValueError(f'Unrecognized command: {parsed.cmd}')
 
-    def run_loop(self, run_parsed) -> None:
+    def run_loop(self) -> None:
         logging.debug('Run Loop')
-
+        self.input_mgr.parse()
         ...
         # while self.context.loop:
         #     self.run_single(shlex.split(input()))

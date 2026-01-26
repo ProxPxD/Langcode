@@ -1,4 +1,4 @@
-import coords
+from . import coords
 
 ALIASES = (MAKE:='make', NEW:='new')
 

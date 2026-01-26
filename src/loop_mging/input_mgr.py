@@ -10,6 +10,6 @@ class InputMgr:
         self.input_processor = InputProcessor()
 
     def parse(self) -> Any:  # context
-        parsed = self.loop_cli.parse()
+        parsed = self.loop_cli.parse(input())
         _ = self.input_processor.process(parsed)
         return _
