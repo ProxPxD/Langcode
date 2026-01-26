@@ -2,9 +2,12 @@ import logging
 import shlex
 from argparse import Namespace
 
-from src.cli import CLI, Modes
+from src.input_mging.input_mgr import InputMgr
+from src.input_mging.loop_cli import LoopCLI
+from src.input_mging.outer_cli import OuterCLI, Modes
 from src.loading import GenLoader
 from src.logic.conf.fcn import FCN
+from src.logic.context.context import Context
 from src.logic.db import GDM, LoginData
 from src.logic.sci import SCI
 
@@ -14,21 +17,24 @@ class LCM:
     Lang Code Manager
     """
     def __init__(self, *, log: LoginData):
-        self.cli = CLI()
+        self.outer_cli = OuterCLI()
+        self.input_mgr = InputMgr()
         self.gdm: GDM = GDM(log)
         self.fcn = FCN()
         self.sci: SCI = SCI()
+        self.context = Context()
 
     def run(self) -> None:
-        parsed: Namespace = self.cli.parse()  # TODO: add a proper application context
+        parsed: Namespace = self.outer_cli.parse()  # TODO: add a proper application context
         match parsed.cmd:
-            case Modes.run: self.run_loop(parsed.run)
-            case Modes.rdf: self.run_rdf(parsed.rdf)
+            case Modes.start: self.run_loop(parsed.run)
+            case Modes.query: self.run_rdf(parsed.rdf)
             case Modes.load: self.run_load(parsed.load)
             case _: raise ValueError(f'Unrecognized cmd: {parsed.cmd}')
 
     def run_loop(self, run_parsed) -> None:
         logging.debug('Run Loop')
+
         ...
         # while self.context.loop:
         #     self.run_single(shlex.split(input()))

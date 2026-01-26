@@ -25,4 +25,4 @@ class DBManager:
 
     def run(self, query: str | Query, **kwargs) -> Result:
         with self.driver.session(database=self.db) as session:
-            return session.run(query, **kwargs)
+            return session.start(query, **kwargs)

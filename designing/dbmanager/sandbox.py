@@ -24,9 +24,9 @@ CREATE
 
 with dbm.driver.session(database=DB) as session:
 
-    result = session.run("MATCH (u:User) RETURN u.name AS name, u.age AS age")
+    result = session.start("MATCH (u:User) RETURN u.name AS name, u.age AS age")
     pass
-    result = session.run("""
+    result = session.start("""
         MATCH path=(u:User)-[:KNOWS*]->(friend:User)
         RETURN path
     """).to_eager_result()
