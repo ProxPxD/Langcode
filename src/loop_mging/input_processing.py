@@ -1,6 +1,6 @@
 from argparse import Namespace
 
-from src.cli import keywords as run
+from src.cli.keywords import run as run
 
 
 class InputProcessor:
