@@ -1,13 +1,11 @@
 import logging
-import shlex
 from argparse import Namespace
 
-from src.input_mging.input_mgr import InputMgr
-from src.input_mging.loop_cli import LoopCLI
-from src.input_mging.outer_cli import OuterCLI, Modes
+from src.loop_mging.input_mgr import InputMgr
+from src.cli.outer_cli import OuterCLI, Modes
 from src.loading import GenLoader
 from src.logic.conf.fcn import FCN
-from src.logic.context.context import Context
+from src.context.context import Context
 from src.logic.db import GDM, LoginData
 from src.logic.sci import SCI
 

@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, SUPPRESS, _SubParsersAction
 
-import keywords.run as run
-from src.input_mging.cli import CLI
+from src.cli import keywords as run
+from src.cli.cli import CLI
 
 
 class LoopCLI(CLI):

@@ -1,13 +1,7 @@
-import logging
-import shlex
-import sys
-from argparse import ArgumentParser, Namespace, _SubParsersAction
+from argparse import ArgumentParser, _SubParsersAction
 from dataclasses import dataclass
 
-import pydash as _
-from pydash import chain as c
-
-from src.input_mging.cli import CLI
+from src.cli.cli import CLI
 
 
 @dataclass(frozen=True)
