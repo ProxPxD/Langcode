@@ -1,5 +1,5 @@
-import sys
-from . import create
+from . import create, context
 
 CMD = 'cmd'
-CREATE='create'
+CREATE = 'create'
+CONTEXT = 'context'
